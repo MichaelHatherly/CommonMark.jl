@@ -27,7 +27,7 @@ using CommonMark, Test, JSON
             for file in files
                 if endswith(file, ".md")
                     name = joinpath(root, file)
-                    html = read(splitext(name)[1] * ".html", String)
+                    html = replace(read(splitext(name)[1] * ".html", String), "\r\n" => "\n")
 
                     p = CommonMark.Parser()
                     h = CommonMark.Renderer(CommonMark.HTML())
