@@ -1,5 +1,11 @@
 module CommonMark
 
-greet() = print("Hello World!")
+import JSON, URIParser
+
+include("utils.jl")
+include("ast.jl")
+include("parsers.jl")
+include("writers.jl")
+include("extensions.jl")
 
 end # module
