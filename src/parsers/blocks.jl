@@ -17,7 +17,6 @@ const reHtmlBlockClose = [
     r"\]\]>"
 ]
 const reThematicBreak     = r"^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$"
-const reMaybeSpecial      = r"^[\[!\|:;#`~*+_=<>0-9-]"
 const reNonSpace          = r"[^ \t\f\v\r\n]"
 const reBulletListMarker  = r"^[*+-]"
 const reOrderedListMarker = r"^(\d{1,9})([.)])"
@@ -26,6 +25,8 @@ const reCodeFence         = r"^`{3,}(?!.*`)|^~{3,}"
 const reClosingCodeFence  = r"^(?:`{3,}|~{3,})(?= *$)"
 const reSetextHeadingLine = r"^(?:=+|-+)[ \t]*$"
 const reLineEnding        = r"\r\n|\n|\r"
+
+const MAYBE_SPECIAL = Set("[!|:;#`~*+_=<>0123456789-")
 
 mutable struct Parser
     doc::Node
@@ -46,6 +47,7 @@ mutable struct Parser
     last_matched_container::Node
     refmap::Dict{String, Any}
     last_line_length::Int
+    maybe_special::Set{Char}
     inline_parser::InlineParser
     fenced_literals::Dict{String, Function}
     options::Dict{String, Any}
@@ -70,6 +72,7 @@ mutable struct Parser
         parser.last_matched_container = parser.doc
         parser.refmap = Dict()
         parser.last_line_length = 0
+        parser.maybe_special = copy(MAYBE_SPECIAL)
         parser.fenced_literals = Dict()
         parser.inline_parser = InlineParser(options)
         parser.options = options
@@ -288,8 +291,8 @@ function incorporate_line(parser::Parser, ln::AbstractString)
     # adding children to the last matched container.
     while !matched_leaf
         find_next_nonspace(parser)
-        # This is a little performance optimization. ALLOCATES lots.
-        if !parser.indented && !occursin(reMaybeSpecial, SubString(ln, parser.next_nonspace))
+        # This is a little performance optimization. Should not affect correctness.
+        if !parser.indented && get(ln, parser.next_nonspace, '\0') ∉ parser.maybe_special
             advance_next_nonspace(parser)
             break
         end
