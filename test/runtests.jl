@@ -1,4 +1,4 @@
-using CommonMark, Test, JSON
+using CommonMark, Test, JSON, Pkg.TOML, YAML
 
 @testset "CommonMark" begin
     # Do we pass the CommonMark spec -- version 0.29.0.

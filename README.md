@@ -27,6 +27,7 @@ The parser outputs `Node` trees that can then be written to `HTML`, `LaTeX`, or
 
 Available extensions include the following:
 
+- Frontmatter: support for JSON, TOML, and YAML.
 - GFM-tables, strict requirement for alignment of `|` between columns
 - Double backtick inline LaTeX math and display math blocks
 - Admonitions

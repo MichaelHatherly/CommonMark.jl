@@ -3,4 +3,5 @@
     include("extensions/footnotes.jl")
     include("extensions/math.jl")
     include("extensions/tables.jl")
+    include("extensions/frontmatter.jl")
 end

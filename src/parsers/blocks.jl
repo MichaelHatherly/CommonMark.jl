@@ -17,7 +17,7 @@ const reHtmlBlockClose = [
     r"\]\]>"
 ]
 const reThematicBreak     = r"^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$"
-const reMaybeSpecial      = r"^[\[!\|:#`~*+_=<>0-9-]"
+const reMaybeSpecial      = r"^[\[!\|:;#`~*+_=<>0-9-]"
 const reNonSpace          = r"[^ \t\f\v\r\n]"
 const reBulletListMarker  = r"^[*+-]"
 const reOrderedListMarker = r"^(\d{1,9})([.)])"
