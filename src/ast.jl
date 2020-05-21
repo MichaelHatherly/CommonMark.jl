@@ -166,7 +166,7 @@ function append_child(node::Node, child::Node)
 end
 
 function prepend_child(node::Node, child::Node)
-    child.unlink()
+    unlink(child)
     child.parent = node
     if node.first_child
         node.first_child.prv = child

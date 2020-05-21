@@ -88,8 +88,6 @@ is_space_or_tab(s::AbstractString) = s in (" ", "\t")
 is_space_or_tab(c::AbstractChar) = c in (' ', '\t')
 is_space_or_tab(other) = false
 
-peek(ln::AbstractString, pos::Integer) = get(ln, pos, nothing)
-
 function ends_with_blank_line(block::Node)
     while !isnull(block)
         if block.last_line_blank

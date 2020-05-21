@@ -19,7 +19,7 @@ function parse_list_marker(parser::Parser, container::Node)
     end
 
     # Make sure we have spaces after.
-    nextc = peek(parser.current_line, parser.next_nonspace + length(m.match))
+    nextc = get(parser.current_line, parser.next_nonspace + length(m.match), nothing)
     if nextc ∉ (nothing, '\t', ' ')
         return nothing
     end
@@ -36,20 +36,20 @@ function parse_list_marker(parser::Parser, container::Node)
     spaces_start_offset = parser.offset
     while true
         advance_offset(parser, 1, true)
-        nextc = peek(parser.current_line, parser.offset)
+        nextc = get(parser.current_line, parser.offset, nothing)
         if parser.column - spaces_start_col < 5 && is_space_or_tab(nextc)
             nothing
         else
             break
         end
     end
-    blank_item = peek(parser.current_line, parser.offset) === nothing
+    blank_item = get(parser.current_line, parser.offset, nothing) === nothing
     spaces_after_marker = parser.column - spaces_start_col
     if spaces_after_marker ≥ 5 || spaces_after_marker < 1 || blank_item
         data.padding = length(m.match) + 1
         parser.column = spaces_start_col
         parser.offset = spaces_start_offset
-        if is_space_or_tab(peek(parser.current_line, parser.offset))
+        if is_space_or_tab(get(parser.current_line, parser.offset, nothing))
             advance_offset(parser, 1, true)
         end
     else

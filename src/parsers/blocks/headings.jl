@@ -31,7 +31,7 @@ function setext_heading(parser::Parser, container::Node)
         if m !== nothing
             close_unmatched_blocks(parser)
             # resolve reference link definitiosn
-            while peek(container.string_content, 1) == '['
+            while get(container.string_content, 1, nothing) == '['
                 pos = parse_reference(parser.inline_parser, container.string_content, parser.refmap)
                 if pos == 0
                     break

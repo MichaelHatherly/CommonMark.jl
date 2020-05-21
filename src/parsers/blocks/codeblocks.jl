@@ -18,7 +18,7 @@ function continue_(::CodeBlock, parser::Parser, container::Node)
         else
             # skip optional spaces of fence offset
             i = container.t.fence_offset
-            while i > 0 && is_space_or_tab(peek(ln, parser.offset))
+            while i > 0 && is_space_or_tab(get(ln, parser.offset, nothing))
                 advance_offset(parser, 1, true)
                 i -= 1
             end
