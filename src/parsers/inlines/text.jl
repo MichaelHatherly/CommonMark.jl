@@ -1,3 +1,6 @@
+struct SoftBreak <: AbstractInline end
+struct LineBreak <: AbstractInline end
+
 function parse_string(parser::InlineParser, block::Node)
     m = consume(parser, match(reMain, parser))
     m === nothing && return false
@@ -42,6 +45,8 @@ function smart_dashes(chars::AbstractString)
     end
     return ('\u2014'^em_count) * ('\u2013'^en_count)
 end
+
+struct Text <: AbstractInline end
 
 function text(s::AbstractString)
     node = Node(Text())

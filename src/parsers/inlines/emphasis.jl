@@ -1,3 +1,11 @@
+struct Emph <: AbstractInline end
+
+is_container(::Emph) = true
+
+struct Strong <: AbstractInline end
+
+is_container(::Strong) = true
+
 parse_asterisk(parser, block) = handle_delim(parser, '*', block)
 parse_underscore(parser, block) = handle_delim(parser, '_', block)
 

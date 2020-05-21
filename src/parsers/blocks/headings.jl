@@ -1,3 +1,10 @@
+mutable struct Heading <: AbstractBlock
+    level::Int
+    Heading() = new(0)
+end
+
+is_container(::Heading) = true
+
 accepts_lines(::Heading) = false
 
 continue_(::Heading, ::Parser, ::Node) = 1

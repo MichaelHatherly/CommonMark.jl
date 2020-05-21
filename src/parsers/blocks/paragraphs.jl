@@ -1,3 +1,7 @@
+struct Paragraph <: AbstractBlock end
+
+is_container(::Paragraph) = true
+
 accepts_lines(::Paragraph) = true
 
 continue_(::Paragraph, parser::Parser, ::Node) = parser.blank ? 1 : 0

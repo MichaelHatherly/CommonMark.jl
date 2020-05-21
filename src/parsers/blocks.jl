@@ -104,6 +104,9 @@ function ends_with_blank_line(block::Node)
     return false
 end
 
+struct Document <: AbstractBlock end
+
+is_container(::Document) = true
 accepts_lines(::Document) = false
 continue_(::Document, ::Parser, ::Node) = 0
 finalize(::Document, ::Parser, ::Node) = nothing

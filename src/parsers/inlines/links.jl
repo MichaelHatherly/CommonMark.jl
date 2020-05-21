@@ -1,3 +1,19 @@
+mutable struct Link <: AbstractInline
+    destination::String
+    title::String
+    Link() = new("", "")
+end
+
+is_container(::Link) = true
+
+mutable struct Image <: AbstractInline
+    destination::String
+    title::String
+    Image() = new("", "")
+end
+
+is_container(::Image) = true
+
 chomp_ws(parser::InlineParser) = (consume(parser, match(reSpnl, parser)); true)
 
 function parse_link_title(parser::InlineParser)

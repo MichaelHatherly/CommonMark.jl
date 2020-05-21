@@ -1,3 +1,27 @@
+mutable struct ListData
+    type::String
+    tight::Bool
+    bullet_char::Char
+    start::Int
+    delimiter::String
+    padding::Int
+    marker_offset::Int
+    ListData(indent=0) = new("", true, ' ', 1, "", 0, indent)
+end
+
+mutable struct Item <: AbstractBlock
+    list_data::ListData
+    Item() = new(ListData())
+end
+
+mutable struct List <: AbstractBlock
+    list_data::ListData
+    List() = new(ListData())
+end
+
+is_container(::List) = true
+is_container(::Item) = true
+
 function parse_list_marker(parser::Parser, container::Node)
     rest = SubString(parser.current_line, parser.next_nonspace)
     data = ListData(parser.indent)

@@ -1,3 +1,7 @@
+struct BlockQuote <: AbstractBlock end
+
+is_container(::BlockQuote) = true
+
 accepts_lines(::BlockQuote) = false
 
 function continue_(::BlockQuote, parser::Parser, container::Node)

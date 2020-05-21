@@ -1,88 +1,8 @@
 abstract type AbstractContainer end
-
 abstract type AbstractBlock <: AbstractContainer end
-
-struct BlockQuote <: AbstractBlock end
-
-mutable struct CodeBlock <: AbstractBlock
-    info::String
-    is_fenced::Bool
-    fence_char::Char
-    fence_length::Int
-    fence_offset::Int
-    CodeBlock() = new("", false, '\0', 0, 0)
-end
-
-struct Document <: AbstractBlock end
-
-mutable struct Heading <: AbstractBlock
-    level::Int
-    Heading() = new(0)
-end
-
-mutable struct HtmlBlock <: AbstractBlock
-    html_block_type::Int
-    HtmlBlock() = new(0)
-end
-
-mutable struct ListData
-    type::String
-    tight::Bool
-    bullet_char::Char
-    start::Int
-    delimiter::String
-    padding::Int
-    marker_offset::Int
-    ListData(indent=0) = new("", true, ' ', 1, "", 0, indent)
-end
-
-mutable struct Item <: AbstractBlock
-    list_data::ListData
-    Item() = new(ListData())
-end
-
-mutable struct List <: AbstractBlock
-    list_data::ListData
-    List() = new(ListData())
-end
-
-struct Paragraph <: AbstractBlock end
-struct ThematicBreak <: AbstractBlock end
-
 abstract type AbstractInline <: AbstractContainer end
 
-struct SoftBreak <: AbstractInline end
-struct LineBreak <: AbstractInline end
-
-mutable struct Link <: AbstractInline
-    destination::String
-    title::String
-    Link() = new("", "")
-end
-
-mutable struct Image <: AbstractInline
-    destination::String
-    title::String
-    Image() = new("", "")
-end
-
-struct Emph <: AbstractInline end
-struct Strong <: AbstractInline end
-struct Code <: AbstractInline end
-struct Text <: AbstractInline end
-struct HtmlInline <: AbstractInline end
-
-is_container(other::AbstractContainer) = false
-is_container(::Document) = true
-is_container(::BlockQuote) = true
-is_container(::List) = true
-is_container(::Item) = true
-is_container(::Paragraph) = true
-is_container(::Heading) = true
-is_container(::Emph) = true
-is_container(::Strong) = true
-is_container(::Link) = true
-is_container(::Image) = true
+is_container(::AbstractContainer) = false
 
 const SourcePos = NTuple{2, NTuple{2, Int}}
 
