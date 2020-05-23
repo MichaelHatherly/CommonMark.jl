@@ -1,6 +1,6 @@
 @testset "Footnotes" begin
     p = CommonMark.Parser()
-    pushfirst!(p.block_starts, CommonMark.parse_footnote_definition)
+    p.block_starts['['] = [CommonMark.parse_footnote_definition]
     pushfirst!(p.inline_parser.inline_parsers['['], CommonMark.parse_footnote)
 
     # Links

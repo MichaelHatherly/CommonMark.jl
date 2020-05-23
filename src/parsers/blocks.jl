@@ -26,11 +26,9 @@ const reClosingCodeFence  = r"^(?:`{3,}|~{3,})(?= *$)"
 const reSetextHeadingLine = r"^(?:=+|-+)[ \t]*$"
 const reLineEnding        = r"\r\n|\n|\r"
 
-const MAYBE_SPECIAL = Set("[!|:;#`~*+_=<>0123456789-")
-
 mutable struct Parser
     doc::Node
-    block_starts::Vector{Function}
+    block_starts::Dict{Char, Vector{Function}}
     tip::Node
     oldtip::Node
     current_line::String
@@ -47,7 +45,6 @@ mutable struct Parser
     last_matched_container::Node
     refmap::Dict{String, Any}
     last_line_length::Int
-    maybe_special::Set{Char}
     inline_parser::InlineParser
     fenced_literals::Dict{String, Function}
     options::Dict{String, Any}
@@ -55,7 +52,7 @@ mutable struct Parser
     function Parser(options=Dict())
         parser = new()
         parser.doc = Node(Document(), ((1, 1), (0, 0)))
-        parser.block_starts = copy(METHODS)
+        parser.block_starts = deepcopy(METHODS_DICT)
         parser.tip = parser.doc
         parser.oldtip = parser.doc
         parser.current_line = ""
@@ -72,7 +69,6 @@ mutable struct Parser
         parser.last_matched_container = parser.doc
         parser.refmap = Dict()
         parser.last_line_length = 0
-        parser.maybe_special = copy(MAYBE_SPECIAL)
         parser.fenced_literals = Dict()
         parser.inline_parser = InlineParser(options)
         parser.options = options
@@ -137,6 +133,30 @@ const METHODS = [
     list_item,
     indented_code_block,
 ]
+
+const METHODS_DICT = Dict{Char, Vector{Function}}(
+    '\0' => [indented_code_block],
+    '>' => [block_quote, html_block],
+    '#' => [atx_heading],
+    '`' => [fenced_code_block],
+    '~' => [fenced_code_block],
+    '<' => [html_block],
+    '-' => [setext_heading, thematic_break, list_item],
+    '=' => [setext_heading],
+    '*' => [thematic_break, list_item],
+    '_' => [thematic_break],
+    '+' => [list_item],
+    '0' => [list_item],
+    '1' => [list_item],
+    '2' => [list_item],
+    '3' => [list_item],
+    '4' => [list_item],
+    '5' => [list_item],
+    '6' => [list_item],
+    '7' => [list_item],
+    '8' => [list_item],
+    '9' => [list_item],
+)
 
 function add_line(parser::Parser)
     if parser.partially_consumed_tab
@@ -286,32 +306,49 @@ function incorporate_line(parser::Parser, ln::AbstractString)
     parser.last_matched_container = container
 
     matched_leaf = !(container.t isa Paragraph) && accepts_lines(container.t)
-    starts = parser.block_starts
-    starts_len = length(starts)
     # Unless last matched container is a code block, try new container starts,
     # adding children to the last matched container.
     while !matched_leaf
+
         find_next_nonspace(parser)
+        next_nonspace_char = get(ln, parser.next_nonspace, '\0')
         # This is a little performance optimization. Should not affect correctness.
-        if !parser.indented && get(ln, parser.next_nonspace, '\0') ∉ parser.maybe_special
+        if !parser.indented && !haskey(parser.block_starts, next_nonspace_char)
             advance_next_nonspace(parser)
             break
         end
-        i = 1
-        while i ≤ starts_len
-            res = starts[i](parser, container)
-            if res === 1
-                container = parser.tip
-                break
-            elseif res === 2
-                container = parser.tip
-                matched_leaf = true
-                break
-            else
-                i += 1
+        found = false
+        if haskey(parser.block_starts, next_nonspace_char)
+            for λ in parser.block_starts[next_nonspace_char]
+                res = λ(parser, container)
+                if res === 1
+                    found = true
+                    container = parser.tip
+                    break
+                elseif res === 2
+                    found = true
+                    container = parser.tip
+                    matched_leaf = true
+                    break
+                end
             end
         end
-        if i > starts_len
+        if !found
+            for λ in parser.block_starts['\0']
+                res = λ(parser, container)
+                if res === 1
+                    found = true
+                    container = parser.tip
+                    break
+                elseif res === 2
+                    found = true
+                    container = parser.tip
+                    matched_leaf = true
+                    break
+                end
+            end
+        end
+        if !found
             # nothing matched
             advance_next_nonspace(parser)
             break

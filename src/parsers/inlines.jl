@@ -63,7 +63,7 @@ mutable struct InlineParser <: AbstractParser
         parser.delimiters = nothing
         parser.refmap = Dict()
         parser.options = options
-        parser.inline_parsers = copy(COMMONMARK_INLINE_PARSERS)
+        parser.inline_parsers = deepcopy(COMMONMARK_INLINE_PARSERS)
         return parser
     end
 end
@@ -77,6 +77,7 @@ include("inlines/links.jl")
 include("inlines/text.jl")
 
 const COMMONMARK_INLINE_PARSERS = Dict(
+    '\0' => [parse_string],
     '\n' => [parse_newline],
     '\\' => [parse_backslash],
     '`'  => [parse_backticks],
@@ -101,7 +102,10 @@ function parse_inline(parser::InlineParser, block::Node)
             res && break
         end
     else
-        res = parse_string(parser, block)
+        for λ in parser.inline_parsers['\0']
+            res = λ(parser, block)
+            res && break
+        end
     end
     if !res
         read(parser, Char)

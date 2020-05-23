@@ -1,6 +1,9 @@
 @testset "Frontmatter" begin
     p = CommonMark.Parser()
-    pushfirst!(p.block_starts, CommonMark.parse_front_matter)
+
+    p.block_starts[';'] = [CommonMark.parse_front_matter]
+    pushfirst!(p.block_starts['+'], CommonMark.parse_front_matter)
+    pushfirst!(p.block_starts['-'], CommonMark.parse_front_matter)
 
     p.fenced_literals[";;;"] = JSON.Parser.parse
     p.fenced_literals["+++"] = TOML.parse
