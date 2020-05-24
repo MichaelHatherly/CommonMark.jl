@@ -7,7 +7,7 @@ function render(r::Writer{LaTeX}, ast::Node)
     for (node, entering) in ast
         latex(node.t, r, node, entering)
     end
-    return r.buffer
+    return nothing
 end
 
 # Utilities.

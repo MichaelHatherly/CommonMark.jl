@@ -1,3 +1,16 @@
+# Public
+
+html(io::IO, ast::Node) = render(Writer(HTML(), io), ast)
+html(ast::Node) = sprint(html, ast)
+
+latex(io::IO, ast::Node) = render(Writer(LaTeX(), io), ast)
+latex(ast::Node) = sprint(latex, ast)
+
+term(io::IO, ast::Node) = render(Writer(Term(), io), ast)
+term(ast::Node) = sprint(term, ast)
+
+# Internals
+
 mutable struct Writer{F, I <: IO}
     format::F
     buffer::I
@@ -16,7 +29,7 @@ function render(r::Writer, ast::Node)
     for (node, entering) in ast
         render(r, node.t, node, entering)
     end
-    return r.buffer
+    return nothing
 end
 
 (r::Writer)(ast::Node) = render(r, ast)

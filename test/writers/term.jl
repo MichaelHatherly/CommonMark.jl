@@ -1,12 +1,9 @@
 @testset "Terminal" begin
-    p = CommonMark.Parser()
-    b = IOBuffer()
-    r = CommonMark.Writer(CommonMark.Term(), b)
+    p = Parser()
 
     test = function(text, expected)
         ast = p(text)
-        result = r(ast, String)
-        @test result == expected
+        @test term(ast) == expected
     end
 
     # Code blocks.

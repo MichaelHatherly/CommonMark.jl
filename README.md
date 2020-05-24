@@ -15,8 +15,8 @@ Create a markdown parser with the default CommonMark settings and then add
 footnote syntax to our parser.
 
 ```julia
-markdown = CommonMark.Parser()
-enable!(markdown, CommonMark.FootnoteRule())
+markdown = Parser()
+enable!(markdown, FootnoteRule())
 ```
 
 Parse some text to an abstract syntax tree.
@@ -25,34 +25,26 @@ Parse some text to an abstract syntax tree.
 ast = markdown("Hello *world*")
 ```
 
-Create some `Writer` objects for different formats. Pass an optional `IO`
-buffer to the `Writer` that will be used for output.
-
-```julia
-html = CommonMark.Writer(CommonMark.HTML())
-latex = CommonMark.Writer(CommonMark.LaTeX())
-term = CommonMark.Writer(CommonMark.Term(), stdout)
-```
-
 Write `ast` to a string.
 
 ```julia
-body = html(ast, String)
+body = html(ast)
 content = "<head></head><body>$body</body>"
 ```
 
-Do further work on the resulting `IO` object.
+Write to a file.
 
 ```julia
-out = latex(ast)
-println(out, "rest of document...")
-write("file.tex", seekstart(out))
+open("file.tex", "w") do file
+    latex(file, ast)
+    println(file, "rest of document...")
+end
 ```
 
-Or just write it to the buffer.
+Or write to a buffer, such as `stdout`.
 
 ```julia
-term(ast)
+term(stdout, ast)
 ```
 
 ## Extensions
@@ -62,7 +54,7 @@ Extensions can be enabled using the `enable!` function and disabled using `disab
 ### Admonitions
 
 ```julia
-CommonMark.enable!(parser, CommonMark.AdmonitionRule())
+enable!(parser, AdmonitionRule())
 ```
 
 ### Front matter
@@ -88,13 +80,13 @@ To enable provide the `FrontMatterRule` with your choice of parsers for the form
 
 ```julia
 using JSON
-CommonMark.enable!(parser, CommonMark.FrontMatterRule(json=JSON.Parser.parse))
+enable!(parser, FrontMatterRule(json=JSON.Parser.parse))
 ```
 
 ### Footnotes
 
 ```julia
-CommonMark.enable!(parser, CommonMark.FootnoteRule())
+enable!(parser, FootnoteRule())
 ```
 
 ### Math
@@ -112,7 +104,7 @@ f(a) = \frac{1}{2\pi}\int_{0}^{2\pi} (\alpha+R\cos(\theta))d\theta
 Enabled with:
 
 ```julia
-CommonMark.enable!(parser, CommonMark.MathRule())
+enable!(parser, MathRule())
 ```
 
 ### Tables
@@ -129,7 +121,7 @@ Pipe-style tables, similar to GitHub's using `|`. **Strict alignment** required 
 Enabled with:
 
 ```julia
-CommonMark.enable!(parser, CommonMark.TableRule())
+enable!(parser, TableRule())
 ```
 
 ### CommonMark Defaults
@@ -164,3 +156,8 @@ Inline rules enabled by default in `Parser` objects:
 These can all be disabled using `disable!`. Note that disabling some parser
 rules may result in unexpected results. It is recommended to be conservative in
 what is disabled.
+
+**Note**
+
+Until version `1.0.0` the rules listed above are subject to change and should
+be considered unstable regardless of whether they are exported or not.

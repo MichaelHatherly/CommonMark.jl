@@ -1,12 +1,9 @@
 @testset "LaTeX" begin
-    p = CommonMark.Parser()
-    b = IOBuffer()
-    r = CommonMark.Writer(CommonMark.LaTeX(), b)
+    p = Parser()
 
     test = function(text, expected)
         ast = p(text)
-        result = r(ast, String)
-        @test result == expected
+        @test latex(ast) == expected
     end
 
     # Code blocks.
