@@ -12,13 +12,13 @@
 
     # HTML
     html = "<div class=\"admonition warning\"><p class=\"amonition-title\"></p>\n<p>text</p>\n</div>"
-    r = CommonMark.Renderer(CommonMark.HTML())
+    r = CommonMark.Writer(CommonMark.HTML())
     result = r(ast, String)
     @test result == html
 
     # LaTeX
     b = IOBuffer()
-    l = CommonMark.Renderer(CommonMark.LaTeX(), b)
+    l = CommonMark.Writer(CommonMark.LaTeX(), b)
 
     result = l(ast, String)
     # TODO: reduce extra newlines.
@@ -26,7 +26,7 @@
 
     # Term
     b = IOBuffer()
-    l = CommonMark.Renderer(CommonMark.Term(), b)
+    l = CommonMark.Writer(CommonMark.Term(), b)
 
     result = l(ast, String)
     @test result == " \e[33m│\e[39m \e[33mwarning\e[39m\n \e[33m│\e[39m \n \e[33m│\e[39m text\n"

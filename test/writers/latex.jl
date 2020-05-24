@@ -1,7 +1,7 @@
 @testset "LaTeX" begin
     p = CommonMark.Parser()
     b = IOBuffer()
-    r = CommonMark.Renderer(CommonMark.LaTeX(), b)
+    r = CommonMark.Writer(CommonMark.LaTeX(), b)
 
     test = function(text, expected)
         ast = p(text)

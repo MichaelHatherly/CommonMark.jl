@@ -5,7 +5,7 @@
     test = function (text, expected)
         ast = p(text)
         data = ast.first_child.t.data
-        r = CommonMark.Renderer(CommonMark.HTML())
+        r = CommonMark.Writer(CommonMark.HTML())
         html = r(ast, String)
         @test length(data) == 1
         @test data["field"] == "data"
@@ -60,7 +60,7 @@
     # Frontmatter must begin on the first line of the file. Otherwise it's a literal.
     text = "\n+++"
     ast = p(text)
-    r = CommonMark.Renderer(CommonMark.HTML())
+    r = CommonMark.Writer(CommonMark.HTML())
     html = r(ast, String)
     @test html == "<p>+++</p>\n"
 end

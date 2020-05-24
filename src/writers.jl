@@ -1,16 +1,16 @@
-mutable struct Renderer{F, I <: IO}
+mutable struct Writer{F, I <: IO}
     format::F
     buffer::I
     last::Char
 end
-Renderer(format, buffer=IOBuffer()) = Renderer(format, buffer, '\n')
+Writer(format, buffer=IOBuffer()) = Writer(format, buffer, '\n')
 
-Base.show(io::IO, ::Renderer{T}) where {T} = print(io, "CommonMark.Renderer{$T}(...)")
+Base.show(io::IO, ::Writer{T}) where {T} = print(io, "CommonMark.Writer{$T}(...)")
 
-clear_renderer!(r::Renderer{F, IOBuffer}) where F = take!(r.buffer)
-clear_renderer!(r::Renderer) = nothing
+clear_renderer!(r::Writer{F, IOBuffer}) where F = take!(r.buffer)
+clear_renderer!(r::Writer) = nothing
 
-function render(r::Renderer, ast::Node)
+function render(r::Writer, ast::Node)
     r.last = '\n'
     clear_renderer!(r)
     for (node, entering) in ast
@@ -19,17 +19,17 @@ function render(r::Renderer, ast::Node)
     return r.buffer
 end
 
-(r::Renderer)(ast::Node) = render(r, ast)
-(r::Renderer)(ast::Node, ::Type{String}) = String(take!(render(r, ast)))
+(r::Writer)(ast::Node) = render(r, ast)
+(r::Writer)(ast::Node, ::Type{String}) = String(take!(render(r, ast)))
 
-function literal(r::Renderer, args...)
+function literal(r::Writer, args...)
     for arg in args
         write(r.buffer, arg)
         r.last = isempty(arg) ? r.last : last(arg)
     end
 end
 
-function cr(r::Renderer)
+function cr(r::Writer)
     if r.last != '\n'
         r.last = '\n'
         write(r.buffer, '\n')
@@ -37,7 +37,7 @@ function cr(r::Renderer)
     return nothing
 end
 
-Base.read(r::Renderer{F, IOBuffer}, ::Type{String}) where F =
+Base.read(r::Writer{F, IOBuffer}, ::Type{String}) where F =
     Base.read(seekstart(r.buffer), String)
 
 include("writers/html.jl")

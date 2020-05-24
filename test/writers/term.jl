@@ -1,7 +1,7 @@
 @testset "Terminal" begin
     p = CommonMark.Parser()
     b = IOBuffer()
-    r = CommonMark.Renderer(CommonMark.Term(), b)
+    r = CommonMark.Writer(CommonMark.Term(), b)
 
     test = function(text, expected)
         ast = p(text)

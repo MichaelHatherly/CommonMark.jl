@@ -5,15 +5,15 @@ using CommonMark, Test, JSON, Pkg.TOML, YAML
     @testset "Spec" begin
         for case in JSON.Parser.parsefile(joinpath(@__DIR__, "spec.json"))
             p = CommonMark.Parser()
-            h = CommonMark.Renderer(CommonMark.HTML())
+            h = CommonMark.Writer(CommonMark.HTML())
             ast = p(case["markdown"])
             html = h(ast, String)
             @test case["html"] == html
             # The following just make sure we don't throw on the other
             # rendering. Proper tests are found below.
-            t = CommonMark.Renderer(CommonMark.Term(), IOBuffer())
+            t = CommonMark.Writer(CommonMark.Term(), IOBuffer())
             t(ast)
-            l = CommonMark.Renderer(CommonMark.LaTeX())
+            l = CommonMark.Writer(CommonMark.LaTeX())
             l(ast)
         end
     end
@@ -30,7 +30,7 @@ using CommonMark, Test, JSON, Pkg.TOML, YAML
                     html = replace(read(splitext(name)[1] * ".html", String), "\r\n" => "\n")
 
                     p = CommonMark.Parser()
-                    h = CommonMark.Renderer(CommonMark.HTML())
+                    h = CommonMark.Writer(CommonMark.HTML())
                     ast = p(read(name, String))
                     out = h(ast, String)
 
@@ -38,9 +38,9 @@ using CommonMark, Test, JSON, Pkg.TOML, YAML
                         @test out == html
 
                         # TODO: just renders, no checks.
-                        t = CommonMark.Renderer(CommonMark.Term(), IOBuffer())
+                        t = CommonMark.Writer(CommonMark.Term(), IOBuffer())
                         t(ast)
-                        l = CommonMark.Renderer(CommonMark.LaTeX())
+                        l = CommonMark.Writer(CommonMark.LaTeX())
                         l(ast)
                     end
                 end

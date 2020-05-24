@@ -25,13 +25,13 @@ Parse some text to an abstract syntax tree.
 ast = markdown("Hello *world*")
 ```
 
-Create some renderers for different formats. Pass an optional `IO` buffer to the
-renderer that will be used for output.
+Create some `Writer` objects for different formats. Pass an optional `IO`
+buffer to the `Writer` that will be used for output.
 
 ```julia
-html = CommonMark.Renderer(CommonMark.HTML())
-latex = CommonMark.Renderer(CommonMark.LaTeX())
-term = CommonMark.Renderer(CommonMark.Term(), stdout)
+html = CommonMark.Writer(CommonMark.HTML())
+latex = CommonMark.Writer(CommonMark.LaTeX())
+term = CommonMark.Writer(CommonMark.Term(), stdout)
 ```
 
 Write `ast` to a string.

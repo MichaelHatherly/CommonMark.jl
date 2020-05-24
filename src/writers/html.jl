@@ -19,7 +19,7 @@ mutable struct HTML
     end
 end
 
-function tag(r::Renderer, name, attributes=[], self_closing=false)
+function tag(r::Writer, name, attributes=[], self_closing=false)
     r.format.disable_tags > 0 && return nothing
     literal(r, '<', name)
     for (key, value) in attributes
@@ -31,7 +31,7 @@ function tag(r::Renderer, name, attributes=[], self_closing=false)
     return nothing
 end
 
-render(r::Renderer{HTML}, type, node, ent) = html(type, r, node, ent)
+render(r::Writer{HTML}, type, node, ent) = html(type, r, node, ent)
 
 # Node methods #
 
