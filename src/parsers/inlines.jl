@@ -94,22 +94,6 @@ const COMMONMARK_INLINE_RULES = [
     NewlineRule(),
 ]
 
-const COMMONMARK_INLINE_PARSERS = Dict(
-    '\0' => [parse_string],
-    '\n' => [parse_newline],
-    '\\' => [parse_backslash],
-    '`'  => [parse_backticks],
-    '*'  => [parse_asterisk],
-    '_'  => [parse_underscore],
-    '''  => [parse_single_quote],
-    '"'  => [parse_double_quote],
-    '['  => [parse_open_bracket],
-    '!'  => [parse_bang],
-    ']'  => [parse_close_bracket],
-    '<'  => [parse_autolink, parse_html_tag],
-    '&'  => [parse_entity],
-)
-
 function parse_inline(parser::InlineParser, block::Node)
     c = trypeek(parser, Char)
     c === nothing && return false

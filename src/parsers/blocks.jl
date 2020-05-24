@@ -132,17 +132,6 @@ include("blocks/paragraphs.jl")
 # 1 = matched container, keep going
 # 2 = matched leaf, no more block starts
 
-const METHODS = [
-    block_quote,
-    atx_heading,
-    fenced_code_block,
-    html_block,
-    setext_heading,
-    thematic_break,
-    list_item,
-    indented_code_block,
-]
-
 const COMMONMARK_BLOCK_RULES = [
     BlockQuoteRule(),
     AtxHeadingRule(),
@@ -153,30 +142,6 @@ const COMMONMARK_BLOCK_RULES = [
     ListItemRule(),
     IndentedCodeBlockRule(),
 ]
-
-const METHODS_DICT = Dict{Char, Vector{Function}}(
-    '\0' => [indented_code_block],
-    '>' => [block_quote, html_block],
-    '#' => [atx_heading],
-    '`' => [fenced_code_block],
-    '~' => [fenced_code_block],
-    '<' => [html_block],
-    '-' => [setext_heading, thematic_break, list_item],
-    '=' => [setext_heading],
-    '*' => [thematic_break, list_item],
-    '_' => [thematic_break],
-    '+' => [list_item],
-    '0' => [list_item],
-    '1' => [list_item],
-    '2' => [list_item],
-    '3' => [list_item],
-    '4' => [list_item],
-    '5' => [list_item],
-    '6' => [list_item],
-    '7' => [list_item],
-    '8' => [list_item],
-    '9' => [list_item],
-)
 
 function add_line(parser::Parser)
     if parser.partially_consumed_tab
