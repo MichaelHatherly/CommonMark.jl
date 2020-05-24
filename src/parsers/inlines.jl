@@ -19,7 +19,6 @@ const reFinalSpace            = r" *$"
 const reInitialSpace          = r"^ *"
 const reSpaceAtEndOfLine      = r"^ *(?:\n|$)"
 const reLinkLabel             = r"^\[(?:[^\\\[\]]|\\.){0,1000}\]"
-const reMain                  = r"^[^\n`\[\]\\!<&*_'\"]+"m
 
 mutable struct Delimiter
     cc::Char
@@ -81,8 +80,6 @@ const COMMONMARK_INLINE_RULES = [
     InlineCodeRule(),
     AsteriskEmphasisRule(),
     UnderscoreEmphasisRule(),
-    DoubleQuoteRule(),
-    SingleQuoteRule(),
     BackslashEscapeRule(),
     HtmlInlineRule(),
     HtmlEntityRule(),

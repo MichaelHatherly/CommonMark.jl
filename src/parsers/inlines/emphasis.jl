@@ -9,9 +9,6 @@ is_container(::Strong) = true
 parse_asterisk(parser, block) = handle_delim(parser, '*', block)
 parse_underscore(parser, block) = handle_delim(parser, '_', block)
 
-parse_single_quote(parser, block) = false && handle_delim(parser, ''', block) # TODO: re-enable.
-parse_double_quote(parser, block) = false && handle_delim(parser, '"', block)
-
 function scan_delims(parser::InlineParser, c::AbstractChar)
     numdelims = 0
     startpos = position(parser)
@@ -217,9 +214,3 @@ inline_modifier(::AsteriskEmphasisRule) = Rule(process_emphasis, 1)
 struct UnderscoreEmphasisRule end
 inline_rule(::UnderscoreEmphasisRule) = Rule(parse_underscore, 1, "_")
 inline_modifier(::UnderscoreEmphasisRule) = Rule(process_emphasis, 1)
-
-struct DoubleQuoteRule end
-inline_rule(::DoubleQuoteRule) = Rule(parse_double_quote, 1, "\"")
-
-struct SingleQuoteRule end
-inline_rule(::SingleQuoteRule) = Rule(parse_single_quote, 1, "'")

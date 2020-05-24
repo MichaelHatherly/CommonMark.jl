@@ -51,6 +51,23 @@ term(stdout, ast)
 
 Extensions can be enabled using the `enable!` function and disabled using `disable!`.
 
+### Typography
+
+Convert ASCII dashes, ellipses, and quotes to their Unicode equivalents.
+
+```julia
+enable!(parser, TypographyRule())
+```
+
+Keyword arguments available for `TypographyRule` are
+
+  - `double_quotes`
+  - `single_quotes`
+  - `ellipses`
+  - `dashes`
+
+which all default to `true`.
+
 ### Admonitions
 
 ```julia
@@ -141,16 +158,11 @@ Inline rules enabled by default in `Parser` objects:
 
   - `AsteriskEmphasisRule()`
   - `AutolinkRule()`
-  - `BackslashEscapeRule()`
-  - `DoubleQuoteRule()`
   - `HtmlEntityRule()`
   - `HtmlInlineRule()`
   - `ImageRule()`
   - `InlineCodeRule()`
   - `LinkRule()`
-  - `NewlineRule()`
-  - `SingleQuoteRule()`
-  - `TextRule()`
   - `UnderscoreEmphasisRule()`
 
 These can all be disabled using `disable!`. Note that disabling some parser

@@ -26,16 +26,11 @@ export
 export
     AsteriskEmphasisRule,
     AutolinkRule,
-    BackslashEscapeRule,
-    DoubleQuoteRule,
     HtmlEntityRule,
     HtmlInlineRule,
     ImageRule,
     InlineCodeRule,
     LinkRule,
-    NewlineRule,
-    SingleQuoteRule,
-    TextRule,
     UnderscoreEmphasisRule
 
 # Extension rules
@@ -44,6 +39,7 @@ export
     FootnoteRule,
     FrontMatterRule,
     MathRule,
-    TableRule
+    TableRule,
+    TypographyRule
 
 end # module

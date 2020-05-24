@@ -4,4 +4,5 @@
     include("extensions/math.jl")
     include("extensions/tables.jl")
     include("extensions/frontmatter.jl")
+    include("extensions/typography.jl")
 end
