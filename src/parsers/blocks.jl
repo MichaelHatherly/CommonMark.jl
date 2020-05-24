@@ -46,12 +46,10 @@ mutable struct Parser <: AbstractParser
     refmap::Dict{String, Any}
     last_line_length::Int
     inline_parser::InlineParser
-    fenced_literals::Dict{String, Function}
-    options::Dict{String, Any}
     modifiers::Vector{Function}
     priorities::Dict{Function, Float64}
 
-    function Parser(options=Dict())
+    function Parser()
         parser = new()
         parser.doc = Node(Document(), ((1, 1), (0, 0)))
         parser.block_starts = Dict()
@@ -71,9 +69,7 @@ mutable struct Parser <: AbstractParser
         parser.last_matched_container = parser.doc
         parser.refmap = Dict()
         parser.last_line_length = 0
-        parser.fenced_literals = Dict()
-        parser.inline_parser = InlineParser(options)
-        parser.options = options
+        parser.inline_parser = InlineParser()
         parser.modifiers = Function[]
         parser.priorities = Dict()
 
@@ -408,7 +404,6 @@ end
 
 function process_inlines(parser::Parser, block::Node)
     parser.inline_parser.refmap = parser.refmap
-    parser.inline_parser.options = parser.options
     for (node, entering) in block
         if !entering && contains_inlines(node.t)
             parse(parser.inline_parser, node)

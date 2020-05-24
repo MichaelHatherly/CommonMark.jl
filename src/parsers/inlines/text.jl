@@ -5,7 +5,7 @@ function parse_string(parser::InlineParser, block::Node)
     m = consume(parser, match(reMain, parser))
     m === nothing && return false
     n = m.match
-    if get(parser.options, "smart", false)
+    if false # TODO: re-enable.
         n = replace(n, reEllipses => "\u2026")
         n = replace(n, reDash => smart_dashes)
     end

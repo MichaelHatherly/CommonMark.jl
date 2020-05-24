@@ -9,8 +9,8 @@ is_container(::Strong) = true
 parse_asterisk(parser, block) = handle_delim(parser, '*', block)
 parse_underscore(parser, block) = handle_delim(parser, '_', block)
 
-parse_single_quote(parser, block) = get(parser.options, "smart", false) && handle_delim(parser, ''', block)
-parse_double_quote(parser, block) = get(parser.options, "smart", false) && handle_delim(parser, '"', block)
+parse_single_quote(parser, block) = false && handle_delim(parser, ''', block) # TODO: re-enable.
+parse_double_quote(parser, block) = false && handle_delim(parser, '"', block)
 
 function scan_delims(parser::InlineParser, c::AbstractChar)
     numdelims = 0

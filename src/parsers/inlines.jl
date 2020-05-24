@@ -50,12 +50,11 @@ mutable struct InlineParser <: AbstractParser
     # extra
     brackets::Union{Nothing, Bracket}
     delimiters::Union{Nothing, Delimiter}
-    refmap::Dict
-    options::Dict
+    refmap::Dict{String, Any}
     inline_parsers::Dict{Char, Vector{Function}}
     modifiers::Vector{Function}
 
-    function InlineParser(options=Dict())
+    function InlineParser()
         parser = new()
         parser.buf = ""
         parser.pos = 1
@@ -63,7 +62,6 @@ mutable struct InlineParser <: AbstractParser
         parser.brackets = nothing
         parser.delimiters = nothing
         parser.refmap = Dict()
-        parser.options = options
         parser.inline_parsers = Dict()
         parser.modifiers = Function[]
         return parser
