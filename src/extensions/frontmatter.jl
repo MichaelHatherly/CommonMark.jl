@@ -28,21 +28,7 @@ end
 
 function finalize(frontmatter::FrontMatter, parser::Parser, block::Node)
     _, rest = split(block.string_content, '\n'; limit=2)
-    # Frontmatter is a type of fenced literal, so we store their parsers in the
-    # .fenced_literals dict along with any for backtick fences.
-    if haskey(parser.fenced_literals, frontmatter.fence)
-        # Don't let errors get in our way, treat it like a markdown parser
-        # would and just ignore them, kind of.
-        try
-            data = parser.fenced_literals[frontmatter.fence](rest)
-            merge!(block.t.data, data)
-            block.literal = rest
-        catch err
-            # At least save the error so we can work out what happened.
-            block.literal = string(err)
-        end
-    end
-    block.string_content = ""
+    block.string_content = rest
     return nothing
 end
 
@@ -60,6 +46,32 @@ function parse_front_matter(parser::Parser, container::Node)
         end
     end
     return 0
+end
+
+struct FrontMatterRule
+    json::Function
+    toml::Function
+    yaml::Function
+
+    function FrontMatterRule(; fs...)
+        λ = str -> Dict{String, Any}()
+        return new(get(fs, :json, λ), get(fs, :toml, λ), get(fs, :yaml, λ))
+    end
+end
+
+block_rule(::FrontMatterRule) = Rule(parse_front_matter, 0.5, ";+-")
+block_modifier(f::FrontMatterRule) = Rule(0.5) do parser, node
+    if node.t isa FrontMatter
+        fence = node.t.fence
+        λ = fence == ";;;" ? f.json : fence == "+++" ? f.toml : f.yaml
+        try
+            merge!(node.t.data, λ(node.string_content))
+        catch err
+            node.literal = string(err)
+        end
+        node.string_content = ""
+    end
+    return nothing
 end
 
 # Frontmatter isn't displayed in the resulting output.

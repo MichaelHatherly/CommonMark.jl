@@ -30,6 +30,9 @@ function parse_admonition(parser::Parser, container::Node)
     return 0
 end
 
+struct AdmonitionRule end
+block_rule(::AdmonitionRule) = Rule(parse_admonition, 0.5, "!")
+
 #
 # Writers
 #

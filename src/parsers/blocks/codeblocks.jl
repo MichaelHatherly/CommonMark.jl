@@ -56,14 +56,8 @@ function finalize(::CodeBlock, parser::Parser, block::Node)
         # first line becomes info string
         first_line, rest = split(block.string_content, '\n'; limit=2)
         info = unescape_string(strip(first_line))
-        parts = split_info_line(info)
-        if haskey(parser.fenced_literals, get(parts, 1, nothing))
-            fn = parser.fenced_literals[parts[1]]
-            fn(block, parts, rest)
-        else
-            block.t.info = info
-            block.literal = rest
-        end
+        block.t.info = info
+        block.literal = rest
     else
         # indented
         block.literal = replace(block.string_content, r"(\n *)+$" => "\n")
@@ -93,6 +87,9 @@ function fenced_code_block(parser::Parser, container::Node)
     return 0
 end
 
+struct FencedCodeBlockRule end
+block_rule(::FencedCodeBlockRule) = Rule(fenced_code_block, 3, "`~")
+
 function indented_code_block(parser::Parser, container::Node)
     if parser.indented && !(parser.tip.t isa Paragraph) && !parser.blank
         # indented code
@@ -103,3 +100,6 @@ function indented_code_block(parser::Parser, container::Node)
     end
     return 0
 end
+
+struct IndentedCodeBlockRule end
+block_rule(::IndentedCodeBlockRule) = Rule(indented_code_block, 8, "")

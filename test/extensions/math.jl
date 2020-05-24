@@ -1,7 +1,6 @@
 @testset "Math" begin
     p = CommonMark.Parser()
-    p.fenced_literals["math"] = CommonMark.handle_fenced_math_block
-    pushfirst!(p.inline_parser.inline_parsers['`'], CommonMark.parse_inline_math_backticks)
+    CommonMark.enable!(p, CommonMark.MathRule())
 
     # Inline
 

@@ -13,3 +13,6 @@ function parse_backslash(parser::InlineParser, block::Node)
     end
     return true
 end
+
+struct BackslashEscapeRule end
+inline_rule(::BackslashEscapeRule) = Rule(parse_backslash, 1, "\\")

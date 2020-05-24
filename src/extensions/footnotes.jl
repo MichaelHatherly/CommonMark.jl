@@ -22,7 +22,7 @@ end
 function parse_footnote_definition(parser::Parser, container::Node)
     if !parser.indented
         ln = SubString(parser.current_line, parser.next_nonspace)
-        m = match(r"^\[\^(.+)\]:[ ]?", ln)
+        m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
         if m !== nothing
             close_unmatched_blocks(parser)
             add_child(parser, FootnoteDefinition(m[1]), parser.next_nonspace)
@@ -33,6 +33,10 @@ function parse_footnote_definition(parser::Parser, container::Node)
     return 0
 end
 
+struct FootnoteRule end
+block_rule(::FootnoteRule) = Rule(parse_footnote_definition, 0.5, "[")
+inline_rule(::FootnoteRule) = Rule(parse_footnote, 0.5, "[")
+
 #
 # Inline
 #
@@ -42,7 +46,7 @@ struct FootnoteLink <: AbstractInline
 end
 
 function parse_footnote(p::InlineParser, node::Node)
-    m = consume(p, match(r"^\[\^(.+)]", p))
+    m = consume(p, match(r"^\[\^([\w\d]+)]", p))
     m == nothing && return false
     append_child(node, Node(FootnoteLink(m[1])))
     return true

@@ -1,6 +1,6 @@
 @testset "Admonitions" begin
     p = CommonMark.Parser()
-    p.block_starts['!'] = [CommonMark.parse_admonition]
+    CommonMark.enable!(p, CommonMark.AdmonitionRule())
 
     text =
     """

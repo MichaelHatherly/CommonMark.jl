@@ -25,15 +25,120 @@ The parser outputs `Node` trees that can then be written to `HTML`, `LaTeX`, or
 
 ## Extensions
 
-Available extensions include the following:
+Current extensions supported by this package are:
 
-- Frontmatter: support for JSON, TOML, and YAML.
-- GFM-tables, strict requirement for alignment of `|` between columns
-- Double backtick inline LaTeX math and display math blocks
-- Admonitions
-- Footnotes
+### Admonitions
 
-Extensions have no public API at the moment. See `test/extensions/` for details
-on how to enable them. The final interface is up for discussion.
+```
+!!! note
 
-Implementation of new extensions can follow the examples found in `src/extensions`.
+    This is the content of the note.
+
+!!! warning
+
+    And this is another one.
+```
+
+Enabled with:
+
+```julia
+parser = CommonMark.Parser()
+CommonMark.enable!(parser, CommonMark.AdmonitionRule())
+```
+
+### Front matter
+
+Fenced blocks at the start of a file containing structured data.
+
+```
++++
+[heading]
+content = "..."
++++
+
+The rest of the file...
+```
+
+The block **must** start on the first line of the file. Supported blocks are:
+
+  - `;;;` for JSON
+  - `+++` for TOML
+  - `---` for YAML
+
+Enable with:
+
+```julia
+using JSON, YAML
+parser = CommonMark.Parser()
+rule = CommonMark.FrontMatterRule(
+    json=JSON.Parser.parse,
+    yaml=YAML.load,
+)
+CommonMark.enable!(parser, rule)
+```
+
+### Footnotes
+
+```
+A paragraph containing a numbered footnote [^1] and a named one [^note].
+
+[^1]: Numbered footnote text.
+
+[^note]:
+
+    Named footnote text containing several toplevel elements.
+
+      * item one
+      * item two
+      * item three
+
+    ```julia
+    function func(x)
+        # ...
+    end
+    ```
+```
+
+Enabled with:
+
+```julia
+parser = CommonMark.Parser()
+CommonMark.enable!(parser, CommonMark.FootnoteRule())
+```
+
+### Math
+
+Julia-style inline and display maths:
+
+````
+Some ``\LaTeX`` math:
+
+```math
+f(a) = \frac{1}{2\pi}\int_{0}^{2\pi} (\alpha+R\cos(\theta))d\theta
+```
+````
+
+Enabled with:
+
+```julia
+parser = CommonMark.Parser()
+CommonMark.enable!(parser, CommonMark.MathRule())
+```
+
+### Tables
+
+Pipe-style tables, similar to GitHub's using `|`. Strict alignment required for pipes.
+
+```
+| Column One | Column Two | Column Three |
+|:---------- | ---------- |:------------:|
+| Row `1`    | Column `2` |              |
+| *Row* 2    | **Row** 2  | Column ``3`` |
+```
+
+Enabled with:
+
+```julia
+parser = CommonMark.Parser()
+CommonMark.enable!(parser, CommonMark.TableRule())
+```

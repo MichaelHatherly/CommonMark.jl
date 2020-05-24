@@ -33,3 +33,6 @@ function html_block(parser::Parser, container::Node)
     end
     return 0
 end
+
+struct HtmlBlockRule end
+block_rule(::HtmlBlockRule) = Rule(html_block, 4, "<>")

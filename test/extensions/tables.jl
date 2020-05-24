@@ -1,6 +1,6 @@
 @testset "Tables" begin
     p = CommonMark.Parser()
-    p.block_starts['|'] = [CommonMark.gfm_table]
+    CommonMark.enable!(p, CommonMark.TableRule())
 
     text =
     """

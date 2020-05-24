@@ -18,3 +18,5 @@ function thematic_break(p::Parser, container::Node)
     return 0
 end
 
+struct ThematicBreakRule end
+block_rule(::ThematicBreakRule) = Rule(thematic_break, 6, "*-_")

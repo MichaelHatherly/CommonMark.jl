@@ -1,13 +1,6 @@
 @testset "Frontmatter" begin
     p = CommonMark.Parser()
-
-    p.block_starts[';'] = [CommonMark.parse_front_matter]
-    pushfirst!(p.block_starts['+'], CommonMark.parse_front_matter)
-    pushfirst!(p.block_starts['-'], CommonMark.parse_front_matter)
-
-    p.fenced_literals[";;;"] = JSON.Parser.parse
-    p.fenced_literals["+++"] = TOML.parse
-    p.fenced_literals["---"] = YAML.load
+    CommonMark.enable!(p, CommonMark.FrontMatterRule(json=JSON.Parser.parse, toml=TOML.parse, yaml=YAML.load))
 
     test = function (text, expected)
         ast = CommonMark.parse(p, text)

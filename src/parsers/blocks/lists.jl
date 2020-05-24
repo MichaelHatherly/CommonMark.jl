@@ -156,3 +156,6 @@ function list_item(parser::Parser, container::Node)
     end
     return 0
 end
+
+struct ListItemRule end
+block_rule(::ListItemRule) = Rule(list_item, 7, "1234567890-+*")

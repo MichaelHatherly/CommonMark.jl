@@ -71,5 +71,6 @@ end
 
 dispatch(p::AbstractParser, args...) = dispatch(p.table, args...)
 
+include("parsers/rules.jl")
 include("parsers/inlines.jl")
 include("parsers/blocks.jl")

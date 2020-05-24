@@ -26,7 +26,7 @@ const reClosingCodeFence  = r"^(?:`{3,}|~{3,})(?= *$)"
 const reSetextHeadingLine = r"^(?:=+|-+)[ \t]*$"
 const reLineEnding        = r"\r\n|\n|\r"
 
-mutable struct Parser
+mutable struct Parser <: AbstractParser
     doc::Node
     block_starts::Dict{Char, Vector{Function}}
     tip::Node
@@ -48,11 +48,13 @@ mutable struct Parser
     inline_parser::InlineParser
     fenced_literals::Dict{String, Function}
     options::Dict{String, Any}
+    modifiers::Vector{Function}
+    priorities::Dict{Function, Float64}
 
     function Parser(options=Dict())
         parser = new()
         parser.doc = Node(Document(), ((1, 1), (0, 0)))
-        parser.block_starts = deepcopy(METHODS_DICT)
+        parser.block_starts = Dict()
         parser.tip = parser.doc
         parser.oldtip = parser.doc
         parser.current_line = ""
@@ -72,6 +74,13 @@ mutable struct Parser
         parser.fenced_literals = Dict()
         parser.inline_parser = InlineParser(options)
         parser.options = options
+        parser.modifiers = Function[]
+        parser.priorities = Dict()
+
+        # Enable the standard CommonMark rule set.
+        enable!(parser, COMMONMARK_BLOCK_RULES)
+        enable!(parser, COMMONMARK_INLINE_RULES)
+
         return parser
     end
 end
@@ -132,6 +141,17 @@ const METHODS = [
     thematic_break,
     list_item,
     indented_code_block,
+]
+
+const COMMONMARK_BLOCK_RULES = [
+    BlockQuoteRule(),
+    AtxHeadingRule(),
+    FencedCodeBlockRule(),
+    HtmlBlockRule(),
+    SetextHeadingRule(),
+    ThematicBreakRule(),
+    ListItemRule(),
+    IndentedCodeBlockRule(),
 ]
 
 const METHODS_DICT = Dict{Char, Vector{Function}}(
@@ -413,6 +433,10 @@ function finalize(parser::Parser, block::Node, line_number::Integer)
     block.sourcepos = (block.sourcepos[1], (line_number, parser.last_line_length))
 
     finalize(block.t, parser, block)
+
+    for fn in parser.modifiers
+        fn(parser, block)
+    end
 
     parser.tip = above
 end

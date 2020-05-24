@@ -13,6 +13,9 @@ function parse_string(parser::InlineParser, block::Node)
     return true
 end
 
+struct TextRule end
+inline_rule(::TextRule) = Rule(parse_string, 1, "")
+
 function parse_newline(parser::InlineParser, block::Node)
     @assert read(parser, Char) === '\n'
     lastc = block.last_child
@@ -27,6 +30,9 @@ function parse_newline(parser::InlineParser, block::Node)
     consume(parser, match(reInitialSpace, parser))
     return true
 end
+
+struct NewlineRule end
+inline_rule(::NewlineRule) = Rule(parse_newline, 1, "\n")
 
 function smart_dashes(chars::AbstractString)
     en_count, em_count, n = 0, 0, length(chars)

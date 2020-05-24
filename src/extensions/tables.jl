@@ -107,6 +107,9 @@ function parse_table_spec(str)
     end
 end
 
+struct TableRule end
+block_rule(::TableRule) = Rule(gfm_table, 0.5, "|")
+
 #
 # Writers
 #

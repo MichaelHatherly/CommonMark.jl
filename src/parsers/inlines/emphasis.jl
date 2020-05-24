@@ -209,3 +209,17 @@ function process_emphasis(parser::InlineParser, stack_bottom)
         remove_delimiter(parser, parser.delimiters)
     end
 end
+
+struct AsteriskEmphasisRule end
+inline_rule(::AsteriskEmphasisRule) = Rule(parse_asterisk, 1, "*")
+inline_modifier(::AsteriskEmphasisRule) = Rule(process_emphasis, 1)
+
+struct UnderscoreEmphasisRule end
+inline_rule(::UnderscoreEmphasisRule) = Rule(parse_underscore, 1, "_")
+inline_modifier(::UnderscoreEmphasisRule) = Rule(process_emphasis, 1)
+
+struct DoubleQuoteRule end
+inline_rule(::DoubleQuoteRule) = Rule(parse_double_quote, 1, "\"")
+
+struct SingleQuoteRule end
+inline_rule(::SingleQuoteRule) = Rule(parse_single_quote, 1, "'")

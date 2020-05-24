@@ -37,3 +37,6 @@ function normalize_inline_code(str::AbstractString)
     end
     return str
 end
+
+struct InlineCodeRule end
+inline_rule(::InlineCodeRule) = Rule(parse_backticks, 1, "`")

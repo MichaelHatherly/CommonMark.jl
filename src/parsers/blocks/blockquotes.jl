@@ -36,3 +36,6 @@ function block_quote(parser::Parser, container::Node)
     end
     return 0
 end
+
+struct BlockQuoteRule end
+block_rule(::BlockQuoteRule) = Rule(block_quote, 1, ">")

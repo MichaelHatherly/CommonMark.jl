@@ -24,3 +24,6 @@ function parse_autolink(parser::InlineParser, block::Node)
     end
     return false
 end
+
+struct AutolinkRule end
+inline_rule(::AutolinkRule) = Rule(parse_autolink, 1, "<")

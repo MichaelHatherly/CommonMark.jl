@@ -32,6 +32,9 @@ function atx_heading(parser::Parser, container::Node)
     return 0
 end
 
+struct AtxHeadingRule end
+block_rule(::AtxHeadingRule) = Rule(atx_heading, 2, "#")
+
 function setext_heading(parser::Parser, container::Node)
     if !parser.indented && container.t isa Paragraph
         m = Base.match(reSetextHeadingLine, SubString(parser.current_line, parser.next_nonspace))
@@ -62,3 +65,5 @@ function setext_heading(parser::Parser, container::Node)
     return 0
 end
 
+struct SetextHeadingRule end
+block_rule(::SetextHeadingRule) = Rule(setext_heading, 5, "-=")

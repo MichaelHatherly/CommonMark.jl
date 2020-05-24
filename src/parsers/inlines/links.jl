@@ -268,3 +268,9 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
     parser.refmap = refmap
     return position(parser) - startpos
 end
+
+struct LinkRule end
+inline_rule(::LinkRule) = (Rule(parse_open_bracket, 1, "["), Rule(parse_close_bracket, 1, "]"))
+
+struct ImageRule end
+inline_rule(::ImageRule) = (Rule(parse_bang, 1, "!"), inline_rule(LinkRule())...)

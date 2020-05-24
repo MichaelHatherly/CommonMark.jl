@@ -35,6 +35,16 @@ function handle_fenced_math_block(node::Node, info, source)
     node.literal = strip(source, '\n')
 end
 
+struct MathRule end
+block_modifier(::MathRule) = Rule(1.5) do parser, node
+    if node.t isa CodeBlock && node.t.info == "math"
+        node.t = DisplayMath()
+        node.literal = strip(node.literal, '\n')
+    end
+    return nothing
+end
+inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
+
 #
 # Writer
 #

@@ -53,6 +53,7 @@ mutable struct InlineParser <: AbstractParser
     refmap::Dict
     options::Dict
     inline_parsers::Dict{Char, Vector{Function}}
+    modifiers::Vector{Function}
 
     function InlineParser(options=Dict())
         parser = new()
@@ -63,7 +64,8 @@ mutable struct InlineParser <: AbstractParser
         parser.delimiters = nothing
         parser.refmap = Dict()
         parser.options = options
-        parser.inline_parsers = deepcopy(COMMONMARK_INLINE_PARSERS)
+        parser.inline_parsers = Dict()
+        parser.modifiers = Function[]
         return parser
     end
 end
@@ -75,6 +77,22 @@ include("inlines/html.jl")
 include("inlines/emphasis.jl")
 include("inlines/links.jl")
 include("inlines/text.jl")
+
+const COMMONMARK_INLINE_RULES = [
+    AutolinkRule(),
+    InlineCodeRule(),
+    AsteriskEmphasisRule(),
+    UnderscoreEmphasisRule(),
+    DoubleQuoteRule(),
+    SingleQuoteRule(),
+    BackslashEscapeRule(),
+    HtmlInlineRule(),
+    HtmlEntityRule(),
+    LinkRule(),
+    ImageRule(),
+    TextRule(),
+    NewlineRule(),
+]
 
 const COMMONMARK_INLINE_PARSERS = Dict(
     '\0' => [parse_string],
