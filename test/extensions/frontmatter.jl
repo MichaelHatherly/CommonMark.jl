@@ -3,10 +3,10 @@
     CommonMark.enable!(p, CommonMark.FrontMatterRule(json=JSON.Parser.parse, toml=TOML.parse, yaml=YAML.load))
 
     test = function (text, expected)
-        ast = CommonMark.parse(p, text)
+        ast = p(text)
         data = ast.first_child.t.data
         r = CommonMark.Renderer(CommonMark.HTML())
-        html = read(CommonMark.render(r, ast), String)
+        html = r(ast, String)
         @test length(data) == 1
         @test data["field"] == "data"
         @test html == expected
@@ -52,15 +52,15 @@
     one = 1
     two = 2
     """
-    ast = CommonMark.parse(p, text)
+    ast = p(text)
     data = ast.first_child.t.data
     @test data["one"] == 1
     @test data["two"] == 2
 
     # Frontmatter must begin on the first line of the file. Otherwise it's a literal.
     text = "\n+++"
-    ast = CommonMark.parse(p, text)
+    ast = p(text)
     r = CommonMark.Renderer(CommonMark.HTML())
-    html = read(CommonMark.render(r, ast), String)
+    html = r(ast, String)
     @test html == "<p>+++</p>\n"
 end

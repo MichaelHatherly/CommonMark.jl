@@ -7,42 +7,61 @@
 
 ## Interface
 
-```
-julia> using CommonMark
-
-julia> p = CommonMark.Parser();
-
-julia> ast = CommonMark.parse(p, "Hello *world*");
-
-julia> r = CommonMark.Renderer(CommonMark.HTML());
-
-julia> read(CommonMark.render(r, ast), String)
-"<p>Hello <em>world</em></p>\n"
+```julia
+using CommonMark
 ```
 
-The parser outputs `Node` trees that can then be written to `HTML`, `LaTeX`, or
-`Term` formats.
+Create a markdown parser with the default CommonMark settings and then add
+footnote syntax to our parser.
+
+```julia
+markdown = CommonMark.Parser()
+enable!(markdown, CommonMark.FootnoteRule())
+```
+
+Parse some text to an abstract syntax tree.
+
+```julia
+ast = markdown("Hello *world*")
+```
+
+Create some renderers for different formats. Pass an optional `IO` buffer to the
+renderer that will be used for output.
+
+```julia
+html = CommonMark.Renderer(CommonMark.HTML())
+latex = CommonMark.Renderer(CommonMark.LaTeX())
+term = CommonMark.Renderer(CommonMark.Term(), stdout)
+```
+
+Write `ast` to a string.
+
+```julia
+body = html(ast, String)
+content = "<head></head><body>$body</body>"
+```
+
+Do further work on the resulting `IO` object.
+
+```julia
+out = latex(ast)
+println(out, "rest of document...")
+write("file.tex", seekstart(out))
+```
+
+Or just write it to the buffer.
+
+```julia
+term(ast)
+```
 
 ## Extensions
 
-Current extensions supported by this package are:
+Extensions can be enabled using the `enable!` function and disabled using `disable!`.
 
 ### Admonitions
 
-```
-!!! note
-
-    This is the content of the note.
-
-!!! warning
-
-    And this is another one.
-```
-
-Enabled with:
-
 ```julia
-parser = CommonMark.Parser()
 CommonMark.enable!(parser, CommonMark.AdmonitionRule())
 ```
 
@@ -65,44 +84,16 @@ The block **must** start on the first line of the file. Supported blocks are:
   - `+++` for TOML
   - `---` for YAML
 
-Enable with:
+To enable provide the `FrontMatterRule` with your choice of parsers for the formats:
 
 ```julia
-using JSON, YAML
-parser = CommonMark.Parser()
-rule = CommonMark.FrontMatterRule(
-    json=JSON.Parser.parse,
-    yaml=YAML.load,
-)
-CommonMark.enable!(parser, rule)
+using JSON
+CommonMark.enable!(parser, CommonMark.FrontMatterRule(json=JSON.Parser.parse))
 ```
 
 ### Footnotes
 
-```
-A paragraph containing a numbered footnote [^1] and a named one [^note].
-
-[^1]: Numbered footnote text.
-
-[^note]:
-
-    Named footnote text containing several toplevel elements.
-
-      * item one
-      * item two
-      * item three
-
-    ```julia
-    function func(x)
-        # ...
-    end
-    ```
-```
-
-Enabled with:
-
 ```julia
-parser = CommonMark.Parser()
 CommonMark.enable!(parser, CommonMark.FootnoteRule())
 ```
 
@@ -110,7 +101,7 @@ CommonMark.enable!(parser, CommonMark.FootnoteRule())
 
 Julia-style inline and display maths:
 
-````
+````markdown
 Some ``\LaTeX`` math:
 
 ```math
@@ -121,15 +112,14 @@ f(a) = \frac{1}{2\pi}\int_{0}^{2\pi} (\alpha+R\cos(\theta))d\theta
 Enabled with:
 
 ```julia
-parser = CommonMark.Parser()
 CommonMark.enable!(parser, CommonMark.MathRule())
 ```
 
 ### Tables
 
-Pipe-style tables, similar to GitHub's using `|`. Strict alignment required for pipes.
+Pipe-style tables, similar to GitHub's using `|`. **Strict alignment** required for pipes.
 
-```
+```markdown
 | Column One | Column Two | Column Three |
 |:---------- | ---------- |:------------:|
 | Row `1`    | Column `2` |              |
@@ -139,6 +129,38 @@ Pipe-style tables, similar to GitHub's using `|`. Strict alignment required for 
 Enabled with:
 
 ```julia
-parser = CommonMark.Parser()
 CommonMark.enable!(parser, CommonMark.TableRule())
 ```
+
+### CommonMark Defaults
+
+Block rules enabled by default in `Parser` objects:
+
+  - `AtxHeadingRule()`
+  - `BlockQuoteRule()`
+  - `FencedCodeBlockRule()`
+  - `HtmlBlockRule()`
+  - `IndentedCodeBlockRule()`
+  - `ListItemRule()`
+  - `SetextHeadingRule()`
+  - `ThematicBreakRule()`
+
+Inline rules enabled by default in `Parser` objects:
+
+  - `AsteriskEmphasisRule()`
+  - `AutolinkRule()`
+  - `BackslashEscapeRule()`
+  - `DoubleQuoteRule()`
+  - `HtmlEntityRule()`
+  - `HtmlInlineRule()`
+  - `ImageRule()`
+  - `InlineCodeRule()`
+  - `LinkRule()`
+  - `NewlineRule()`
+  - `SingleQuoteRule()`
+  - `TextRule()`
+  - `UnderscoreEmphasisRule()`
+
+These can all be disabled using `disable!`. Note that disabling some parser
+rules may result in unexpected results. It is recommended to be conservative in
+what is disabled.

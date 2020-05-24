@@ -31,7 +31,7 @@ function render(r::Renderer{Term}, ast::Node)
     end
     # Double buffered writing to avoid noticeable lag.
     write(r.buffer, take!(r.format.buffer))
-    return nothing
+    return r.buffer
 end
 
 # Utilities.

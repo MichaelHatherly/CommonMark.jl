@@ -5,6 +5,8 @@ mutable struct Renderer{F, I <: IO}
 end
 Renderer(format, buffer=IOBuffer()) = Renderer(format, buffer, '\n')
 
+Base.show(io::IO, ::Renderer{T}) where {T} = print(io, "CommonMark.Renderer{$T}(...)")
+
 clear_renderer!(r::Renderer{F, IOBuffer}) where F = take!(r.buffer)
 clear_renderer!(r::Renderer) = nothing
 
@@ -14,8 +16,11 @@ function render(r::Renderer, ast::Node)
     for (node, entering) in ast
         render(r, node.t, node, entering)
     end
-    return r
+    return r.buffer
 end
+
+(r::Renderer)(ast::Node) = render(r, ast)
+(r::Renderer)(ast::Node, ::Type{String}) = String(take!(render(r, ast)))
 
 function literal(r::Renderer, args...)
     for arg in args

@@ -4,9 +4,8 @@
     r = CommonMark.Renderer(CommonMark.LaTeX(), b)
 
     test = function(text, expected)
-        ast = CommonMark.parse(p, text)
-        CommonMark.render(r, ast)
-        result = String(take!(b))
+        ast = p(text)
+        result = r(ast, String)
         @test result == expected
     end
 

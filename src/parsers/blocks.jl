@@ -476,3 +476,5 @@ function parse(parser::Parser, my_input::AbstractString)
     process_inlines(parser, parser.doc)
     return parser.doc
 end
+
+(p::Parser)(text::AbstractString) = parse(p, text)

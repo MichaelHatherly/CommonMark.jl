@@ -8,20 +8,19 @@
 
         text
     """
-    ast = CommonMark.parse(p, text)
+    ast = p(text)
 
     # HTML
     html = "<div class=\"admonition warning\"><p class=\"amonition-title\"></p>\n<p>text</p>\n</div>"
     r = CommonMark.Renderer(CommonMark.HTML())
-    result = read(CommonMark.render(r, ast), String)
+    result = r(ast, String)
     @test result == html
 
     # LaTeX
     b = IOBuffer()
     l = CommonMark.Renderer(CommonMark.LaTeX(), b)
 
-    CommonMark.render(l, ast)
-    result = String(take!(b))
+    result = l(ast, String)
     # TODO: reduce extra newlines.
     @test result == "\\quote{\n\\textbf{warning}\n\n\n\n\n\ntext\n}\n"
 
@@ -29,7 +28,6 @@
     b = IOBuffer()
     l = CommonMark.Renderer(CommonMark.Term(), b)
 
-    CommonMark.render(l, ast)
-    result = String(take!(b))
+    result = l(ast, String)
     @test result == " \e[33m│\e[39m \e[33mwarning\e[39m\n \e[33m│\e[39m \n \e[33m│\e[39m text\n"
 end
