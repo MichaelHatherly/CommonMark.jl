@@ -19,10 +19,11 @@ end
 function parse_admonition(parser::Parser, container::Node)
     if !parser.indented
         ln = SubString(parser.current_line, parser.next_nonspace)
-        m = match(r"^!!! (\w+)$", ln)
+        m = match(r"^!!! (\w+)(?: \"([^\"]+)\")?$", ln)
         if m !== nothing
             close_unmatched_blocks(parser)
-            add_child(parser, Admonition(m[1], ""), parser.next_nonspace)
+            title = m[2] === nothing ? uppercasefirst(m[1]) : m[2]
+            add_child(parser, Admonition(m[1], title), parser.next_nonspace)
             advance_offset(parser, length(parser.current_line) - parser.offset + 1, false)
             return 1
         end
