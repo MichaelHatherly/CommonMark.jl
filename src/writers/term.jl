@@ -346,8 +346,10 @@ end
 
 function term(::ThematicBreak, render, node, enter)
     print_margin(render)
-    style = crayon"magenta"
-    print_literal(render, style, "* * *", inv(style), "\n")
+    style = crayon"dark_gray"
+    stars = " § "
+    padding = '═'^padding_between(available_columns(render), length(stars))
+    print_literal(render, style, padding, stars, padding, inv(style), "\n")
     if !isnull(node.nxt)
         print_margin(render)
         print_literal(render, "\n")
