@@ -79,6 +79,15 @@
         "- item",
         "\\begin{itemize}\n\\item\n\nitem\n\n\\end{itemize}\n"
     )
+    test(
+        "1. item",
+        "\\begin{enumerate}[start=1]\n\\item\n\nitem\n\n\\end{enumerate}\n"
+    )
+    test(
+        "3. item",
+        "\\begin{enumerate}[start=3]\n\\item\n\nitem\n\n\\end{enumerate}\n"
+    )
+
     # Thematic Breaks.
     test(
         "***",

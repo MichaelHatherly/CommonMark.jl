@@ -68,9 +68,14 @@
     )
     # Lists.
     test(
-        "- item",
-        "  • item\n"
+        "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
+        "  1. one\n  \n  2.  5. five\n      \n      6. six\n  \n  3. three\n  \n  4. four\n"
     )
+    test(
+        "- - - - - - - item",
+        "  ●  ○  ▶  ▷  ■  □  □ item\n"
+    )
+
     # Thematic Breaks.
     test(
         "***",

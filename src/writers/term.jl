@@ -11,7 +11,9 @@ mutable struct Term
     margin::Vector{MarginSegment}
     buffer::IOBuffer
     wrap::Int
-    Term() = new(0, [], IOBuffer(), -1)
+    list_depth::Int
+    list_item_number::Vector{Int}
+    Term() = new(0, [], IOBuffer(), -1, 0, [])
 end
 
 """
@@ -306,8 +308,12 @@ end
 
 function term(list::List, render, node, enter)
     if enter
+        render.format.list_depth += 1
+        push!(render.format.list_item_number, list.list_data.start)
         push_margin!(render, " ", crayon"")
     else
+        render.format.list_depth -= 1
+        pop!(render.format.list_item_number)
         pop_margin!(render)
         if !isnull(node.nxt)
             print_margin(render)
@@ -316,9 +322,19 @@ function term(list::List, render, node, enter)
     end
 end
 
+
 function term(item::Item, render, node, enter)
     if enter
-        push_margin!(render, 1, "• ", crayon"")
+        if item.list_data.type == "ordered"
+            number = string(render.format.list_item_number[end], ". ")
+            render.format.list_item_number[end] += 1
+            push_margin!(render, 1, number, crayon"")
+        else
+            #              ●         ○         ▶         ▷         ■         □
+            bullets = ['\u25CF', '\u25CB', '\u25B6', '\u25B7', '\u25A0', '\u25A1']
+            bullet = bullets[min(render.format.list_depth, length(bullets))]
+            push_margin!(render, 1, "$bullet ", crayon"")
+        end
     else
         pop_margin!(render)
         if !isnull(node.nxt)

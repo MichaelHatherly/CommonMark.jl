@@ -72,12 +72,14 @@ function latex(::BlockQuote, r, node, ent)
     end
 end
 
-# TODO: numbered lists.
-function latex(::List, r, node, ent)
+# Requires \usepackage{enumerate} for the [start=...] option to be available.
+function latex(list::List, r, node, ent)
+    env = list.list_data.type == "bullet" ? "itemize" : "enumerate"
     if ent
-        println(r.buffer, "\\begin{itemize}")
+        start = env == "enumerate" ? "[start=$(list.list_data.start)]" : ""
+        println(r.buffer, "\\begin{$env}$start")
     else
-        println(r.buffer, "\\end{itemize}")
+        println(r.buffer, "\\end{$env}")
     end
 end
 
