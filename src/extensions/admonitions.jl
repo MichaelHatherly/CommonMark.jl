@@ -60,21 +60,31 @@ function latex(a::Admonition, rend, node, enter)
 end
 
 function term(a::Admonition, rend, node, enter)
+    style = if a.category == "danger"
+        crayon"red bold"
+    elseif a.category == "warning"
+        crayon"yellow bold"
+    elseif a.category in ("info", "note")
+        crayon"cyan bold"
+    elseif a.category == "tip"
+        crayon"green bold"
+    else
+        crayon"default bold"
+    end
     if enter
-        style = a.category == "danger" ? crayon"red" :
-            a.category == "warning" ? crayon"yellow" :
-            a.category in ("info", "note") ? crayon"cyan" :
-            a.category == "tip" ? crayon"green" : crayon"default"
 
+        header = rpad("┌ $(a.title) ", available_columns(rend), "─")
+        print_margin(rend)
+        print_literal(rend, style, header, inv(style), "\n")
         push_margin!(rend, "│", style)
         push_margin!(rend, " ", crayon"")
-        print_margin(rend)
-        print_literal(rend, style, isempty(a.title) ? a.category : a.title, inv(style), "\n")
         print_margin(rend)
         print_literal(rend, "\n")
     else
         pop_margin!(rend)
         pop_margin!(rend)
+        print_margin(rend)
+        print_literal(rend, style, rpad("└", available_columns(rend), "─"), inv(style), "\n")
         if !isnull(node.nxt)
             print_margin(rend)
             print_literal(rend, "\n")
