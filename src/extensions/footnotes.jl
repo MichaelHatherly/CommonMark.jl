@@ -77,17 +77,18 @@ function latex(f::FootnoteDefinition, rend, node, enter)
 end
 
 function term(f::FootnoteDefinition, rend, node, enter)
+    style = crayon"red"
     if enter
-        style = crayon"red"
+        header = rpad("┌ [^$(f.id)] ", available_columns(rend), "─")
+        print_margin(rend)
+        print_literal(rend, style, header, inv(style), "\n")
         push_margin!(rend, "│", style)
         push_margin!(rend, " ", crayon"")
-        print_margin(rend)
-        print_literal(rend, style, "[^", f.id, "]", inv(style), "\n")
-        print_margin(rend)
-        print_literal(rend, "\n")
     else
         pop_margin!(rend)
         pop_margin!(rend)
+        print_margin(rend)
+        print_literal(rend, style, rpad("└", available_columns(rend), "─"), inv(style), "\n")
         if !isnull(node.nxt)
             print_margin(rend)
             print_literal(rend, "\n")

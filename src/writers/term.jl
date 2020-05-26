@@ -84,8 +84,8 @@ number of `count` calls to `print_margin`. After `count` calls it will instead
 print out spaces equal to the width of `text`.
 """
 function push_margin!(r::Writer{Term}, count::Integer, text::AbstractString, style=crayon"")
-    text = string(style, text, inv(style))
     width = Base.Unicode.textwidth(text)
+    text = string(style, text, inv(style))
     r.format.indent += width
     seg = MarginSegment(text, width, count)
     push!(r.format.margin, seg)

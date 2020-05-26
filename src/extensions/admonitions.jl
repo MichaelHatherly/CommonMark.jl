@@ -72,14 +72,11 @@ function term(a::Admonition, rend, node, enter)
         crayon"default bold"
     end
     if enter
-
         header = rpad("┌ $(a.title) ", available_columns(rend), "─")
         print_margin(rend)
         print_literal(rend, style, header, inv(style), "\n")
         push_margin!(rend, "│", style)
         push_margin!(rend, " ", crayon"")
-        print_margin(rend)
-        print_literal(rend, "\n")
     else
         pop_margin!(rend)
         pop_margin!(rend)
