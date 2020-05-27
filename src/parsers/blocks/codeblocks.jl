@@ -45,7 +45,7 @@ function continue_(::CodeBlock, parser::Parser, container::Node)
     return 0
 end
 
-# TODO: make more robust.
+# TODO: make more robust and finalize the 'spec'.
 function split_info_line(str)
     line = rstrip(lstrip(str, '{'), '}')
     return split(line, ' ')

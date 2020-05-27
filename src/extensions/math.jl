@@ -28,6 +28,10 @@ function parse_inline_math_backticks(p::InlineParser, node::Node)
     return true
 end
 
+#
+# Display math
+#
+
 struct DisplayMath <: AbstractBlock end
 
 function handle_fenced_math_block(node::Node, info, source)
@@ -46,7 +50,7 @@ end
 inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
 
 #
-# Writer
+# Writers
 #
 
 function html(::Math, rend, node, enter)

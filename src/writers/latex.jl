@@ -1,4 +1,3 @@
-
 mutable struct LaTeX
     context::Dict{Symbol, Any}
     LaTeX() = new(Dict())

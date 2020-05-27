@@ -48,6 +48,8 @@ end
 # Writers
 #
 
+# Definitions
+
 function html(f::FootnoteDefinition, rend, node, enter)
     if enter
         attrs = ["class" => "footnote", "id" => "footnote-$(f.id)"]
@@ -84,6 +86,8 @@ function term(f::FootnoteDefinition, rend, node, enter)
         end
     end
 end
+
+# Links
 
 function html(f::FootnoteLink, rend, node, enter)
     tag(rend, "a", ["href" => "#footnote-$(f.id)", "class" => "footnote"])

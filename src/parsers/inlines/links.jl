@@ -18,7 +18,7 @@ chomp_ws(parser::InlineParser) = (consume(parser, match(reSpnl, parser)); true)
 
 function parse_link_title(parser::InlineParser)
     title = consume(parser, match(reLinkTitle, parser))
-    title == nothing && return nothing
+    title === nothing && return nothing
     # Chop off quotes from title and unescape.
     return unescape_string(chop(title.match; head=1, tail=1))
 end
@@ -69,7 +69,7 @@ end
 
 function parse_link_label(parser::InlineParser)
     m = consume(parser, match(reLinkLabel, parser))
-    return (m == nothing || length(m.match) ≥ 1000) ? 0 : ncodeunits(m.match)
+    return (m === nothing || length(m.match) ≥ 1000) ? 0 : ncodeunits(m.match)
 end
 
 function parse_open_bracket(parser::InlineParser, block::Node)
@@ -239,22 +239,22 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
     end
     if title === nothing
         title = ""
-        # rewind before spaces
+        # Rewind before spaces.
         seek(parser, beforetitle)
     end
 
-    # make sure we're at line end
+    # Make sure we're at line end.
     at_line_end = true
     if consume(parser, match(reSpaceAtEndOfLine, parser)) == nothing
         if title == ""
             at_line_end = false
         else
-            # the potential title we found is !at the line end, but it could
-            # still be a legal link reference if we discard the title
+            # The potential title we found is not at the line end, but it could
+            # still be a legal link reference if we discard the title.
             title == ""
-            # rewind before spaces
+            # Rewind to before spaces.
             seek(parser, beforetitle)
-            # or instead check if the link URL is at the line end
+            # Or instead check if the link URL is at the line end.
             at_line_end = consume(parser, match(reSpaceAtEndOfLine, parser)) !== nothing
         end
     end

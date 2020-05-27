@@ -57,7 +57,7 @@ function Base.iterate(node::Node, (sr, sc, se)=(node, node, true))
             sc = cur.first_child
             se = true
         else
-            # stay on node but exit
+            # Stay on node but exit.
             se = false
         end
     elseif cur === sr

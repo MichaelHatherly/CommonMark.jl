@@ -226,7 +226,7 @@ function advance_offset(parser::Parser, count::Integer, columns::Bool)
         else
             parser.partially_consumed_tab = false
             parser.offset += 1
-            # assume ascii; block starts are ascii
+            # Assume ASCII; block starts are ASCII.
             parser.column += 1
             count -= 1
         end
@@ -245,7 +245,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
     parser.partially_consumed_tab = false
     parser.line_number += 1
 
-    # replace NUL characters for security
+    # Replace NUL characters for security.
     ln = occursin(r"\u0000", ln) ? replace(ln, '\0' => '\uFFFD') : ln
 
     parser.current_line = ln
@@ -330,7 +330,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
             end
         end
         if !found
-            # nothing matched
+            # Nothing matched.
             advance_next_nonspace(parser)
             break
         end
@@ -360,7 +360,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
               (t isa Item && isnull(container.first_child) &&
                container.sourcepos[1][1] == parser.line_number))
 
-        # Propagate last_line_blank up through parents.
+        # Propagate `last_line_blank` up through parents.
         cont = container
         while !isnull(cont)
             cont.last_line_blank = last_line_blank
@@ -378,7 +378,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
                 end
             end
         elseif parser.offset ≤ length(ln) && !parser.blank
-            # create a paragraph container for one line
+            # Create a paragraph container for one line.
             container = add_child(parser, Paragraph(), parser.offset)
             advance_next_nonspace(parser)
             add_line(parser)

@@ -82,9 +82,8 @@ function remove_delimiter(parser::InlineParser, delim::Delimiter)
     if delim.previous !== nothing
         delim.previous.next = delim.next
     end
-    if delim.next == nothing
-        # Top of stack
-        parser.delimiters = delim.previous
+    if delim.next === nothing
+        parser.delimiters = delim.previous # Top of stack.
     else
         delim.next.previous = delim.previous
     end
@@ -109,19 +108,18 @@ function process_emphasis(parser::InlineParser, stack_bottom)
     odd_match = false
     use_delims = 0
 
-    # Find first closer above stack_bottom
+    # Find first closer above `stack_bottom`.
     closer = parser.delimiters
     while closer !== nothing && closer.previous !== stack_bottom
         closer = closer.previous
     end
 
-    # Move forward, looking for closers, && handling each
-    while closer != nothing
+    # Move forward, looking for closers, and handling each.
+    while closer !== nothing
         if !closer.can_close
             closer = closer.next
         else
-            # found emphasis closer. now look back for first
-            # matching opener
+            # Found emphasis closer. Now look back for first matching opener.
             opener = closer.previous
             opener_found = false
             closercc = closer.cc

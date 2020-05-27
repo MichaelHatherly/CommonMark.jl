@@ -12,7 +12,7 @@ mutable struct HTML
     function HTML(; softbreak="\n", safe=false, sourcepos=false)
         format = new()
         format.disable_tags = 0
-        format.softbreak = softbreak # set to "<br />" to for hardbreaks, " " for no wrapping.
+        format.softbreak = softbreak # Set to "<br />" to for hardbreaks, " " for no wrapping.
         format.safe = safe
         format.sourcepos = sourcepos
         return format
@@ -33,7 +33,7 @@ end
 
 render(r::Writer{HTML}, type, node, ent) = html(type, r, node, ent)
 
-# Node methods #
+# Node methods
 
 html(::Document, r, n, ent) = nothing
 

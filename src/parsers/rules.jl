@@ -56,4 +56,3 @@ function clear_rules!(p::AbstractParser)
     empty!(p.inline_parser.modifiers)
     return p
 end
-

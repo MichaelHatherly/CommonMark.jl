@@ -1,7 +1,3 @@
-#
-# Parsers
-#
-
 struct ColumnSpec
     first::Int
     last::Int

@@ -123,6 +123,4 @@ function parse_inlines(parser::InlineParser, block::Node)
     process_emphasis(parser, nothing)
 end
 
-function parse(parser::InlineParser, block::Node)
-    return parse_inlines(parser, block)
-end
+parse(parser::InlineParser, block::Node) = parse_inlines(parser, block)
