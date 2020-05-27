@@ -1,3 +1,20 @@
+# Public.
+
+function term(io::IO, ast::Node)
+    writer = Writer(Term(), io)
+    for (node, entering) in ast
+        term(node.t, writer, node, entering)
+    end
+    # Writing is done to an intermediate buffer and then written to the
+    # user-provided one once we have traversed the AST so that we can avoid
+    # noticable lag when displaying on the terminal.
+    write(writer.buffer, take!(writer.format.buffer))
+    return nothing
+end
+term(ast::Node) = sprint(term, ast)
+
+# Internals.
+
 import Crayons: Crayon, @crayon_str
 
 mutable struct MarginSegment
@@ -14,26 +31,6 @@ mutable struct Term
     list_depth::Int
     list_item_number::Vector{Int}
     Term() = new(0, [], IOBuffer(), -1, 0, [])
-end
-
-"""
-Renders the `ast` to the buffer provided by `r.buffer`. We use a double buffer
-technique here otherwise we will get flicking display as the output is built up
-by the nested calls to each `term` function. By writing to the true buffer
-after all calls to `term` are done we get a much better user experience.
-"""
-function render(r::Writer{Term}, ast::Node)
-    # Renew the double buffer.
-    r.format.buffer = IOBuffer()
-    r.format.wrap = -1
-    r.format.margin = []
-    r.format.indent = 0
-    for (node, entering) in ast
-        term(node.t, r, node, entering)
-    end
-    # Double buffered writing to avoid noticeable lag.
-    write(r.buffer, take!(r.format.buffer))
-    return nothing
 end
 
 # Utilities.

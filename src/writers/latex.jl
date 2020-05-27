@@ -1,19 +1,19 @@
-mutable struct LaTeX
-    context::Dict{Symbol, Any}
-    LaTeX() = new(Dict())
-end
+# Public.
 
-Base.get(latex::LaTeX, key::Symbol, value) = get(latex.context, key, value)
-Base.get!(f, latex::LaTeX, key::Symbol) = get!(f, latex.context, key)
-
-function render(r::Writer{LaTeX}, ast::Node)
+function latex(io::IO, ast::Node)
+    writer = Writer(LaTeX(), io)
     for (node, entering) in ast
-        latex(node.t, r, node, entering)
+        latex(node.t, writer, node, entering)
     end
     return nothing
 end
+latex(ast::Node) = sprint(latex, ast)
 
-# Rendering.
+# Internals.
+
+mutable struct LaTeX
+    LaTeX() = new()
+end
 
 latex(::Document, w, node, ent) = nothing
 

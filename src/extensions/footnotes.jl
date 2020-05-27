@@ -97,7 +97,7 @@ end
 
 function latex(f::FootnoteLink, w, node, enter)
     if haskey(f.rule.cache, f.id)
-        seen = get!(() -> Set{String}(), w.format, :footnotes)
+        seen = get!(() -> Set{String}(), w, :footnotes)
         if f.id in seen
             literal(w, "\\footref{fn:$(f.id)}")
         else

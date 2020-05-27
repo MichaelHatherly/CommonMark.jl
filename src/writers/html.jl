@@ -1,7 +1,15 @@
-const reUnsafeProtocol = r"^javascript:|vbscript:|file:|data:"i
-const reSafeDataProtocol = r"^data:image\/(?:png|gif|jpeg|webp)"i
+# Public.
 
-potentially_unsafe(url) = occursin(reUnsafeProtocol, url) && !occursin(reSafeDataProtocol, url)
+function html(io::IO, ast::Node)
+    writer = Writer(HTML(), io)
+    for (node, entering) in ast
+        html(node.t, writer, node, entering)
+    end
+    return nothing
+end
+html(ast::Node) = sprint(html, ast)
+
+# Internals.
 
 mutable struct HTML
     disable_tags::Int
@@ -19,6 +27,11 @@ mutable struct HTML
     end
 end
 
+const reUnsafeProtocol = r"^javascript:|vbscript:|file:|data:"i
+const reSafeDataProtocol = r"^data:image\/(?:png|gif|jpeg|webp)"i
+
+potentially_unsafe(url) = occursin(reUnsafeProtocol, url) && !occursin(reSafeDataProtocol, url)
+
 function tag(r::Writer, name, attributes=[], self_closing=false)
     r.format.disable_tags > 0 && return nothing
     literal(r, '<', name)
@@ -30,10 +43,6 @@ function tag(r::Writer, name, attributes=[], self_closing=false)
     r.last = '>'
     return nothing
 end
-
-render(r::Writer{HTML}, type, node, ent) = html(type, r, node, ent)
-
-# Node methods
 
 html(::Document, r, n, ent) = nothing
 

@@ -1,40 +1,14 @@
-# Public
-
-html(io::IO, ast::Node) = render(Writer(HTML(), io), ast)
-html(ast::Node) = sprint(html, ast)
-
-latex(io::IO, ast::Node) = render(Writer(LaTeX(), io), ast)
-latex(ast::Node) = sprint(latex, ast)
-
-term(io::IO, ast::Node) = render(Writer(Term(), io), ast)
-term(ast::Node) = sprint(term, ast)
-
-# Internals
-
 mutable struct Writer{F, I <: IO}
     format::F
     buffer::I
     last::Char
     enabled::Bool
+    context::Dict{Symbol, Any}
 end
-Writer(format, buffer=IOBuffer()) = Writer(format, buffer, '\n', true)
+Writer(format, buffer=IOBuffer()) = Writer(format, buffer, '\n', true, Dict{Symbol, Any}())
 
-Base.show(io::IO, ::Writer{T}) where {T} = print(io, "CommonMark.Writer{$T}(...)")
-
-clear_renderer!(r::Writer{F, IOBuffer}) where F = take!(r.buffer)
-clear_renderer!(r::Writer) = nothing
-
-function render(r::Writer, ast::Node)
-    r.last = '\n'
-    clear_renderer!(r)
-    for (node, entering) in ast
-        render(r, node.t, node, entering)
-    end
-    return nothing
-end
-
-(r::Writer)(ast::Node) = render(r, ast)
-(r::Writer)(ast::Node, ::Type{String}) = String(take!(render(r, ast)))
+Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
+Base.get!(f, w::Writer, k::Symbol) = get!(f, w.context, k)
 
 function literal(r::Writer, args...)
     if r.enabled
@@ -53,9 +27,6 @@ function cr(r::Writer)
     end
     return nothing
 end
-
-Base.read(r::Writer{F, IOBuffer}, ::Type{String}) where F =
-    Base.read(seekstart(r.buffer), String)
 
 include("writers/html.jl")
 include("writers/latex.jl")
