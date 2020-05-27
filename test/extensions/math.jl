@@ -7,7 +7,7 @@
     ast = p(text)
 
     @test html(ast) == "<p>Some <span class=\"math\">\\(math\\)</span>.</p>\n"
-    @test latex(ast) == "\nSome \\(math\\).\n"
+    @test latex(ast) == "Some \\(math\\).\\par\n"
     @test term(ast) == " Some \e[35mmath\e[39m.\n"
 
     # Display

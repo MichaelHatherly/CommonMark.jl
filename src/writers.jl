@@ -15,8 +15,9 @@ mutable struct Writer{F, I <: IO}
     format::F
     buffer::I
     last::Char
+    enabled::Bool
 end
-Writer(format, buffer=IOBuffer()) = Writer(format, buffer, '\n')
+Writer(format, buffer=IOBuffer()) = Writer(format, buffer, '\n', true)
 
 Base.show(io::IO, ::Writer{T}) where {T} = print(io, "CommonMark.Writer{$T}(...)")
 
@@ -36,14 +37,17 @@ end
 (r::Writer)(ast::Node, ::Type{String}) = String(take!(render(r, ast)))
 
 function literal(r::Writer, args...)
-    for arg in args
-        write(r.buffer, arg)
-        r.last = isempty(arg) ? r.last : last(arg)
+    if r.enabled
+        for arg in args
+            write(r.buffer, arg)
+            r.last = isempty(arg) ? r.last : last(arg)
+        end
     end
+    return nothing
 end
 
 function cr(r::Writer)
-    if r.last != '\n'
+    if r.enabled && r.last != '\n'
         r.last = '\n'
         write(r.buffer, '\n')
     end

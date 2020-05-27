@@ -6,6 +6,6 @@
     ast = p(text)
 
     @test html(ast) == "<p>“Double quotes”, ‘single quotes’, ellipses…, and– dashes—</p>\n"
-    @test latex(ast) == "\n“Double quotes”, ‘single quotes’, ellipses…, and– dashes—\n"
+    @test latex(ast) == "“Double quotes”, ‘single quotes’, ellipses…, and– dashes—\\par\n"
     @test term(ast) == " “Double quotes”, ‘single quotes’, ellipses…, and– dashes—\n"
 end

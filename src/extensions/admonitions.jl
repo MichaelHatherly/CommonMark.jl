@@ -49,28 +49,26 @@ function html(a::Admonition, rend, node, enter)
     end
 end
 
-function latex(a::Admonition, rend, node, enter)
+# Requires tcolorbox package and custom newtcolorbox definitions.
+function latex(a::Admonition, w, node, enter)
     if enter
-        println(rend.buffer, "\\quote{")
-        println(rend.buffer, "\\textbf{", a.category, "}")
-        println(rend.buffer, "\n\n", a.title, "\n")
+        cr(w)
+        literal(w, "\\begin{admonition@$(a.category)}{$(a.title)}\n")
     else
-        println(rend.buffer, "}")
+        literal(w, "\\end{admonition@$(a.category)}\n")
+        cr(w)
     end
 end
 
 function term(a::Admonition, rend, node, enter)
-    style = if a.category == "danger"
-        crayon"red bold"
-    elseif a.category == "warning"
-        crayon"yellow bold"
-    elseif a.category in ("info", "note")
-        crayon"cyan bold"
-    elseif a.category == "tip"
-        crayon"green bold"
-    else
-        crayon"default bold"
-    end
+    styles = Dict(
+        "danger"  => crayon"red bold",
+        "warning" => crayon"yellow bold",
+        "info"    => crayon"cyan bold",
+        "note"    => crayon"cyan bold",
+        "tip"     => crayon"green bold"
+    )
+    style = get(styles, a.category, crayon"default bold")
     if enter
         header = rpad("┌ $(a.title) ", available_columns(rend), "─")
         print_margin(rend)

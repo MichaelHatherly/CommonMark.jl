@@ -9,40 +9,32 @@
     # Code blocks.
     test(
         "`code`",
-        "\n\\texttt{code}\n"
+        "\\texttt{code}\\par\n",
     )
     # Inline HTML.
     test(
         "<em>text</em>",
-        "\ntext\n"
+        "text\\par\n"
     )
     # Links.
     test(
         "[link](url)",
-        "\n\\href{url}{link}\n"
+        "\\href{url}{link}\\par\n"
     )
     # Images.
     test(
         "![link](url)",
-        """
-
-        \\begin{figure}
-        \\centering
-        \\includegraphics{url}
-        \\caption{link}
-        \\end{figure}
-
-        """
+        "\\begin{figure}\n\\centering\n\\includegraphics{url}\n\\caption{link}\n\\end{figure}\n\\par\n"
     )
     # Emphasis.
     test(
         "*text*",
-        "\n\\emph{text}\n"
+        "\\textit{text}\\par\n"
     )
     # Strong.
     test(
         "**text**",
-        "\n\\textbf{text}\n"
+        "\\textbf{text}\\par\n"
     )
     # Headings.
     test(
@@ -72,26 +64,38 @@
     # Block quotes.
     test(
         "> quote",
-        "\\begin{quote}\n\nquote\n\\end{quote}\n"
+        "\\begin{quote}\nquote\\par\n\\end{quote}\n"
     )
     # Lists.
     test(
         "- item",
-        "\\begin{itemize}\n\\item\n\nitem\n\n\\end{itemize}\n"
+        "\\begin{itemize}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{itemize}\n"
     )
     test(
         "1. item",
-        "\\begin{enumerate}[start=1]\n\\item\n\nitem\n\n\\end{enumerate}\n"
+        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{1}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n"
     )
     test(
         "3. item",
-        "\\begin{enumerate}[start=3]\n\\item\n\nitem\n\n\\end{enumerate}\n"
+        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{3}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n"
+    )
+    test(
+        "- item\n- item",
+        "\\begin{itemize}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{itemize}\n"
+    )
+    test(
+        "1. item\n2. item",
+        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{1}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{enumerate}\n"
+    )
+    test(
+        "- item\n\n- item",
+        "\\begin{itemize}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{itemize}\n"
     )
 
     # Thematic Breaks.
     test(
         "***",
-        "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}\n"
+        "\\par\\bigskip\\noindent\\hrulefill\\par\\bigskip\n"
     )
     # Code blocks.
     test(
@@ -105,6 +109,6 @@
     # Escapes.
     test(
         "^~\\&%\$#_{}",
-        "\n\\^{}{\\textasciitilde}\\&\\%\\\$\\#\\_\\{\\}\n"
+        "\\^{}{\\textasciitilde}\\&\\%\\\$\\#\\_\\{\\}\\par\n"
     )
 end

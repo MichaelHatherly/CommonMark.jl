@@ -1,7 +1,11 @@
 
 mutable struct LaTeX
-    LaTeX() = new()
+    context::Dict{Symbol, Any}
+    LaTeX() = new(Dict())
 end
+
+Base.get(latex::LaTeX, key::Symbol, value) = get(latex.context, key, value)
+Base.get!(f, latex::LaTeX, key::Symbol) = get!(f, latex.context, key)
 
 function render(r::Writer{LaTeX}, ast::Node)
     for (node, entering) in ast
@@ -10,101 +14,106 @@ function render(r::Writer{LaTeX}, ast::Node)
     return nothing
 end
 
-# Utilities.
-
 # Rendering.
 
-latex(::Document, r, node, ent) = nothing
+latex(::Document, w, node, ent) = nothing
 
-latex(::Text, r, node, ent) = latex_escape(r.buffer, node.literal)
+latex(::Text, w, node, ent) = latex_escape(w, node.literal)
 
-latex(::SoftBreak, r, node, ent) = println(r.buffer, " ")
+latex(::SoftBreak, w, node, ent) = cr(w)
+latex(::LineBreak, w, node, ent) = cr(w)
 
-latex(::LineBreak, r, node, ent) = println(r.buffer)
-
-function latex(::Code, r, node, ent)
-    print(r.buffer, "\\texttt{")
-    latex_escape(r.buffer, node.literal)
-    print(r.buffer, "}")
+function latex(::Code, w, node, ent)
+    literal(w, "\\texttt{")
+    latex_escape(w, node.literal)
+    literal(w, "}")
 end
 
-latex(::HtmlInline, r, node, ent) = nothing
+latex(::HtmlInline, w, node, ent) = nothing
 
-function latex(link::Link, r, node, ent)
-    print(r.buffer, ent ? "\\href{$(link.destination)}{" : "}")
-end
+latex(link::Link, w, node, ent) = literal(w, ent ? "\\href{$(link.destination)}{" : "}")
 
-function latex(::Image, r, node, ent)
+function latex(::Image, w, node, ent)
     if ent
-        println(r.buffer, "\\begin{figure}")
-        println(r.buffer, "\\centering")
-        println(r.buffer, "\\includegraphics{", node.t.destination, "}")
-        print(r.buffer, "\\caption{")
+        cr(w)
+        literal(w, "\\begin{figure}\n")
+        literal(w, "\\centering\n")
+        literal(w, "\\includegraphics{", node.t.destination, "}\n")
+        literal(w, "\\caption{")
     else
-        println(r.buffer, "}")
-        println(r.buffer, "\\end{figure}")
+        literal(w, "}\n")
+        literal(w, "\\end{figure}")
+        cr(w)
     end
 end
 
-latex(::Emph, r, node, ent) = print(r.buffer, ent ? "\\emph{" : "}")
+latex(::Emph, w, node, ent) = literal(w, ent ? "\\textit{" : "}")
 
-latex(::Strong, r, node, ent) = print(r.buffer, ent ? "\\textbf{" : "}")
+latex(::Strong, w, node, ent) = literal(w, ent ? "\\textbf{" : "}")
 
-function latex(::Paragraph, r, node, ent)
-    println(r.buffer)
+function latex(::Paragraph, w, node, ent)
+    literal(w, ent ? "" : "\\par\n")
 end
 
-function latex(::Heading, r, node, ent)
+function latex(::Heading, w, node, ent)
     if ent
+        cr(w)
         n = node.t.level
         name = n ≤ 3 ? "sub"^(n-1) * "section" : "sub"^(n-4) * "paragraph"
-        print(r.buffer, "\\$name{")
+        literal(w, "\\$name{")
     else
-        println(r.buffer, "}")
+        literal(w, "}")
+        cr(w)
     end
 end
 
-function latex(::BlockQuote, r, node, ent)
+function latex(::BlockQuote, w, node, ent)
+    cr(w)
+    literal(w, ent ? "\\begin{quote}" : "\\end{quote}")
+    cr(w)
+end
+
+function latex(list::List, w, node, ent)
+    cr(w)
+    command = list.list_data.type == "bullet" ? "itemize" : "enumerate"
     if ent
-        println(r.buffer, "\\begin{quote}")
+        literal(w, "\\begin{$command}\n")
+        if command == "enumerate"
+            literal(w, "\\def\\labelenumi{\\arabic{enumi}.}\n")
+            literal(w, "\\setcounter{enumi}{$(list.list_data.start)}\n")
+        end
+        if list.list_data.tight
+            literal(w, "\\setlength{\\itemsep}{0pt}\n")
+            literal(w, "\\setlength{\\parskip}{0pt}\n")
+        end
     else
-        println(r.buffer, "\\end{quote}")
+        literal(w, "\\end{$command}")
     end
+    cr(w)
 end
 
-# Requires \usepackage{enumerate} for the [start=...] option to be available.
-function latex(list::List, r, node, ent)
-    env = list.list_data.type == "bullet" ? "itemize" : "enumerate"
-    if ent
-        start = env == "enumerate" ? "[start=$(list.list_data.start)]" : ""
-        println(r.buffer, "\\begin{$env}$start")
-    else
-        println(r.buffer, "\\end{$env}")
-    end
+function latex(::Item, w, node, ent)
+    literal(w, ent ? "\\item" : "")
+    cr(w)
 end
 
-function latex(::Item, r, node, ent)
-    if ent
-        println(r.buffer, "\\item")
-    else
-        println(r.buffer)
-    end
+function latex(::ThematicBreak, w, node, ent)
+    cr(w)
+    literal(w, "\\par\\bigskip\\noindent\\hrulefill\\par\\bigskip")
+    cr(w)
 end
 
-function latex(::ThematicBreak, r, node, ent)
-    println(r.buffer, "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}")
+function latex(::CodeBlock, w, node, ent)
+    cr(w)
+    literal(w, "\\begin{verbatim}")
+    cr(w)
+    literal(w, node.literal)
+    cr(w)
+    literal(w, "\\end{verbatim}")
+    cr(w)
 end
 
-# TODO: handle info lines.
-function latex(::CodeBlock, r, node, ent)
-    println(r.buffer, "\\begin{verbatim}")
-    for line in eachline(IOBuffer(node.literal))
-        latex_escape(r.buffer, line)
-    end
-    println(r.buffer, "\n\\end{verbatim}")
-end
-
-latex(::HtmlBlock, r, node, ent) = nothing
+latex(::HtmlBlock, w, node, ent) = nothing
 
 let chars = Dict(
         '^'  => "\\^{}",
@@ -114,9 +123,9 @@ let chars = Dict(
     for c in "&%\$#_{}"
         chars[c] = "\\$c"
     end
-    global function latex_escape(io, s::AbstractString)
+    global function latex_escape(w::Writer, s::AbstractString)
         for ch in s
-            print(io, get(chars, ch, ch))
+            literal(w, get(chars, ch, ch))
         end
     end
 end

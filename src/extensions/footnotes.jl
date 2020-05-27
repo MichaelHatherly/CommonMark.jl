@@ -1,15 +1,40 @@
-#
-# Block
-#
+struct FootnoteRule
+    cache::Dict{String, Node}
+    FootnoteRule() = new(Dict())
+end
+block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
+    if !parser.indented
+        ln = SubString(parser.current_line, parser.next_nonspace)
+        m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
+        if m !== nothing
+            close_unmatched_blocks(parser)
+            fr.cache[m[1]] = add_child(parser, FootnoteDefinition(m[1]), parser.next_nonspace)
+            advance_offset(parser, length(m.match), false)
+            return 1
+        end
+    end
+    return 0
+end
+inline_rule(fr::FootnoteRule) = Rule(0.5, "[") do p, node
+    m = consume(p, match(r"^\[\^([\w\d]+)]", p))
+    m === nothing && return false
+    append_child(node, Node(FootnoteLink(m[1], fr)))
+    return true
+end
 
 struct FootnoteDefinition <: AbstractBlock
     id::String
 end
 
+struct FootnoteLink <: AbstractInline
+    id::String
+    rule::FootnoteRule
+end
+
 is_container(::FootnoteDefinition) = true
 accepts_lines(::FootnoteDefinition) = false
 can_contain(::FootnoteDefinition, t) = !(t isa Item)
-finalize(::FootnoteDefinition, parser::Parser, node::Node) = nothing
+finalize(::FootnoteDefinition, ::Parser, ::Node) = nothing
 function continue_(::FootnoteDefinition, parser::Parser, ::Any)
     if parser.indent ≥ 4 || parser.blank
         advance_offset(parser, 4, false)
@@ -17,39 +42,6 @@ function continue_(::FootnoteDefinition, parser::Parser, ::Any)
         return 1
     end
     return 0
-end
-
-function parse_footnote_definition(parser::Parser, container::Node)
-    if !parser.indented
-        ln = SubString(parser.current_line, parser.next_nonspace)
-        m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
-        if m !== nothing
-            close_unmatched_blocks(parser)
-            add_child(parser, FootnoteDefinition(m[1]), parser.next_nonspace)
-            advance_offset(parser, length(m.match), false)
-            return 1
-        end
-    end
-    return 0
-end
-
-struct FootnoteRule end
-block_rule(::FootnoteRule) = Rule(parse_footnote_definition, 0.5, "[")
-inline_rule(::FootnoteRule) = Rule(parse_footnote, 0.5, "[")
-
-#
-# Inline
-#
-
-struct FootnoteLink <: AbstractInline
-    id::String
-end
-
-function parse_footnote(p::InlineParser, node::Node)
-    m = consume(p, match(r"^\[\^([\w\d]+)]", p))
-    m == nothing && return false
-    append_child(node, Node(FootnoteLink(m[1])))
-    return true
 end
 
 #
@@ -68,12 +60,9 @@ function html(f::FootnoteDefinition, rend, node, enter)
     end
 end
 
-function latex(f::FootnoteDefinition, rend, node, enter)
-    if enter
-        println(rend.buffer, "\\footnotetext[", f.id, "]{")
-    else
-        println(rend.buffer, "}")
-    end
+function latex(f::FootnoteDefinition, w, node, enter)
+    get(w.buffer, :footnote, false) || (w.enabled = !enter)
+    return nothing
 end
 
 function term(f::FootnoteDefinition, rend, node, enter)
@@ -102,8 +91,19 @@ function html(f::FootnoteLink, rend, node, enter)
     tag(rend, "/a")
 end
 
-function latex(f::FootnoteLink, rend, node, enter)
-    print(rend.buffer, "\\footnotemark[", f.id, "]")
+function latex(f::FootnoteLink, w, node, enter)
+    if haskey(f.rule.cache, f.id)
+        seen = get!(() -> Set{String}(), w.format, :footnotes)
+        if f.id in seen
+            literal(w, "\\footref{fn:$(f.id)}")
+        else
+            push!(seen, f.id)
+            literal(w, "\\footnote{")
+            latex(IOContext(w.buffer, :footnote => true), f.rule.cache[f.id])
+            literal(w, "\\label{fn:$(f.id)}}")
+        end
+    end
+    return nothing
 end
 
 function term(f::FootnoteLink, rend, node, enter)
