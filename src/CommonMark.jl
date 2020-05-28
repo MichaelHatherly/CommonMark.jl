@@ -39,6 +39,7 @@ export
     FootnoteRule,
     FrontMatterRule,
     MathRule,
+    RawContentRule,
     TableRule,
     TypographyRule
 

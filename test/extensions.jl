@@ -5,4 +5,5 @@
     include("extensions/tables.jl")
     include("extensions/frontmatter.jl")
     include("extensions/typography.jl")
+    include("extensions/raw.jl")
 end

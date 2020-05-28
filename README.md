@@ -141,6 +141,53 @@ Enabled with:
 enable!(parser, TableRule())
 ```
 
+### Raw Content
+
+Overload literal syntax to support passing through any type of raw content.
+
+```julia
+enable!(parser, RawContentRule())
+```
+
+By default `RawContentRule` will handle inline and block content in HTML and
+LaTeX formats.
+
+````markdown
+This is raw HTML: `<img src="myimage.jpg">`{=html}.
+
+And here's an HTML block:
+
+```{=html}
+<div id="main">
+ <div class="article">
+```
+````
+
+````markdown
+```{=latex}
+\begin{tikzpicture}
+\draw[gray, thick] (-1,2) -- (2,-4);
+\draw[gray, thick] (-1,-1) -- (2,2);
+\filldraw[black] (0,0) circle (2pt) node[anchor=west] {Intersection point};
+\end{tikzpicture}
+```
+````
+
+This can be used to pass through different complex content that can't be easily
+handled by CommonMark natively without any loss of expressiveness.
+
+Custom raw content handlers can also be passed through when enabling the rule.
+The naming scheme is `<format>_inline` or `<format>_block`.
+
+```julia
+enable!(p, RawContentRule(rst_inline=RstInline))
+```
+
+The last example would require the definition of a custom `RstInline` struct
+and associated display methods for all supported output types, namely: `html`,
+`latex`, and `term`. When passing your own keywords to `RawContentRule` the
+defaults are not included and must be enabled individually.
+
 ### CommonMark Defaults
 
 Block rules enabled by default in `Parser` objects:
