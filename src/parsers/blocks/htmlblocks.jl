@@ -10,9 +10,7 @@ function continue_(::HtmlBlock, parser::Parser, container::Node)
 end
 
 function finalize(::HtmlBlock, parser::Parser, block::Node)
-    block.literal = replace(block.string_content, r"(\n *)+$" => "")
-    # allow GC
-    block.string_content = ""
+    block.literal = replace(block.literal, r"(\n *)+$" => "")
     return nothing
 end
 

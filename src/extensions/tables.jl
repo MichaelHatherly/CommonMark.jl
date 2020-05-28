@@ -44,7 +44,7 @@ contains_inlines(::TableCell) = true
 function gfm_table(parser::Parser, container::Node)
     if !parser.indented
         if container.t isa Paragraph
-            header = container.string_content
+            header = container.literal
             spec_str = SubString(parser.current_line, parser.next_nonspace)
             if valid_table_spec(spec_str)
                 # Parse the table spec line.
@@ -58,7 +58,7 @@ function gfm_table(parser::Parser, container::Node)
                 width = length(header)
                 for (column, each) in enumerate(spec)
                     cell = Node(TableCell(each.align, true, column), container.sourcepos)
-                    cell.string_content = SubString(header, min(each.first, width), min(each.last, width))
+                    cell.literal = SubString(header, min(each.first, width), min(each.last, width))
                     append_child(row, cell)
                 end
                 # Insert the empty body for the table.
@@ -80,7 +80,7 @@ function gfm_table(parser::Parser, container::Node)
                 width = length(line)
                 for (column, each) in enumerate(container.t.spec)
                     cell = Node(TableCell(each.align, false, column), container.sourcepos)
-                    cell.string_content = SubString(line, min(each.first, width), min(each.last, width))
+                    cell.literal = SubString(line, min(each.first, width), min(each.last, width))
                     append_child(row, cell)
                 end
                 advance_offset(parser, length(parser.current_line) - parser.offset + 1, false)

@@ -112,7 +112,8 @@ function parse_inline(parser::InlineParser, block::Node)
 end
 
 function parse_inlines(parser::InlineParser, block::Node)
-    parser.buf = strip(block.string_content)
+    parser.buf = strip(block.literal)
+    block.literal = ""
     parser.pos = 1
     parser.len = length(parser.buf)
     parser.delimiters = nothing

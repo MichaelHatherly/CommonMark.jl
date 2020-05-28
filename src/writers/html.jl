@@ -166,7 +166,7 @@ function html(::BlockQuote, r, n, ent)
 end
 
 function html(::List, r, n, ent)
-    tagname = n.t.list_data.type == "bullet" ? "ul" : "ol"
+    tagname = n.t.list_data.type === :bullet ? "ul" : "ol"
     if ent
         attrs = attributes(r, n)
         start = n.t.list_data.start

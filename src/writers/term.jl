@@ -322,7 +322,7 @@ end
 
 function term(item::Item, render, node, enter)
     if enter
-        if item.list_data.type == "ordered"
+        if item.list_data.type === :ordered
             number = string(render.format.list_item_number[end], ". ")
             render.format.list_item_number[end] += 1
             push_margin!(render, 1, number, crayon"")

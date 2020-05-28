@@ -27,8 +27,8 @@ function continue_(frontmatter::FrontMatter, parser::Parser, container::Node)
 end
 
 function finalize(frontmatter::FrontMatter, parser::Parser, block::Node)
-    _, rest = split(block.string_content, '\n'; limit=2)
-    block.string_content = rest
+    _, rest = split(block.literal, '\n'; limit=2)
+    block.literal = rest
     return nothing
 end
 
@@ -65,11 +65,10 @@ block_modifier(f::FrontMatterRule) = Rule(0.5) do parser, node
         fence = node.t.fence
         λ = fence == ";;;" ? f.json : fence == "+++" ? f.toml : f.yaml
         try
-            merge!(node.t.data, λ(node.string_content))
+            merge!(node.t.data, λ(node.literal))
         catch err
             node.literal = string(err)
         end
-        node.string_content = ""
     end
     return nothing
 end

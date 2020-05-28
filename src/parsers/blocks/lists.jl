@@ -1,12 +1,12 @@
 mutable struct ListData
-    type::String
+    type::Symbol
     tight::Bool
     bullet_char::Char
     start::Int
     delimiter::String
     padding::Int
     marker_offset::Int
-    ListData(indent=0) = new("", true, ' ', 1, "", 0, indent)
+    ListData(indent=0) = new(:bullet, true, ' ', 1, "", 0, indent)
 end
 
 mutable struct Item <: AbstractBlock
@@ -23,28 +23,30 @@ is_container(::List) = true
 is_container(::Item) = true
 
 function parse_list_marker(parser::Parser, container::Node)
-    rest = SubString(parser.current_line, parser.next_nonspace)
-    data = ListData(parser.indent)
     if parser.indent ≥ 4
         return nothing
     end
+    rest = SubString(parser.current_line, parser.next_nonspace)
+    data = ListData(parser.indent)
     m = Base.match(reBulletListMarker, rest)
-    m2 = Base.match(reOrderedListMarker, rest)
     if m !== nothing
-        data.type = "bullet"
+        data.type = :bullet
         data.bullet_char = m.match[1]
-    elseif m2 !== nothing && (!(container.t isa Paragraph) || m2.captures[1] == "1")
-        m = m2
-        data.type = "ordered"
-        data.start = Base.parse(Int, m.captures[1])
-        data.delimiter = m.captures[2]
     else
-        return nothing
+        m2 = Base.match(reOrderedListMarker, rest)
+        if m2 !== nothing && (!(container.t isa Paragraph) || m2.captures[1] == "1")
+            m = m2
+            data.type = :ordered
+            data.start = Base.parse(Int, m.captures[1])
+            data.delimiter = m.captures[2]
+        else
+            return nothing
+        end
     end
 
     # Make sure we have spaces after.
-    nextc = get(parser.current_line, parser.next_nonspace + length(m.match), nothing)
-    if nextc ∉ (nothing, '\t', ' ')
+    nextc = get(parser.current_line, parser.next_nonspace + length(m.match), '\0')
+    if nextc ∉ ('\0', '\t', ' ')
         return nothing
     end
 
@@ -60,7 +62,7 @@ function parse_list_marker(parser::Parser, container::Node)
     spaces_start_offset = parser.offset
     while true
         advance_offset(parser, 1, true)
-        nextc = get(parser.current_line, parser.offset, nothing)
+        nextc = get(parser.current_line, parser.offset, '\0')
         if parser.column - spaces_start_col < 5 && is_space_or_tab(nextc)
             nothing
         else
@@ -73,7 +75,7 @@ function parse_list_marker(parser::Parser, container::Node)
         data.padding = length(m.match) + 1
         parser.column = spaces_start_col
         parser.offset = spaces_start_offset
-        if is_space_or_tab(get(parser.current_line, parser.offset, nothing))
+        if is_space_or_tab(get(parser.current_line, parser.offset, '\0'))
             advance_offset(parser, 1, true)
         end
     else

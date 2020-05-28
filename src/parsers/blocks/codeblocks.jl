@@ -54,15 +54,14 @@ end
 function finalize(::CodeBlock, parser::Parser, block::Node)
     if block.t.is_fenced
         # first line becomes info string
-        first_line, rest = split(block.string_content, '\n'; limit=2)
+        first_line, rest = split(block.literal, '\n'; limit=2)
         info = unescape_string(strip(first_line))
         block.t.info = info
         block.literal = rest
     else
         # indented
-        block.literal = replace(block.string_content, r"(\n *)+$" => "\n")
+        block.literal = replace(block.literal, r"(\n *)+$" => "\n")
     end
-    block.string_content = ""
     return nothing
 end
 

@@ -43,7 +43,7 @@ mutable struct Parser <: AbstractParser
     partially_consumed_tab::Bool
     all_closed::Bool
     last_matched_container::Node
-    refmap::Dict{String, Any}
+    refmap::Dict{String, Tuple{String, String}}
     last_line_length::Int
     inline_parser::InlineParser
     modifiers::Vector{Function}
@@ -145,9 +145,9 @@ function add_line(parser::Parser)
         parser.offset += 1
         # Add space characters.
         chars_to_tab = 4 - (parser.column % 4)
-        parser.tip.string_content *= (' ' ^ chars_to_tab)
+        parser.tip.literal *= (' ' ^ chars_to_tab)
     end
-    parser.tip.string_content *= (SubString(parser.current_line, parser.offset) * '\n')
+    parser.tip.literal *= (SubString(parser.current_line, parser.offset) * '\n')
 end
 
 function add_child(parser::Parser, tag::AbstractContainer, offset::Integer)
@@ -156,7 +156,6 @@ function add_child(parser::Parser, tag::AbstractContainer, offset::Integer)
     end
     column_number = offset + 1
     new_block = Node(tag, ((parser.line_number, column_number), (0, 0)))
-    new_block.string_content = ""
     append_child(parser.tip, new_block)
     parser.tip = new_block
     return new_block
@@ -261,7 +260,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
 
         find_next_nonspace(parser)
 
-        rv = continue_(container.t, parser, container)
+        rv = continue_(container.t, parser, container)::Int
         if rv == 0
             # Matched, keep going.
         elseif rv == 1
@@ -371,7 +370,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
             add_line(parser)
             # If HtmlBlock, check for end condition.
             if t isa HtmlBlock && container.t.html_block_type in 1:5
-                str = parser.current_line[parser.offset:end]
+                str = SubString(parser.current_line, parser.offset)
                 if occursin(reHtmlBlockClose[container.t.html_block_type], str)
                     parser.last_line_length = length(ln)
                     finalize(parser, container, parser.line_number)
@@ -386,6 +385,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
     end
 
     parser.last_line_length = length(ln)
+    return nothing
 end
 
 function finalize(parser::Parser, block::Node, line_number::Integer)
@@ -400,6 +400,7 @@ function finalize(parser::Parser, block::Node, line_number::Integer)
     end
 
     parser.tip = above
+    return nothing
 end
 
 function process_inlines(parser::Parser, block::Node)
@@ -418,7 +419,7 @@ contains_inlines(::Heading) = true
 function parse(parser::Parser, my_input::AbstractString)
     parser.doc = Node(Document(), ((1, 1), (0, 0)))
     parser.tip = parser.doc
-    parser.refmap = Dict()
+    parser.refmap = Dict{String, Tuple{String, String}}()
     parser.line_number = 0
     parser.last_line_length = 0
     parser.offset = 1
@@ -427,7 +428,7 @@ function parse(parser::Parser, my_input::AbstractString)
     parser.current_line = ""
     line_count = 0
     for line in eachline(IOBuffer(my_input))
-        incorporate_line(parser, line)
+        incorporate_line(parser, line)::Nothing
         line_count += 1
     end
     while !isnull(parser.tip)

@@ -74,7 +74,7 @@ end
 
 function latex(list::List, w, node, ent)
     cr(w)
-    command = list.list_data.type == "bullet" ? "itemize" : "enumerate"
+    command = list.list_data.type === :bullet ? "itemize" : "enumerate"
     if ent
         literal(w, "\\begin{$command}\n")
         if command == "enumerate"

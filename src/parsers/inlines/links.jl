@@ -159,8 +159,7 @@ function parse_close_bracket(parser::InlineParser, block::Node)
             # Lookup rawlabel in refmap.
             link = get(parser.refmap, normalize_reference(reflabel), nothing)
             if link !== nothing
-                dest = link.destination
-                title = link.title
+                dest, title = link
                 matched = true
             end
         end
@@ -245,7 +244,7 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
 
     # Make sure we're at line end.
     at_line_end = true
-    if consume(parser, match(reSpaceAtEndOfLine, parser)) == nothing
+    if consume(parser, match(reSpaceAtEndOfLine, parser)) === nothing
         if title == ""
             at_line_end = false
         else
@@ -264,7 +263,7 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
     normlabel = normalize_reference(rawlabel)
     normlabel == "[]" && (seek(parser, startpos); return 0)
 
-    haskey(refmap, normlabel) || (refmap[normlabel] = (destination = dest, title = title))
+    haskey(refmap, normlabel) || (refmap[normlabel] = (dest, title))
     parser.refmap = refmap
     return position(parser) - startpos
 end

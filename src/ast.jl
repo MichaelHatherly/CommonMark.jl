@@ -17,7 +17,6 @@ mutable struct Node
     last_line_blank::Bool
     last_line_checked::Bool
     is_open::Bool
-    string_content::String
     literal::String
 
     Node() = new()
@@ -34,7 +33,6 @@ mutable struct Node
         node.last_line_blank = false
         node.last_line_checked = false
         node.is_open = true
-        node.string_content = ""
         node.literal = ""
         return node
     end
@@ -43,7 +41,7 @@ end
 const NULL_NODE = Node()
 isnull(node::Node) = node === NULL_NODE
 
-is_container(node::Node) = is_container(node.t)
+is_container(node::Node) = is_container(node.t)::Bool
 
 Base.show(io::IO, node::Node) = print(io, "Node($(typeof(node.t)))")
 
