@@ -59,4 +59,14 @@
     text = "\n+++"
     ast = p(text)
     @test html(ast) == "<p>+++</p>\n"
+
+    text =
+    """
+    ---
+    field: data
+    ---
+    """
+    ast = p(text)
+    @test markdown(ast) == "---\nfield: data\n---\n"
+    @test markdown(p(markdown(ast))) == markdown(ast)
 end

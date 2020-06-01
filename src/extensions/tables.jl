@@ -241,3 +241,59 @@ function term(cell::TableCell, rend, node, enter)
         end
     end
 end
+
+# Markdown
+
+markdown(table::Table, w, node, enter) = nothing
+
+function markdown(::TableHeader, w, node, enter)
+    if enter
+    else
+        spec = node.parent.t.spec
+        print_margin(w)
+        literal(w, "|")
+        for each in spec
+            align = each.align
+            literal(w, align in (:left, :center)  ? ":" : " ")
+            literal(w, "-"^(length(each.first:each.last) - 2))
+            literal(w, align in (:center, :right) ? ":" : " ")
+            literal(w, "|")
+        end
+        cr(w)
+    end
+end
+
+markdown(::TableBody, w, node, enter) = nothing
+
+function markdown(::TableRow, w, node, enter)
+    if enter
+        print_margin(w)
+        literal(w, "| ")
+    else
+        literal(w, " |")
+        cr(w)
+    end
+end
+
+function _md_width(root)
+    width = 0
+    if !isnull(root.first_child)
+        node = root.first_child
+        width += length(markdown(node))
+        while !isnull(node.nxt)
+            node = node.nxt
+            width += length(markdown(node))
+        end
+    end
+    return width
+end
+
+function markdown(cell::TableCell, w, node, enter)
+    if enter
+    else
+        spec = node.parent.parent.parent.t.spec[cell.column]
+        pad = length(spec.first:spec.last) - 2 - _md_width(node)
+        literal(w, " "^pad)
+        isnull(node.nxt) || literal(w, " | ")
+    end
+end

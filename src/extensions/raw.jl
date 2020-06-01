@@ -58,3 +58,24 @@ latex(::LaTeXInline, w, n, ent) = literal(w, n.literal)
 # Printing to terminal using the same implementations as for HTML content.
 term(::LaTeXBlock, w, n, ent) = term(HtmlBlock(), w, n, ent)
 term(::LaTeXInline, w, n, ent) = term(HtmlInline(), w, n, ent)
+
+function markdown(::LaTeXBlock, w, n, ent)
+    print_margin(w)
+    literal(w, "```{=latex}\n")
+    for line in eachline(IOBuffer(n.literal))
+        print_margin(w)
+        literal(w, line, "\n")
+    end
+    print_margin(w)
+    literal(w, "```\n")
+    linebreak(w, n)
+end
+
+function markdown(::LaTeXInline, w, n, ent)
+    num = foldl(eachmatch(r"`+", n.literal); init=0) do a, b
+        max(a, length(b.match))
+    end
+    literal(w, '`'^(num == 1 ? 2 : 1))
+    literal(w, n.literal)
+    literal(w, '`'^(num == 1 ? 2 : 1), "{=latex}")
+end

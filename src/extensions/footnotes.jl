@@ -87,6 +87,22 @@ function term(f::FootnoteDefinition, rend, node, enter)
     end
 end
 
+function markdown(f::FootnoteDefinition, w, node, ent)
+    tight = node.first_child === node.last_child
+    if ent
+        literal(w, "[^", f.id, "]: ")
+        if !tight
+            push_margin!(w, "    ")
+            cr(w)
+            linebreak(w, node)
+        end
+    else
+        tight || pop_margin!(w)
+        cr(w)
+        linebreak(w, node)
+    end
+end
+
 # Links
 
 function html(f::FootnoteLink, rend, node, enter)
@@ -118,3 +134,5 @@ function term(f::FootnoteLink, rend, node, enter)
     pop_inline!(rend)
     print_literal(rend, inv(style))
 end
+
+markdown(f::FootnoteLink, w, node, ent) = literal(w, "[^", f.id, "]")

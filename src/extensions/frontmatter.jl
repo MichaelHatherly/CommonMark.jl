@@ -78,3 +78,11 @@ end
 html(::FrontMatter, rend, node, enter) = nothing
 latex(::FrontMatter, rend, node, enter) = nothing
 term(::FrontMatter, rend, node, enter) = nothing
+
+function markdown(f::FrontMatter, w, node, ent)
+    literal(w, f.fence, "\n")
+    # If frontmatter is not well-formed then it won't be round-trippable.
+    literal(w, node.literal)
+    literal(w, f.fence, "\n")
+    linebreak(w, node)
+end

@@ -31,6 +31,7 @@ end
 include("writers/html.jl")
 include("writers/latex.jl")
 include("writers/term.jl")
+include("writers/markdown.jl")
 
 function ast_dump(io::IO, ast::Node)
     indent = -2

@@ -86,3 +86,20 @@ function term(a::Admonition, rend, node, enter)
         end
     end
 end
+
+function markdown(a::Admonition, w, node, ent)
+    if ent
+        push_margin!(w, "    ")
+        literal(w, "!!! ", a.category)
+        if lowercase(a.title) != lowercase(a.category)
+            literal(w, " \"$(a.title)\"")
+        end
+        literal(w, "\n")
+        print_margin(w)
+        literal(w, "\n")
+    else
+        pop_margin!(w)
+    end
+    cr(w)
+    linebreak(w, node)
+end

@@ -71,7 +71,7 @@ end
 Adds a new segment to the margin buffer. This segment is persistent and thus
 will print on every margin print.
 """
-function push_margin!(r::Writer{Term}, text::AbstractString, style=crayon"")
+function push_margin!(r::Writer, text::AbstractString, style=crayon"")
     return push_margin!(r, -1, text, style)
 end
 
@@ -80,7 +80,7 @@ Adds a new segment to the margin buffer, but will only print out for the given
 number of `count` calls to `print_margin`. After `count` calls it will instead
 print out spaces equal to the width of `text`.
 """
-function push_margin!(r::Writer{Term}, count::Integer, text::AbstractString, style=crayon"")
+function push_margin!(r::Writer, count::Integer, text::AbstractString, style=crayon"")
     width = Base.Unicode.textwidth(text)
     text = string(style, text, inv(style))
     r.format.indent += width
@@ -91,7 +91,7 @@ end
 
 # Matching call for a `push_margin!`. Must be call on exiting a node where a
 # `push_margin!` was used when entering.
-function pop_margin!(r::Writer{Term})
+function pop_margin!(r::Writer)
     seg = pop!(r.format.margin)
     r.format.indent -= seg.width
     return nothing
@@ -116,7 +116,7 @@ Each time a segment gets printed it's count is reduced. When a segment has a
 count of zero it won't be printed and instead spaces equal to it's width are
 printed. For persistent printing a count of -1 should be used.
 """
-function print_margin(r::Writer{Term})
+function print_margin(r::Writer)
     for seg in r.format.margin
         if seg.count == 0
             # Blank space case.

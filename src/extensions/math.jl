@@ -70,6 +70,15 @@ function term(::Math, rend, node, enter)
     pop_inline!(rend)
 end
 
+function markdown(::Math, w, node, ent)
+    num = foldl(eachmatch(r"`+", node.literal); init=0) do a, b
+        max(a, length(b.match))
+    end
+    literal(w, "`"^(num == 2 ? 4 : 2))
+    literal(w, node.literal)
+    literal(w, "`"^(num == 2 ? 4 : 2))
+end
+
 function html(::DisplayMath, rend, node, enter)
     tag(rend, "div", ["class" => "display-math"])
     print(rend.buffer, "\\[", node.literal, "\\]")
@@ -94,4 +103,15 @@ function term(::DisplayMath, rend, node, enter)
         print_margin(rend)
         print_literal(rend, "\n")
     end
+end
+
+function markdown(::DisplayMath, w, node, ent)
+    literal(w, "```math\n")
+    for line in eachline(IOBuffer(node.literal))
+        print_margin(w)
+        literal(w, line, "\n")
+    end
+    literal(w, "```")
+    cr(w)
+    linebreak(w, node)
 end
