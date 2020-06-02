@@ -9,7 +9,7 @@ include("writers.jl")
 include("extensions.jl")
 
 # Interface
-export Parser, enable!, disable!, html, latex, term, markdown
+export Parser, enable!, disable!, html, latex, term, markdown, notebook
 
 # Core block rules
 export

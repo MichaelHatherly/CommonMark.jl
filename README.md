@@ -15,14 +15,14 @@ Create a markdown parser with the default CommonMark settings and then add
 footnote syntax to our parser.
 
 ```julia
-markdown = Parser()
-enable!(markdown, FootnoteRule())
+parser = Parser()
+enable!(parser, FootnoteRule())
 ```
 
 Parse some text to an abstract syntax tree.
 
 ```julia
-ast = markdown("Hello *world*")
+ast = parser("Hello *world*")
 ```
 
 Write `ast` to a string.
@@ -46,6 +46,16 @@ Or write to a buffer, such as `stdout`.
 ```julia
 term(stdout, ast)
 ```
+
+### Output Formats
+
+Supported output formats are currently:
+
+- `html`
+- `latex`
+- `term`: colourised and Unicode-formatted for display in a terminal.
+- `markdown`
+- `notebook`: [Jupyter](https://jupyter.org/) notebooks.
 
 ## Extensions
 
