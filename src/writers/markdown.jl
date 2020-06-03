@@ -32,7 +32,13 @@ end
 
 markdown(::Document, w, node, ent) = nothing
 
-markdown(::Text, w, node, ent) = literal(w, node.literal)
+function markdown(::Text, w, node, ent)
+    for c in node.literal
+        c in MARKDOWN_ESCAPES && literal(w, '\\')
+        literal(w, c)
+    end
+end
+const MARKDOWN_ESCAPES = Set("\\[]*_#`")
 
 function markdown(::Union{SoftBreak, LineBreak}, w, node, ent)
     cr(w)
