@@ -398,10 +398,6 @@ function finalize(parser::Parser, block::Node, line_number::Integer)
 
     finalize(block.t, parser, block)
 
-    for fn in parser.modifiers
-        fn(parser, block)
-    end
-
     parser.tip = above
     return nothing
 end
@@ -409,8 +405,14 @@ end
 function process_inlines(parser::Parser, block::Node)
     parser.inline_parser.refmap = parser.refmap
     for (node, entering) in block
-        if !entering && contains_inlines(node.t)
-            parse(parser.inline_parser, node)
+        if entering
+            for fn in parser.modifiers
+                fn(parser, node)
+            end
+        else
+            if contains_inlines(node.t)
+                parse(parser.inline_parser, node)
+            end
         end
     end
 end

@@ -204,6 +204,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
         remove_delimiter(parser, parser.delimiters)
     end
 end
+process_emphasis(parser::InlineParser, ::Node) = process_emphasis(parser, nothing)
 
 struct AsteriskEmphasisRule end
 inline_rule(::AsteriskEmphasisRule) = Rule(parse_asterisk, 1, "*")

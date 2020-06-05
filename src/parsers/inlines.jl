@@ -121,7 +121,9 @@ function parse_inlines(parser::InlineParser, block::Node)
     while (parse_inline(parser, block))
         nothing
     end
-    process_emphasis(parser, nothing)
+    for fn in parser.modifiers
+        fn(parser, block)
+    end
 end
 
 parse(parser::InlineParser, block::Node) = parse_inlines(parser, block)
