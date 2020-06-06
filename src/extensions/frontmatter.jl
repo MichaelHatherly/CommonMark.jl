@@ -15,7 +15,7 @@ accepts_lines(::FrontMatter) = true
 const reFrontMatter = r"^(\-{3}|\+{3}|;{3})$"
 
 function continue_(frontmatter::FrontMatter, parser::Parser, container::Node)
-    ln = SubString(parser.current_line, parser.next_nonspace)
+    ln = SubString(parser.buf, parser.next_nonspace)
     if !parser.indented
         m = Base.match(reFrontMatter, SubString(ln, parser.next_nonspace))
         if m !== nothing && m.match == frontmatter.fence
@@ -36,7 +36,7 @@ can_contain(t::FrontMatter) = false
 
 function parse_front_matter(parser::Parser, container::Node)
     if parser.line_number === 1 && !parser.indented && container.t isa Document
-        m = Base.match(reFrontMatter, SubString(parser.current_line, parser.next_nonspace))
+        m = Base.match(reFrontMatter, SubString(parser.buf, parser.next_nonspace))
         if m !== nothing
             close_unmatched_blocks(parser)
             container = add_child(parser, FrontMatter(m.match), parser.next_nonspace)

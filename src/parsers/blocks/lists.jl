@@ -26,7 +26,7 @@ function parse_list_marker(parser::Parser, container::Node)
     if parser.indent ≥ 4
         return nothing
     end
-    rest = SubString(parser.current_line, parser.next_nonspace)
+    rest = SubString(parser.buf, parser.next_nonspace)
     data = ListData(parser.indent)
     m = Base.match(reBulletListMarker, rest)
     if m !== nothing
@@ -45,13 +45,13 @@ function parse_list_marker(parser::Parser, container::Node)
     end
 
     # Make sure we have spaces after.
-    nextc = get(parser.current_line, parser.next_nonspace + length(m.match), '\0')
+    nextc = get(parser.buf, parser.next_nonspace + length(m.match), '\0')
     if nextc ∉ ('\0', '\t', ' ')
         return nothing
     end
 
     # If it interrupts paragraph make sure first line isn't blank.
-    if container.t isa Paragraph && !occursin(reNonSpace, SubString(parser.current_line, parser.next_nonspace + length(m.match)))
+    if container.t isa Paragraph && !occursin(reNonSpace, SubString(parser.buf, parser.next_nonspace + length(m.match)))
         return nothing
     end
 
@@ -62,20 +62,20 @@ function parse_list_marker(parser::Parser, container::Node)
     spaces_start_offset = parser.offset
     while true
         advance_offset(parser, 1, true)
-        nextc = get(parser.current_line, parser.offset, '\0')
+        nextc = get(parser.buf, parser.offset, '\0')
         if parser.column - spaces_start_col < 5 && is_space_or_tab(nextc)
             nothing
         else
             break
         end
     end
-    blank_item = get(parser.current_line, parser.offset, nothing) === nothing
+    blank_item = get(parser.buf, parser.offset, nothing) === nothing
     spaces_after_marker = parser.column - spaces_start_col
     if spaces_after_marker ≥ 5 || spaces_after_marker < 1 || blank_item
         data.padding = length(m.match) + 1
         parser.column = spaces_start_col
         parser.offset = spaces_start_offset
-        if is_space_or_tab(get(parser.current_line, parser.offset, '\0'))
+        if is_space_or_tab(get(parser.buf, parser.offset, '\0'))
             advance_offset(parser, 1, true)
         end
     else

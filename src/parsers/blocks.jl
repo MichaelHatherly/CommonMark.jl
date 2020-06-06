@@ -31,7 +31,7 @@ mutable struct Parser <: AbstractParser
     block_starts::Dict{Char, Vector{Function}}
     tip::Node
     oldtip::Node
-    current_line::String
+    buf::String
     line_number::Int
     offset::Int
     column::Int
@@ -55,7 +55,7 @@ mutable struct Parser <: AbstractParser
         parser.block_starts = Dict()
         parser.tip = parser.doc
         parser.oldtip = parser.doc
-        parser.current_line = ""
+        parser.buf = ""
         parser.line_number = 0
         parser.offset = 1
         parser.column = 0
@@ -147,7 +147,7 @@ function add_line(parser::Parser)
         chars_to_tab = 4 - (parser.column % 4)
         parser.tip.literal *= (' ' ^ chars_to_tab)
     end
-    parser.tip.literal *= (SubString(parser.current_line, parser.offset) * '\n')
+    parser.tip.literal *= (SubString(parser.buf, parser.offset) * '\n')
 end
 
 function add_child(parser::Parser, tag::AbstractContainer, offset::Integer)
@@ -174,11 +174,11 @@ function close_unmatched_blocks(parser::Parser)
 end
 
 function find_next_nonspace(parser::Parser)
-    current_line = parser.current_line
+    buf = parser.buf
     i = parser.offset
     cols = parser.column
 
-    c = get(current_line, i, '\0')
+    c = get(buf, i, '\0')
     while c !== '\0'
         if c === ' '
             i += 1
@@ -189,7 +189,7 @@ function find_next_nonspace(parser::Parser)
         else
             break
         end
-        c = get(current_line, i, '\0')
+        c = get(buf, i, '\0')
     end
     parser.blank = c in ('\n', '\r', '\0')
     parser.next_nonspace = i
@@ -205,8 +205,8 @@ function advance_next_nonspace(parser::Parser)
 end
 
 function advance_offset(parser::Parser, count::Integer, columns::Bool)
-    current_line = parser.current_line
-    c = get(current_line, parser.offset, '\0')
+    buf = parser.buf
+    c = get(buf, parser.offset, '\0')
     while count > 0 && c !== '\0'
         if c === '\t'
             chars_to_tab = 4 - (parser.column % 4)
@@ -229,7 +229,7 @@ function advance_offset(parser::Parser, count::Integer, columns::Bool)
             parser.column += 1
             count -= 1
         end
-        c = get(current_line, thisind(current_line, parser.offset), '\0')
+        c = get(buf, thisind(buf, parser.offset), '\0')
     end
 end
 
@@ -247,7 +247,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
     # Replace NUL characters for security.
     ln = occursin(r"\u0000", ln) ? replace(ln, '\0' => '\uFFFD') : ln
 
-    parser.current_line = ln
+    parser.buf = ln
 
     # For each containing block, try to parse the associated line start. Bail
     # out on failure: container will point to the last matching block. Set
@@ -370,7 +370,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
             add_line(parser)
             # If HtmlBlock, check for end condition.
             if t isa HtmlBlock && container.t.html_block_type in 1:5
-                str = SubString(parser.current_line, parser.offset)
+                str = SubString(parser.buf, parser.offset)
                 if occursin(reHtmlBlockClose[container.t.html_block_type], str)
                     parser.last_line_length = length(ln)
                     finalize(parser, container, parser.line_number)
@@ -425,7 +425,7 @@ function parse(parser::Parser, my_input::AbstractString)
     parser.offset = 1
     parser.column = 0
     parser.last_matched_container = parser.doc
-    parser.current_line = ""
+    parser.buf = ""
     line_count = 0
     for line in eachline(IOBuffer(my_input))
         incorporate_line(parser, line)::Nothing

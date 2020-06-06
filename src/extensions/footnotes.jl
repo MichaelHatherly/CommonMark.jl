@@ -4,7 +4,7 @@ struct FootnoteRule
 end
 block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
     if !parser.indented
-        ln = SubString(parser.current_line, parser.next_nonspace)
+        ln = SubString(parser.buf, parser.next_nonspace)
         m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
         if m !== nothing
             close_unmatched_blocks(parser)

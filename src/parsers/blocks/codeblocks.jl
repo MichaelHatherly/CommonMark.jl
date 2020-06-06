@@ -10,7 +10,7 @@ end
 accepts_lines(::CodeBlock) = true
 
 function continue_(::CodeBlock, parser::Parser, container::Node)
-    ln = parser.current_line
+    ln = parser.buf
     indent = parser.indent
     if container.t.is_fenced
         match = indent <= 3 &&
@@ -69,7 +69,7 @@ can_contain(t) = false
 
 function fenced_code_block(parser::Parser, container::Node)
     if !parser.indented
-        m = Base.match(reCodeFence, SubString(parser.current_line, parser.next_nonspace))
+        m = Base.match(reCodeFence, SubString(parser.buf, parser.next_nonspace))
         if m !== nothing
             fence_length = length(m.match)
             close_unmatched_blocks(parser)
