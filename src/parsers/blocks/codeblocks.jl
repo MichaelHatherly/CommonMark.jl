@@ -27,7 +27,7 @@ function continue_(::CodeBlock, parser::Parser, container::Node)
         else
             # skip optional spaces of fence offset
             i = container.t.fence_offset
-            while i > 0 && is_space_or_tab(get(ln, parser.offset, nothing))
+            while i > 0 && is_space_or_tab(get(ln, parser.pos, nothing))
                 advance_offset(parser, 1, true)
                 i -= 1
             end
@@ -94,7 +94,7 @@ function indented_code_block(parser::Parser, container::Node)
         # indented code
         advance_offset(parser, CODE_INDENT, true)
         close_unmatched_blocks(parser)
-        add_child(parser, CodeBlock(), parser.offset)
+        add_child(parser, CodeBlock(), parser.pos)
         return 2
     end
     return 0

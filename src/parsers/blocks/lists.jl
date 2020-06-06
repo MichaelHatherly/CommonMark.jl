@@ -59,23 +59,23 @@ function parse_list_marker(parser::Parser, container::Node)
     advance_next_nonspace(parser)  # ... to start of marker.
     advance_offset(parser, length(m.match), true)  # ... to end of marker.
     spaces_start_col = parser.column
-    spaces_start_offset = parser.offset
+    spaces_start_offset = parser.pos
     while true
         advance_offset(parser, 1, true)
-        nextc = get(parser.buf, parser.offset, '\0')
+        nextc = get(parser.buf, parser.pos, '\0')
         if parser.column - spaces_start_col < 5 && is_space_or_tab(nextc)
             nothing
         else
             break
         end
     end
-    blank_item = get(parser.buf, parser.offset, nothing) === nothing
+    blank_item = get(parser.buf, parser.pos, nothing) === nothing
     spaces_after_marker = parser.column - spaces_start_col
     if spaces_after_marker ≥ 5 || spaces_after_marker < 1 || blank_item
         data.padding = length(m.match) + 1
         parser.column = spaces_start_col
-        parser.offset = spaces_start_offset
-        if is_space_or_tab(get(parser.buf, parser.offset, '\0'))
+        parser.pos = spaces_start_offset
+        if is_space_or_tab(get(parser.buf, parser.pos, '\0'))
             advance_offset(parser, 1, true)
         end
     else

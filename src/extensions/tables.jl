@@ -68,7 +68,7 @@ function gfm_table(parser::Parser, container::Node)
                 insert_after(container, table)
                 unlink(container)
                 parser.tip = table
-                advance_offset(parser, length(parser.buf) - parser.offset + 1, false)
+                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
                 return 2
             end
         end
@@ -83,7 +83,7 @@ function gfm_table(parser::Parser, container::Node)
                     cell.literal = SubString(line, min(each.first, width), min(each.last, width))
                     append_child(row, cell)
                 end
-                advance_offset(parser, length(parser.buf) - parser.offset + 1, false)
+                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
                 return 2
             end
         end

@@ -22,8 +22,8 @@ function html_block(parser::Parser, container::Node)
         for (block_type, regex) in enumerate(reHtmlBlockOpen)
             if occursin(regex, s) && (block_type < 7 || !(container.t isa Paragraph))
                 close_unmatched_blocks(parser)
-                # Don't adjust parser.offset; spaces are part of HTML block.
-                b = add_child(parser, HtmlBlock(), parser.offset)
+                # Don't adjust parser.pos; spaces are part of HTML block.
+                b = add_child(parser, HtmlBlock(), parser.pos)
                 b.t.html_block_type = block_type
                 return 2
             end
