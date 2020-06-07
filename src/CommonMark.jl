@@ -36,6 +36,7 @@ export
 # Extension rules
 export
     AdmonitionRule,
+    AttributeRule,
     FootnoteRule,
     FrontMatterRule,
     MathRule,

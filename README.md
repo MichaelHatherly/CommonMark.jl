@@ -198,6 +198,41 @@ and associated display methods for all supported output types, namely: `html`,
 `latex`, and `term`. When passing your own keywords to `RawContentRule` the
 defaults are not included and must be enabled individually.
 
+### Attributes
+
+Block and inline nodes can be tagged with arbitrary metadata in the form of
+key/value pairs using the `AttributeRule` extension.
+
+```julia
+enable!(p, AttributeRule())
+```
+
+Block attributes appear directly *above* the node that they target:
+
+```markdown
+{#my_id color="red"}
+# Heading
+```
+
+This will attach the metadata `id="my_id"` and `color="red"` to `# Heading`.
+
+Inline attributes appear directly *after* the node that they target:
+
+```markdown
+*Some styled text*{background="green"}.
+```
+
+Which will attach metadata `background="green"` to the emphasised text
+`Some styled text`.
+
+CSS-style shorthand syntax `#<name>` and `.<name>` are available to use in
+place of `id="<name>"` and `class="name"`. Multiple classes may be specified
+sequentially.
+
+`AttributeRule` does not handle writing metadata to particular formats such as
+HTML or LaTeX. It is up to the implementation of a particular writer format to
+make use of available metadata itself.
+
 ### CommonMark Defaults
 
 Block rules enabled by default in `Parser` objects:

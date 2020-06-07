@@ -18,6 +18,7 @@ mutable struct Node
     last_line_checked::Bool
     is_open::Bool
     literal::String
+    meta::Dict{String,Any}
 
     Node() = new()
 
@@ -34,6 +35,7 @@ mutable struct Node
         node.last_line_checked = false
         node.is_open = true
         node.literal = ""
+        node.meta = Dict{String,Any}()
         return node
     end
 end
