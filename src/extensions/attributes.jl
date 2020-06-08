@@ -141,7 +141,7 @@ end
 
 # Writers.
 
-html(::Attributes, w, n, ent) = nothing
+write_html(::Attributes, w, n, ent) = nothing
 latex(::Attributes, w, n, ent) = nothing
 write_term(::Attributes, w, n, ent) = nothing
 

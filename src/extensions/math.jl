@@ -53,7 +53,7 @@ inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
 # Writers
 #
 
-function html(::Math, rend, node, enter)
+function write_html(::Math, rend, node, enter)
     tag(rend, "span", ["class" => "math"])
     print(rend.buffer, "\\(", node.literal, "\\)")
     tag(rend, "/span")
@@ -79,7 +79,7 @@ function markdown(::Math, w, node, ent)
     literal(w, "`"^(num == 2 ? 4 : 2))
 end
 
-function html(::DisplayMath, rend, node, enter)
+function write_html(::DisplayMath, rend, node, enter)
     tag(rend, "div", ["class" => "display-math"])
     print(rend.buffer, "\\[", node.literal, "\\]")
     tag(rend, "/div")

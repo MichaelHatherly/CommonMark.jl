@@ -38,7 +38,7 @@ block_rule(::AdmonitionRule) = Rule(parse_admonition, 0.5, "!")
 # Writers
 #
 
-function html(a::Admonition, rend, node, enter)
+function write_html(a::Admonition, rend, node, enter)
     if enter
         tag(rend, "div", ["class" => "admonition $(a.category)"])
         tag(rend, "p", ["class" => "amonition-title"])

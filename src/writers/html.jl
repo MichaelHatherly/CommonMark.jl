@@ -3,7 +3,7 @@
 function Base.show(io::IO, ::MIME"text/html", ast::Node)
     writer = Writer(HTML(), io)
     for (node, entering) in ast
-        html(node.t, writer, node, entering)
+        write_html(node.t, writer, node, entering)
     end
     return nothing
 end
@@ -44,18 +44,18 @@ function tag(r::Writer, name, attributes=[], self_closing=false)
     return nothing
 end
 
-html(::Document, r, n, ent) = nothing
+write_html(::Document, r, n, ent) = nothing
 
-html(::Text, r, n, ent) = literal(r, escape_xml(n.literal))
+write_html(::Text, r, n, ent) = literal(r, escape_xml(n.literal))
 
-html(::SoftBreak, r, n, ent) = literal(r, r.format.softbreak)
+write_html(::SoftBreak, r, n, ent) = literal(r, r.format.softbreak)
 
-function html(::LineBreak, r, n, ent)
+function write_html(::LineBreak, r, n, ent)
     tag(r, "br", [], true)
     cr(r)
 end
 
-function html(::Link, r, n, ent)
+function write_html(::Link, r, n, ent)
     if ent
         attrs = attributes(r, n)
         if !(r.format.safe && potentially_unsafe(n.t.destination))
@@ -70,7 +70,7 @@ function html(::Link, r, n, ent)
     end
 end
 
-function html(::Image, r, n, ent)
+function write_html(::Image, r, n, ent)
     if ent
         if r.format.disable_tags == 0
             if r.format.safe && potentially_unsafe(n.t.destination)
@@ -91,11 +91,11 @@ function html(::Image, r, n, ent)
     end
 end
 
-html(::Emph, r, n, ent) = tag(r, ent ? "em" : "/em")
+write_html(::Emph, r, n, ent) = tag(r, ent ? "em" : "/em")
 
-html(::Strong, r, n, ent) = tag(r, ent ? "strong" : "/strong")
+write_html(::Strong, r, n, ent) = tag(r, ent ? "strong" : "/strong")
 
-function html(::Paragraph, r, n, ent)
+function write_html(::Paragraph, r, n, ent)
     grandparent = n.parent.parent
     if !isnull(grandparent) && grandparent.t isa List
         if grandparent.t.list_data.tight
@@ -112,7 +112,7 @@ function html(::Paragraph, r, n, ent)
     end
 end
 
-function html(::Heading, r, n, ent)
+function write_html(::Heading, r, n, ent)
     tagname = "h$(n.t.level)"
     if ent
         attrs = attributes(r, n)
@@ -124,13 +124,13 @@ function html(::Heading, r, n, ent)
     end
 end
 
-function html(::Code, r, n, ent)
+function write_html(::Code, r, n, ent)
     tag(r, "code")
     literal(r, escape_xml(n.literal))
     tag(r, "/code")
 end
 
-function html(::CodeBlock, r, n, ent)
+function write_html(::CodeBlock, r, n, ent)
     info_words = split(n.t.info === nothing ? "" : n.t.info)
     attrs = attributes(r, n)
     if !isempty(info_words) && !isempty(first(info_words))
@@ -145,14 +145,14 @@ function html(::CodeBlock, r, n, ent)
     cr(r)
 end
 
-function html(::ThematicBreak, r, n, ent)
+function write_html(::ThematicBreak, r, n, ent)
     attrs = attributes(r, n)
     cr(r)
     tag(r, "hr", attrs, true)
     cr(r)
 end
 
-function html(::BlockQuote, r, n, ent)
+function write_html(::BlockQuote, r, n, ent)
     if ent
         attrs = attributes(r, n)
         cr(r)
@@ -165,7 +165,7 @@ function html(::BlockQuote, r, n, ent)
     end
 end
 
-function html(::List, r, n, ent)
+function write_html(::List, r, n, ent)
     tagname = n.t.list_data.type === :bullet ? "ul" : "ol"
     if ent
         attrs = attributes(r, n)
@@ -183,7 +183,7 @@ function html(::List, r, n, ent)
     end
 end
 
-function html(::Item, r, n, ent)
+function write_html(::Item, r, n, ent)
     if ent
         attrs = attributes(r, n)
         tag(r, "li", attrs)
@@ -193,9 +193,9 @@ function html(::Item, r, n, ent)
     end
 end
 
-html(::HtmlInline, r, n, ent) = literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
+write_html(::HtmlInline, r, n, ent) = literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
 
-function html(::HtmlBlock, r, n, ent)
+function write_html(::HtmlBlock, r, n, ent)
     cr(r)
     literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
     cr(r)

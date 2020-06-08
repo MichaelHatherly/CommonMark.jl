@@ -114,12 +114,12 @@ block_rule(::TableRule) = Rule(gfm_table, 0.5, "|")
 
 # HTML
 
-html(::Table, rend, node, enter) = tag(rend, enter ? "table" : "/table")
-html(::TableHeader, rend, node, enter) = tag(rend, enter ? "thead" : "/thead")
-html(::TableBody, rend, node, enter) = tag(rend, enter ? "tbody" : "/tbody")
-html(::TableRow, rend, node, enter) = tag(rend, enter ? "tr" : "/tr")
+write_html(::Table, rend, node, enter) = tag(rend, enter ? "table" : "/table")
+write_html(::TableHeader, rend, node, enter) = tag(rend, enter ? "thead" : "/thead")
+write_html(::TableBody, rend, node, enter) = tag(rend, enter ? "tbody" : "/tbody")
+write_html(::TableRow, rend, node, enter) = tag(rend, enter ? "tr" : "/tr")
 
-function html(cell::TableCell, rend, node, enter)
+function write_html(cell::TableCell, rend, node, enter)
     tag_name = cell.header ? "th" : "td"
     tag(rend, enter ? "$tag_name align=\"$(cell.align)\"" : "/$tag_name")
 end

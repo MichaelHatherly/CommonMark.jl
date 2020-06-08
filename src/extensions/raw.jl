@@ -44,8 +44,8 @@ block_modifier(rule::RawContentRule) = Rule(2) do parser, node
 end
 
 # Raw LaTeX doesn't get displayed in HTML documents.
-html(::LaTeXBlock, w, n, en) = nothing
-html(::LaTeXInline, w, n, ent) = nothing
+write_html(::LaTeXBlock, w, n, en) = nothing
+write_html(::LaTeXInline, w, n, ent) = nothing
 
 # Don't do any kind of escaping for the content.
 function latex(::LaTeXBlock, w, n, ent)

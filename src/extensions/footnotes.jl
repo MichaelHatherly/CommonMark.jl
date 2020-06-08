@@ -50,7 +50,7 @@ end
 
 # Definitions
 
-function html(f::FootnoteDefinition, rend, node, enter)
+function write_html(f::FootnoteDefinition, rend, node, enter)
     if enter
         attrs = ["class" => "footnote", "id" => "footnote-$(f.id)"]
         tag(rend, "div", attrs)
@@ -105,7 +105,7 @@ end
 
 # Links
 
-function html(f::FootnoteLink, rend, node, enter)
+function write_html(f::FootnoteLink, rend, node, enter)
     tag(rend, "a", ["href" => "#footnote-$(f.id)", "class" => "footnote"])
     print(rend.buffer, f.id)
     tag(rend, "/a")
