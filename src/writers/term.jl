@@ -1,6 +1,6 @@
 # Public.
 
-function term(io::IO, ast::Node)
+function Base.show(io::IO, ::MIME"text/plain", ast::Node)
     writer = Writer(Term(), io)
     for (node, entering) in ast
         term(node.t, writer, node, entering)
@@ -11,7 +11,7 @@ function term(io::IO, ast::Node)
     write(writer.buffer, take!(writer.format.buffer))
     return nothing
 end
-term(ast::Node) = sprint(term, ast)
+term(args...) = writer(MIME"text/plain"(), args...)
 
 # Internals.
 

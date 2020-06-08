@@ -1,13 +1,13 @@
 # Public.
 
-function latex(io::IO, ast::Node)
+function Base.show(io::IO, ::MIME"text/latex", ast::Node)
     writer = Writer(LaTeX(), io)
     for (node, entering) in ast
         latex(node.t, writer, node, entering)
     end
     return nothing
 end
-latex(ast::Node) = sprint(latex, ast)
+latex(args...) = writer(MIME"text/latex"(), args...)
 
 # Internals.
 

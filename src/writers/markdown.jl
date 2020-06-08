@@ -1,13 +1,13 @@
 # Public.
 
-function markdown(io::IO, ast::Node)
+function Base.show(io::IO, ::MIME"text/markdown", ast::Node)
     writer = Writer(Markdown(io), io)
     for (node, entering) in ast
         markdown(node.t, writer, node, entering)
     end
     return nothing
 end
-markdown(ast::Node) = sprint(markdown, ast)
+markdown(args...) = writer(MIME"text/markdown"(), args...)
 
 # Internals.
 

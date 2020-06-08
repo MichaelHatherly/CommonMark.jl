@@ -1,3 +1,7 @@
+writer(mime, file::AbstractString, ast::Node) = open(io -> show(io, mime, ast), file, "w")
+writer(mime, io::IO, ast::Node) = show(io, mime, ast)
+writer(mime, ast::Node) = sprint(show, mime, ast)
+
 mutable struct Writer{F, I <: IO}
     format::F
     buffer::I

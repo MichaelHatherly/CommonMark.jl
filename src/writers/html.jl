@@ -1,13 +1,13 @@
 # Public.
 
-function html(io::IO, ast::Node)
+function Base.show(io::IO, ::MIME"text/html", ast::Node)
     writer = Writer(HTML(), io)
     for (node, entering) in ast
         html(node.t, writer, node, entering)
     end
     return nothing
 end
-html(ast::Node) = sprint(html, ast)
+html(args...) = writer(MIME"text/html"(), args...)
 
 # Internals.
 

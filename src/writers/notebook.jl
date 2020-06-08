@@ -1,6 +1,6 @@
 # Public.
 
-function notebook(io::IO, ast::Node)
+function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node)
     json = Dict(
         "cells" => [],
         "metadata" => Dict(
@@ -26,7 +26,7 @@ function notebook(io::IO, ast::Node)
     JSON.Writer.print(io, json)
     return nothing
 end
-notebook(ast::Node) = sprint(notebook, ast)
+notebook(args...) = writer(MIME"application/x-ipynb+json"(), args...)
 
 # Internal.
 
