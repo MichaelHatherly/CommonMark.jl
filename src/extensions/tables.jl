@@ -244,9 +244,9 @@ end
 
 # Markdown
 
-markdown(table::Table, w, node, enter) = nothing
+write_markdown(table::Table, w, node, enter) = nothing
 
-function markdown(::TableHeader, w, node, enter)
+function write_markdown(::TableHeader, w, node, enter)
     if enter
     else
         spec = node.parent.t.spec
@@ -263,9 +263,9 @@ function markdown(::TableHeader, w, node, enter)
     end
 end
 
-markdown(::TableBody, w, node, enter) = nothing
+write_markdown(::TableBody, w, node, enter) = nothing
 
-function markdown(::TableRow, w, node, enter)
+function write_markdown(::TableRow, w, node, enter)
     if enter
         print_margin(w)
         literal(w, "| ")
@@ -288,7 +288,7 @@ function _md_width(root)
     return width
 end
 
-function markdown(cell::TableCell, w, node, enter)
+function write_markdown(cell::TableCell, w, node, enter)
     if enter
     else
         spec = node.parent.parent.parent.t.spec[cell.column]

@@ -70,7 +70,7 @@ function write_term(::Math, rend, node, enter)
     pop_inline!(rend)
 end
 
-function markdown(::Math, w, node, ent)
+function write_markdown(::Math, w, node, ent)
     num = foldl(eachmatch(r"`+", node.literal); init=0) do a, b
         max(a, length(b.match))
     end
@@ -105,7 +105,7 @@ function write_term(::DisplayMath, rend, node, enter)
     end
 end
 
-function markdown(::DisplayMath, w, node, ent)
+function write_markdown(::DisplayMath, w, node, ent)
     literal(w, "```math\n")
     for line in eachline(IOBuffer(node.literal))
         print_margin(w)

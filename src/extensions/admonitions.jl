@@ -87,7 +87,7 @@ function write_term(a::Admonition, rend, node, enter)
     end
 end
 
-function markdown(a::Admonition, w, node, ent)
+function write_markdown(a::Admonition, w, node, ent)
     if ent
         push_margin!(w, "    ")
         literal(w, "!!! ", a.category)

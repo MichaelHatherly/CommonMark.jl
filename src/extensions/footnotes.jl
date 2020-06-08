@@ -87,7 +87,7 @@ function write_term(f::FootnoteDefinition, rend, node, enter)
     end
 end
 
-function markdown(f::FootnoteDefinition, w, node, ent)
+function write_markdown(f::FootnoteDefinition, w, node, ent)
     tight = node.first_child === node.last_child
     if ent
         literal(w, "[^", f.id, "]: ")
@@ -135,4 +135,4 @@ function write_term(f::FootnoteLink, rend, node, enter)
     print_literal(rend, inv(style))
 end
 
-markdown(f::FootnoteLink, w, node, ent) = literal(w, "[^", f.id, "]")
+write_markdown(f::FootnoteLink, w, node, ent) = literal(w, "[^", f.id, "]")

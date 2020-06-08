@@ -59,7 +59,7 @@ write_latex(::LaTeXInline, w, n, ent) = literal(w, n.literal)
 write_term(::LaTeXBlock, w, n, ent) = write_term(HtmlBlock(), w, n, ent)
 write_term(::LaTeXInline, w, n, ent) = write_term(HtmlInline(), w, n, ent)
 
-function markdown(::LaTeXBlock, w, n, ent)
+function write_markdown(::LaTeXBlock, w, n, ent)
     print_margin(w)
     literal(w, "```{=latex}\n")
     for line in eachline(IOBuffer(n.literal))
@@ -71,7 +71,7 @@ function markdown(::LaTeXBlock, w, n, ent)
     linebreak(w, n)
 end
 
-function markdown(::LaTeXInline, w, n, ent)
+function write_markdown(::LaTeXInline, w, n, ent)
     num = foldl(eachmatch(r"`+", n.literal); init=0) do a, b
         max(a, length(b.match))
     end

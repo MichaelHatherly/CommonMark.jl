@@ -145,7 +145,7 @@ write_html(::Attributes, w, n, ent) = nothing
 write_latex(::Attributes, w, n, ent) = nothing
 write_term(::Attributes, w, n, ent) = nothing
 
-function markdown(at::Attributes, w, n, ent)
+function write_markdown(at::Attributes, w, n, ent)
     at.block && print_margin(w)
     literal(w, n.literal, at.block ? "\n" : "")
 end
