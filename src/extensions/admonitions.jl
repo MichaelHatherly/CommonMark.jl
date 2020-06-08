@@ -60,7 +60,7 @@ function latex(a::Admonition, w, node, enter)
     end
 end
 
-function term(a::Admonition, rend, node, enter)
+function write_term(a::Admonition, rend, node, enter)
     styles = Dict(
         "danger"  => crayon"red bold",
         "warning" => crayon"yellow bold",

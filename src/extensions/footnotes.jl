@@ -67,7 +67,7 @@ function latex(f::FootnoteDefinition, w, node, enter)
     return nothing
 end
 
-function term(f::FootnoteDefinition, rend, node, enter)
+function write_term(f::FootnoteDefinition, rend, node, enter)
     style = crayon"red"
     if enter
         header = rpad("┌ [^$(f.id)] ", available_columns(rend), "─")
@@ -126,7 +126,7 @@ function latex(f::FootnoteLink, w, node, enter)
     return nothing
 end
 
-function term(f::FootnoteLink, rend, node, enter)
+function write_term(f::FootnoteLink, rend, node, enter)
     style = crayon"red"
     print_literal(rend, style)
     push_inline!(rend, style)

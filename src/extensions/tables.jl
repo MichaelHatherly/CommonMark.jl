@@ -163,7 +163,7 @@ end
 
 # Term
 
-function term(table::Table, rend, node, enter)
+function write_term(table::Table, rend, node, enter)
     if enter
         # Calculate the maximum column widths.
         if isempty(table.ansi_widths)
@@ -194,7 +194,7 @@ function term(table::Table, rend, node, enter)
     end
 end
 
-function term(::TableHeader, rend, node, enter)
+function write_term(::TableHeader, rend, node, enter)
     if enter
     else
         print_margin(rend)
@@ -204,11 +204,11 @@ function term(::TableHeader, rend, node, enter)
     end
 end
 
-function term(::TableBody, rend, node, enter)
+function write_term(::TableBody, rend, node, enter)
     # Nothing needed here for rendering.
 end
 
-function term(::TableRow, rend, node, enter)
+function write_term(::TableRow, rend, node, enter)
     if enter
         print_margin(rend)
         print(rend.format.buffer, "┃ ")
@@ -217,7 +217,7 @@ function term(::TableRow, rend, node, enter)
     end
 end
 
-function term(cell::TableCell, rend, node, enter)
+function write_term(cell::TableCell, rend, node, enter)
     maxwidth = node.parent.parent.parent.t.ansi_widths[cell.column]
     pad = maxwidth - literal_width(node)
     if enter

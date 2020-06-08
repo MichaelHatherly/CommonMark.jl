@@ -3,7 +3,7 @@
 function Base.show(io::IO, ::MIME"text/plain", ast::Node)
     writer = Writer(Term(), io)
     for (node, entering) in ast
-        term(node.t, writer, node, entering)
+        write_term(node.t, writer, node, entering)
     end
     # Writing is done to an intermediate buffer and then written to the
     # user-provided one once we have traversed the AST so that we can avoid
@@ -177,7 +177,7 @@ print_literal_part(r::Writer{Term}, c::Crayon) = print(r.format.buffer, c)
 
 # Rendering to terminal.
 
-function term(::Document, render, node, enter)
+function write_term(::Document, render, node, enter)
     if enter
         push_margin!(render, LEFT_MARGIN, crayon"")
     else
@@ -185,21 +185,21 @@ function term(::Document, render, node, enter)
     end
 end
 
-function term(::Text, render, node, enter)
+function write_term(::Text, render, node, enter)
     print_literal(render, replace(node.literal, r"\s+" => ' '))
 end
 
-function term(::SoftBreak, render, node, enter)
+function write_term(::SoftBreak, render, node, enter)
     print_literal(render, " ")
 end
 
-function term(::LineBreak, render, node, enter)
+function write_term(::LineBreak, render, node, enter)
     print(render.format.buffer, "\n")
     print_margin(render)
     render.format.wrap = render.format.wrap < 0 ? -1 : 0
 end
 
-function term(::Code, render, node, enter)
+function write_term(::Code, render, node, enter)
     style = crayon"cyan"
     print_literal(render, style)
     push_inline!(render, style)
@@ -208,7 +208,7 @@ function term(::Code, render, node, enter)
     print_literal(render, inv(style))
 end
 
-function term(::HtmlInline, render, node, enter)
+function write_term(::HtmlInline, render, node, enter)
     style = crayon"dark_gray"
     print_literal(render, style)
     push_inline!(render, style)
@@ -217,7 +217,7 @@ function term(::HtmlInline, render, node, enter)
     print_literal(render, inv(style))
 end
 
-function term(::Link, render, node, enter)
+function write_term(::Link, render, node, enter)
     style = crayon"blue underline"
     if enter
         print_literal(render, style)
@@ -228,7 +228,7 @@ function term(::Link, render, node, enter)
     end
 end
 
-function term(::Image, render, node, enter)
+function write_term(::Image, render, node, enter)
     style = crayon"green"
     if enter
         print_literal(render, style)
@@ -239,7 +239,7 @@ function term(::Image, render, node, enter)
     end
 end
 
-function term(::Emph, render, node, enter)
+function write_term(::Emph, render, node, enter)
     style = crayon"italics"
     if enter
         print_literal(render, style)
@@ -250,7 +250,7 @@ function term(::Emph, render, node, enter)
     end
 end
 
-function term(::Strong, render, node, enter)
+function write_term(::Strong, render, node, enter)
     style = crayon"bold"
     if enter
         print_literal(render, style)
@@ -261,7 +261,7 @@ function term(::Strong, render, node, enter)
     end
 end
 
-function term(::Paragraph, render, node, enter)
+function write_term(::Paragraph, render, node, enter)
     if enter
         render.format.wrap = 0
         print_margin(render)
@@ -275,7 +275,7 @@ function term(::Paragraph, render, node, enter)
     end
 end
 
-function term(heading::Heading, render, node, enter)
+function write_term(heading::Heading, render, node, enter)
     if enter
         print_margin(render)
         style = crayon"blue bold"
@@ -289,7 +289,7 @@ function term(heading::Heading, render, node, enter)
     end
 end
 
-function term(::BlockQuote, render, node, enter)
+function write_term(::BlockQuote, render, node, enter)
     if enter
         push_margin!(render, "│", crayon"bold")
         push_margin!(render, " ", crayon"")
@@ -303,7 +303,7 @@ function term(::BlockQuote, render, node, enter)
     end
 end
 
-function term(list::List, render, node, enter)
+function write_term(list::List, render, node, enter)
     if enter
         render.format.list_depth += 1
         push!(render.format.list_item_number, list.list_data.start)
@@ -320,7 +320,7 @@ function term(list::List, render, node, enter)
 end
 
 
-function term(item::Item, render, node, enter)
+function write_term(item::Item, render, node, enter)
     if enter
         if item.list_data.type === :ordered
             number = string(render.format.list_item_number[end], ". ")
@@ -341,7 +341,7 @@ function term(item::Item, render, node, enter)
     end
 end
 
-function term(::ThematicBreak, render, node, enter)
+function write_term(::ThematicBreak, render, node, enter)
     print_margin(render)
     style = crayon"dark_gray"
     stars = " § "
@@ -353,7 +353,7 @@ function term(::ThematicBreak, render, node, enter)
     end
 end
 
-function term(::CodeBlock, render, node, enter)
+function write_term(::CodeBlock, render, node, enter)
     pipe = crayon"cyan"
     style = crayon"dark_gray"
     for line in eachline(IOBuffer(node.literal))
@@ -367,7 +367,7 @@ function term(::CodeBlock, render, node, enter)
     end
 end
 
-function term(::HtmlBlock, render, node, enter)
+function write_term(::HtmlBlock, render, node, enter)
     style = crayon"dark_gray"
     for line in eachline(IOBuffer(node.literal))
         print_margin(render)

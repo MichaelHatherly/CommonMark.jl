@@ -143,7 +143,7 @@ end
 
 html(::Attributes, w, n, ent) = nothing
 latex(::Attributes, w, n, ent) = nothing
-term(::Attributes, w, n, ent) = nothing
+write_term(::Attributes, w, n, ent) = nothing
 
 function markdown(at::Attributes, w, n, ent)
     at.block && print_margin(w)

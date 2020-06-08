@@ -63,7 +63,7 @@ function latex(::Math, rend, node, enter)
     print(rend.buffer, "\\(", node.literal, "\\)")
 end
 
-function term(::Math, rend, node, enter)
+function write_term(::Math, rend, node, enter)
     style = crayon"magenta"
     push_inline!(rend, style)
     print_literal(rend, style, node.literal, inv(style))
@@ -91,7 +91,7 @@ function latex(::DisplayMath, rend, node, enter)
     println(rend.buffer, "\\end{equation*}")
 end
 
-function term(::DisplayMath, rend, node, enter)
+function write_term(::DisplayMath, rend, node, enter)
     pipe = crayon"magenta"
     style = crayon"dark_gray"
     for line in eachline(IOBuffer(node.literal))

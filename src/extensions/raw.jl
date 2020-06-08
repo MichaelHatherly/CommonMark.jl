@@ -56,8 +56,8 @@ end
 latex(::LaTeXInline, w, n, ent) = literal(w, n.literal)
 
 # Printing to terminal using the same implementations as for HTML content.
-term(::LaTeXBlock, w, n, ent) = term(HtmlBlock(), w, n, ent)
-term(::LaTeXInline, w, n, ent) = term(HtmlInline(), w, n, ent)
+write_term(::LaTeXBlock, w, n, ent) = write_term(HtmlBlock(), w, n, ent)
+write_term(::LaTeXInline, w, n, ent) = write_term(HtmlInline(), w, n, ent)
 
 function markdown(::LaTeXBlock, w, n, ent)
     print_margin(w)

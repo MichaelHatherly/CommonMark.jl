@@ -77,7 +77,7 @@ end
 
 html(::FrontMatter, rend, node, enter) = nothing
 latex(::FrontMatter, rend, node, enter) = nothing
-term(::FrontMatter, rend, node, enter) = nothing
+write_term(::FrontMatter, rend, node, enter) = nothing
 
 function markdown(f::FrontMatter, w, node, ent)
     literal(w, f.fence, "\n")
