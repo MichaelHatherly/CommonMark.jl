@@ -50,7 +50,7 @@ function write_html(a::Admonition, rend, node, enter)
 end
 
 # Requires tcolorbox package and custom newtcolorbox definitions.
-function latex(a::Admonition, w, node, enter)
+function write_latex(a::Admonition, w, node, enter)
     if enter
         cr(w)
         literal(w, "\\begin{admonition@$(a.category)}{$(a.title)}\n")

@@ -76,7 +76,7 @@ end
 # Frontmatter isn't displayed in the resulting output.
 
 write_html(::FrontMatter, rend, node, enter) = nothing
-latex(::FrontMatter, rend, node, enter) = nothing
+write_latex(::FrontMatter, rend, node, enter) = nothing
 write_term(::FrontMatter, rend, node, enter) = nothing
 
 function markdown(f::FrontMatter, w, node, ent)

@@ -59,7 +59,7 @@ function write_html(::Math, rend, node, enter)
     tag(rend, "/span")
 end
 
-function latex(::Math, rend, node, enter)
+function write_latex(::Math, rend, node, enter)
     print(rend.buffer, "\\(", node.literal, "\\)")
 end
 
@@ -85,7 +85,7 @@ function write_html(::DisplayMath, rend, node, enter)
     tag(rend, "/div")
 end
 
-function latex(::DisplayMath, rend, node, enter)
+function write_latex(::DisplayMath, rend, node, enter)
     println(rend.buffer, "\\begin{equation*}")
     println(rend.buffer, node.literal)
     println(rend.buffer, "\\end{equation*}")

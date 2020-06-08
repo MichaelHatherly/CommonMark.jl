@@ -126,7 +126,7 @@ end
 
 # LaTeX
 
-function latex(table::Table, rend, node, enter)
+function write_latex(table::Table, rend, node, enter)
     if enter
         print(rend.buffer, "\\begin{longtable}[]{@{}")
         join(rend.buffer, ("$(col.align)"[1] for col in table.spec))
@@ -136,7 +136,7 @@ function latex(table::Table, rend, node, enter)
     end
 end
 
-function latex(::TableHeader, rend, node, enter)
+function write_latex(::TableHeader, rend, node, enter)
     if enter
         println(rend.buffer, "\\toprule")
     else
@@ -145,17 +145,17 @@ function latex(::TableHeader, rend, node, enter)
     end
 end
 
-function latex(::TableBody, rend, node, enter)
+function write_latex(::TableBody, rend, node, enter)
     if !enter
         println(rend.buffer, "\\bottomrule")
     end
 end
 
-function latex(::TableRow, rend, node, enter)
+function write_latex(::TableRow, rend, node, enter)
     enter ? nothing : println(rend.buffer, "\\tabularnewline")
 end
 
-function latex(::TableCell, rend, node, enter)
+function write_latex(::TableCell, rend, node, enter)
     if !enter && node.parent.last_child !== node
         print(rend.buffer, " & ")
     end

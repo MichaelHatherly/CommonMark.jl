@@ -3,7 +3,7 @@
 function Base.show(io::IO, ::MIME"text/latex", ast::Node)
     writer = Writer(LaTeX(), io)
     for (node, entering) in ast
-        latex(node.t, writer, node, entering)
+        write_latex(node.t, writer, node, entering)
     end
     return nothing
 end
@@ -15,24 +15,24 @@ mutable struct LaTeX
     LaTeX() = new()
 end
 
-latex(::Document, w, node, ent) = nothing
+write_latex(::Document, w, node, ent) = nothing
 
-latex(::Text, w, node, ent) = latex_escape(w, node.literal)
+write_latex(::Text, w, node, ent) = latex_escape(w, node.literal)
 
-latex(::SoftBreak, w, node, ent) = cr(w)
-latex(::LineBreak, w, node, ent) = cr(w)
+write_latex(::SoftBreak, w, node, ent) = cr(w)
+write_latex(::LineBreak, w, node, ent) = cr(w)
 
-function latex(::Code, w, node, ent)
+function write_latex(::Code, w, node, ent)
     literal(w, "\\texttt{")
     latex_escape(w, node.literal)
     literal(w, "}")
 end
 
-latex(::HtmlInline, w, node, ent) = nothing
+write_latex(::HtmlInline, w, node, ent) = nothing
 
-latex(link::Link, w, node, ent) = literal(w, ent ? "\\href{$(link.destination)}{" : "}")
+write_latex(link::Link, w, node, ent) = literal(w, ent ? "\\href{$(link.destination)}{" : "}")
 
-function latex(::Image, w, node, ent)
+function write_latex(::Image, w, node, ent)
     if ent
         cr(w)
         literal(w, "\\begin{figure}\n")
@@ -46,15 +46,15 @@ function latex(::Image, w, node, ent)
     end
 end
 
-latex(::Emph, w, node, ent) = literal(w, ent ? "\\textit{" : "}")
+write_latex(::Emph, w, node, ent) = literal(w, ent ? "\\textit{" : "}")
 
-latex(::Strong, w, node, ent) = literal(w, ent ? "\\textbf{" : "}")
+write_latex(::Strong, w, node, ent) = literal(w, ent ? "\\textbf{" : "}")
 
-function latex(::Paragraph, w, node, ent)
+function write_latex(::Paragraph, w, node, ent)
     literal(w, ent ? "" : "\\par\n")
 end
 
-function latex(::Heading, w, node, ent)
+function write_latex(::Heading, w, node, ent)
     if ent
         cr(w)
         n = node.t.level
@@ -66,13 +66,13 @@ function latex(::Heading, w, node, ent)
     end
 end
 
-function latex(::BlockQuote, w, node, ent)
+function write_latex(::BlockQuote, w, node, ent)
     cr(w)
     literal(w, ent ? "\\begin{quote}" : "\\end{quote}")
     cr(w)
 end
 
-function latex(list::List, w, node, ent)
+function write_latex(list::List, w, node, ent)
     cr(w)
     command = list.list_data.type === :bullet ? "itemize" : "enumerate"
     if ent
@@ -91,18 +91,18 @@ function latex(list::List, w, node, ent)
     cr(w)
 end
 
-function latex(::Item, w, node, ent)
+function write_latex(::Item, w, node, ent)
     literal(w, ent ? "\\item" : "")
     cr(w)
 end
 
-function latex(::ThematicBreak, w, node, ent)
+function write_latex(::ThematicBreak, w, node, ent)
     cr(w)
     literal(w, "\\par\\bigskip\\noindent\\hrulefill\\par\\bigskip")
     cr(w)
 end
 
-function latex(::CodeBlock, w, node, ent)
+function write_latex(::CodeBlock, w, node, ent)
     cr(w)
     literal(w, "\\begin{verbatim}")
     cr(w)
@@ -112,7 +112,7 @@ function latex(::CodeBlock, w, node, ent)
     cr(w)
 end
 
-latex(::HtmlBlock, w, node, ent) = nothing
+write_latex(::HtmlBlock, w, node, ent) = nothing
 
 let chars = Dict(
         '^'  => "\\^{}",

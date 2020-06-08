@@ -142,7 +142,7 @@ end
 # Writers.
 
 write_html(::Attributes, w, n, ent) = nothing
-latex(::Attributes, w, n, ent) = nothing
+write_latex(::Attributes, w, n, ent) = nothing
 write_term(::Attributes, w, n, ent) = nothing
 
 function markdown(at::Attributes, w, n, ent)

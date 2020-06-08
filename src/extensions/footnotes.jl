@@ -62,7 +62,7 @@ function write_html(f::FootnoteDefinition, rend, node, enter)
     end
 end
 
-function latex(f::FootnoteDefinition, w, node, enter)
+function write_latex(f::FootnoteDefinition, w, node, enter)
     get(w.buffer, :footnote, false) || (w.enabled = !enter)
     return nothing
 end
@@ -111,7 +111,7 @@ function write_html(f::FootnoteLink, rend, node, enter)
     tag(rend, "/a")
 end
 
-function latex(f::FootnoteLink, w, node, enter)
+function write_latex(f::FootnoteLink, w, node, enter)
     if haskey(f.rule.cache, f.id)
         seen = get!(() -> Set{String}(), w, :footnotes)
         if f.id in seen

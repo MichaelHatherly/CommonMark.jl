@@ -48,12 +48,12 @@ write_html(::LaTeXBlock, w, n, en) = nothing
 write_html(::LaTeXInline, w, n, ent) = nothing
 
 # Don't do any kind of escaping for the content.
-function latex(::LaTeXBlock, w, n, ent)
+function write_latex(::LaTeXBlock, w, n, ent)
     cr(w)
     literal(w, n.literal)
     cr(w)
 end
-latex(::LaTeXInline, w, n, ent) = literal(w, n.literal)
+write_latex(::LaTeXInline, w, n, ent) = literal(w, n.literal)
 
 # Printing to terminal using the same implementations as for HTML content.
 write_term(::LaTeXBlock, w, n, ent) = write_term(HtmlBlock(), w, n, ent)
