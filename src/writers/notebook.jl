@@ -21,7 +21,7 @@ function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node)
     )
     buffer = IOBuffer()
     for (node, enter) in ast
-        notebook(json, node, enter)
+        write_notebook(json, node, enter)
     end
     JSON.Writer.print(io, json)
     return nothing
@@ -30,7 +30,7 @@ notebook(args...) = writer(MIME"application/x-ipynb+json"(), args...)
 
 # Internal.
 
-function notebook(json, node, enter)
+function write_notebook(json, node, enter)
     split_lines = str -> collect(eachline(IOBuffer(str); keep=true))
     if !isnull(node) && node.t isa CodeBlock && node.parent.t isa Document && node.t.info == "julia"
         # Toplevel Julia codeblocks become code cells.
