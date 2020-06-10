@@ -1,7 +1,7 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/latex", ast::Node)
-    writer = Writer(LaTeX(), io)
+function Base.show(io::IO, ::MIME"text/latex", ast::Node, env=Dict{String,Any}())
+    writer = Writer(LaTeX(), io, env)
     for (node, entering) in ast
         write_latex(node.t, writer, node, entering)
     end
@@ -10,6 +10,10 @@ end
 latex(args...) = writer(MIME"text/latex"(), args...)
 
 # Internals.
+
+mime_to_str(::MIME"text/latex") = "latex"
+
+TEMPLATES["latex"] = joinpath(@__DIR__, "templates/latex.mustache")
 
 mutable struct LaTeX
     LaTeX() = new()

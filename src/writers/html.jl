@@ -1,7 +1,7 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/html", ast::Node)
-    writer = Writer(HTML(), io)
+function Base.show(io::IO, ::MIME"text/html", ast::Node, env=Dict{String,Any}())
+    writer = Writer(HTML(), io, env)
     for (node, entering) in ast
         write_html(node.t, writer, node, entering)
     end
@@ -10,6 +10,10 @@ end
 html(args...) = writer(MIME"text/html"(), args...)
 
 # Internals.
+
+mime_to_str(::MIME"text/html") = "html"
+
+TEMPLATES["html"] = joinpath(@__DIR__, "templates/html.mustache")
 
 mutable struct HTML
     disable_tags::Int

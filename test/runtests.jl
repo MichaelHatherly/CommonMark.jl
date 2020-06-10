@@ -1,4 +1,4 @@
-using CommonMark, Test, JSON, Pkg.TOML, YAML
+using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
 
 @testset "CommonMark" begin
     # Do we pass the CommonMark spec -- version 0.29.0.
@@ -16,6 +16,7 @@ using CommonMark, Test, JSON, Pkg.TOML, YAML
 
     include("writers.jl")
     include("extensions.jl")
+    include("templates.jl")
 
     # Basics: just make sure the parsing and rendering doesn't throw or hang.
     @testset "Samples" begin

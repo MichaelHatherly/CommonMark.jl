@@ -265,3 +265,68 @@ what is disabled.
 
 Until version `1.0.0` the rules listed above are subject to change and should
 be considered unstable regardless of whether they are exported or not.
+
+## Writer Configuration
+
+When writing to an output format configuration data can be provided by:
+
+  - passing a `Dict{String,Any}` to the writer method,
+  - front matter in the source document using the `FrontMatterRule` extension.
+
+Front matter takes precedence over the passed `Dict`.
+
+### Notable Variables
+
+Values used to determine template behaviour:
+
+  - `template-engine::Function` Used to render standalone document templates.
+
+    No default is provided by this package. The `template-engine` function
+    should follow the interface provided by `Mustache.render`. It is
+    recommended to use [Mustache.jl](https://github.com/jverzani/Mustache.jl)
+    to provide this functionalilty.
+
+    Syntax for opening and closing tags used by `CommonMark.jl` is `${...}`.
+    See the templates in `src/writers/templates` for usage examples.
+
+  - `<format>.template.file::String` Custom template file to use for standalone `<format>`.
+
+  - `<format>.template.string::String` Custom template string to use for standalone `<format>`.
+
+Generic variables that can be included in templates to customise documents:
+
+  - `abstract::String` Summary of the document.
+
+  - `authors::Vector{String}` Vector of author names.
+
+  - `date::String` Date of file generation.
+
+  - `keywords::Vector{String}` Vector of keywords to be included in the document metadata.
+
+  - `lang::String` Language of the document.
+
+  - `title::String` Title of the document.
+
+  - `subtitle::String` Subtitle of the document.
+
+Format-specific variables that should be used only in a particular format's
+template. They are namespaced to avoid collision with other variables.
+
+  - `html`
+
+      - `html.css::Vector{String}` Vector of CSS files to include in document.
+
+      - `html.js::Vector{String}` Vector of JavaScript files to include in document.
+
+  - `latex`
+
+      - `latex.documentclass::String` Class file to use for document. Default is `article`.
+
+The following are automatically available in document templates.
+
+  - `body::String` Main content of the page.
+
+  - `curdir::String` Current directory.
+
+  - `outputfile::String` Name of file that is being written to. When writing to an in-memory
+    buffer this variable is not defined.

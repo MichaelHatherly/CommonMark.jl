@@ -1,7 +1,7 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/markdown", ast::Node)
-    writer = Writer(Markdown(io), io)
+function Base.show(io::IO, ::MIME"text/markdown", ast::Node, env=Dict{String,Any}())
+    writer = Writer(Markdown(io), io, env)
     for (node, entering) in ast
         write_markdown(node.t, writer, node, entering)
     end
@@ -10,6 +10,8 @@ end
 markdown(args...) = writer(MIME"text/markdown"(), args...)
 
 # Internals.
+
+mime_to_str(::MIME"text/markdown") = "markdown"
 
 mutable struct Markdown{I <: IO}
     buffer::I

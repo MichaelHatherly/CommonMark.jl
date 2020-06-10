@@ -1,7 +1,7 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/plain", ast::Node)
-    writer = Writer(Term(), io)
+function Base.show(io::IO, ::MIME"text/plain", ast::Node, env=Dict{String,Any}())
+    writer = Writer(Term(), io, env)
     for (node, entering) in ast
         write_term(node.t, writer, node, entering)
     end
@@ -14,6 +14,8 @@ end
 term(args...) = writer(MIME"text/plain"(), args...)
 
 # Internals.
+
+mime_to_str(::MIME"text/plain") = "term"
 
 import Crayons: Crayon, @crayon_str
 

@@ -1,6 +1,6 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node)
+function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node, env=Dict{String,Any}())
     json = Dict(
         "cells" => [],
         "metadata" => Dict(
@@ -19,9 +19,8 @@ function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node)
         "nbformat" => 4,
         "nbformat_minor" => 4,
     )
-    buffer = IOBuffer()
     for (node, enter) in ast
-        write_notebook(json, node, enter)
+        write_notebook(json, node, enter, env)
     end
     JSON.Writer.print(io, json)
     return nothing
@@ -30,7 +29,9 @@ notebook(args...) = writer(MIME"application/x-ipynb+json"(), args...)
 
 # Internal.
 
-function write_notebook(json, node, enter)
+mime_to_str(::MIME"application/x-ipynb+json") = "notebook"
+
+function write_notebook(json, node, enter, env)
     split_lines = str -> collect(eachline(IOBuffer(str); keep=true))
     if !isnull(node) && node.t isa CodeBlock && node.parent.t isa Document && node.t.info == "julia"
         # Toplevel Julia codeblocks become code cells.
@@ -47,7 +48,7 @@ function write_notebook(json, node, enter)
         cells = json["cells"]
         if !isempty(cells) && cells[end]["cell_type"] == "markdown"
             # When we already have a current markdown cell then append content.
-            append!(cells[end]["source"], split_lines(markdown(node)))
+            append!(cells[end]["source"], split_lines(markdown(node, env)))
         else
             # ... otherwise open a new cell.
             cell = Dict(
