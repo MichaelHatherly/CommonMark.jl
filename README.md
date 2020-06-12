@@ -231,7 +231,9 @@ sequentially.
 
 `AttributeRule` does not handle writing metadata to particular formats such as
 HTML or LaTeX. It is up to the implementation of a particular writer format to
-make use of available metadata itself.
+make use of available metadata itself. The built-in `html` and `latex` outputs
+make use of included attributes. `html` will include *all* provided attributes
+in the output, while `latex` makes use of *only* the `#<id>` attribute.
 
 ### CommonMark Defaults
 
