@@ -59,20 +59,20 @@ write_html(::Text, r, n, ent) = literal(r, escape_xml(n.literal))
 write_html(::SoftBreak, r, n, ent) = literal(r, r.format.softbreak)
 
 function write_html(::LineBreak, r, n, ent)
-    tag(r, "br", [], true)
+    tag(r, "br", attributes(r, n), true)
     cr(r)
 end
 
 function write_html(::Link, r, n, ent)
     if ent
-        attrs = attributes(r, n)
+        attrs = []
         if !(r.format.safe && potentially_unsafe(n.t.destination))
             push!(attrs, "href" => escape_xml(n.t.destination))
         end
         if !isempty(n.t.title)
             push!(attrs, "title" => escape_xml(n.t.title))
         end
-        tag(r, "a", attrs)
+        tag(r, "a", attributes(r, n, attrs))
     else
         tag(r, "/a")
     end
@@ -99,9 +99,9 @@ function write_html(::Image, r, n, ent)
     end
 end
 
-write_html(::Emph, r, n, ent) = tag(r, ent ? "em" : "/em")
+write_html(::Emph, r, n, ent) = tag(r, ent ? "em" : "/em", ent ? attributes(r, n) : [])
 
-write_html(::Strong, r, n, ent) = tag(r, ent ? "strong" : "/strong")
+write_html(::Strong, r, n, ent) = tag(r, ent ? "strong" : "/strong", ent ? attributes(r, n) : [])
 
 function write_html(::Paragraph, r, n, ent)
     grandparent = n.parent.parent
@@ -133,7 +133,7 @@ function write_html(::Heading, r, n, ent)
 end
 
 function write_html(::Code, r, n, ent)
-    tag(r, "code")
+    tag(r, "code", attributes(r, n))
     literal(r, escape_xml(n.literal))
     tag(r, "/code")
 end
@@ -209,13 +209,16 @@ function write_html(::HtmlBlock, r, n, ent)
     cr(r)
 end
 
-function attributes(r, n)
-    out = []
+function attributes(r, n, out=[])
     if r.format.sourcepos
         if n.sourcepos !== nothing
             p = n.sourcepos
             push!(out, "data-sourcepos" => "$(p[1][1]):$(p[1][2])-$(p[2][1]):$(p[2][2])")
         end
+    end
+    for (key, value) in n.meta
+        value = key == "class" ? join(value, " ") : value
+        push!(out, key => value)
     end
     return out
 end

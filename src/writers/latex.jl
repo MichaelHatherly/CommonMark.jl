@@ -19,6 +19,12 @@ end
 
 function write_latex(writer::Writer, ast::Node)
     for (node, entering) in ast
+        if entering
+            meta = node.meta
+            if haskey(meta, "id")
+                literal(writer, "\\protect\\hyperlabel{", meta["id"], "}{}")
+            end
+        end
         write_latex(node.t, writer, node, entering)
     end
 end

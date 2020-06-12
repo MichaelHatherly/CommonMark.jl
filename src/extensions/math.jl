@@ -54,7 +54,7 @@ inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
 #
 
 function write_html(::Math, rend, node, enter)
-    tag(rend, "span", ["class" => "math"])
+    tag(rend, "span", attributes(rend, node, ["class" => "math"]))
     print(rend.buffer, "\\(", node.literal, "\\)")
     tag(rend, "/span")
 end
@@ -80,7 +80,7 @@ function write_markdown(::Math, w, node, ent)
 end
 
 function write_html(::DisplayMath, rend, node, enter)
-    tag(rend, "div", ["class" => "display-math"])
+    tag(rend, "div", attributes(rend, node, ["class" => "display-math"]))
     print(rend.buffer, "\\[", node.literal, "\\]")
     tag(rend, "/div")
 end

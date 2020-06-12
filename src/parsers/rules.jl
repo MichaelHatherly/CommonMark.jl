@@ -14,8 +14,8 @@ end
 enable!(parser, extension) = toggle!(true, parser, extension)
 disable!(parser, extension) = toggle!(false, parser, extension)
 
-enable!(parser, xs::Union{Vector, Tuple}) = foreach(x -> enable!(parser, x), xs)
-disable!(parser, xs::Union{Vector, Tuple}) = foreach(x -> disable!(parser, x), xs)
+enable!(p, xs::Union{Vector, Tuple}) = (foreach(x -> enable!(p, x), xs); p)
+disable!(p, xs::Union{Vector, Tuple}) = (foreach(x -> disable!(p, x), xs); p)
 
 function toggle!(on::Bool, parser::AbstractParser, extension)
     toggle!(on, parser, block_rule, extension)

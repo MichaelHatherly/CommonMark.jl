@@ -114,7 +114,7 @@ block_rule(::TableRule) = Rule(gfm_table, 0.5, "|")
 
 # HTML
 
-write_html(::Table, rend, node, enter) = tag(rend, enter ? "table" : "/table")
+write_html(::Table, rend, n, ent) = tag(rend, ent ? "table" : "/table", ent ? attributes(rend, n) : [])
 write_html(::TableHeader, rend, node, enter) = tag(rend, enter ? "thead" : "/thead")
 write_html(::TableBody, rend, node, enter) = tag(rend, enter ? "tbody" : "/tbody")
 write_html(::TableRow, rend, node, enter) = tag(rend, enter ? "tr" : "/tr")

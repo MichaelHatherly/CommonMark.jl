@@ -52,8 +52,7 @@ end
 
 function write_html(f::FootnoteDefinition, rend, node, enter)
     if enter
-        attrs = ["class" => "footnote", "id" => "footnote-$(f.id)"]
-        tag(rend, "div", attrs)
+        tag(rend, "div", attributes(rend, node, ["class" => "footnote", "id" => "footnote-$(f.id)"]))
         tag(rend, "p", ["class" => "footnote-title"])
         print(rend.buffer, f.id)
         tag(rend, "/p")
@@ -106,7 +105,7 @@ end
 # Links
 
 function write_html(f::FootnoteLink, rend, node, enter)
-    tag(rend, "a", ["href" => "#footnote-$(f.id)", "class" => "footnote"])
+    tag(rend, "a", attributes(rend, node, ["href" => "#footnote-$(f.id)", "class" => "footnote"]))
     print(rend.buffer, f.id)
     tag(rend, "/a")
 end

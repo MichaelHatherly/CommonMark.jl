@@ -102,16 +102,16 @@
     test("`word`{#id}", CommonMark.Code, dict)
     test("<http://www.website.com>{#id}", CommonMark.Link, dict, "[http://www.website.com](http://www.website.com){#id}")
 
-    # Writing. Non-markdown doesn't, currently, do anything with the metadata.
-
     test = function (input, f, output)
         ast = p(input)
         @test f(ast) == output
     end
 
-    test("{#id}\n# H1", html, "<h1>H1</h1>\n")
-    test("{#id}\n# H1", latex, "\\section{H1}\n")
+    test("{#id}\n# H1", html, "<h1 id=\"id\">H1</h1>\n")
+    test("{.one.two}\n# H1", html, "<h1 class=\"one two\">H1</h1>\n")
+    test("{#id}\n# H1", latex, "\\protect\\hyperlabel{id}{}\n\\section{H1}\n")
 
-    test("*word*{#id}", html, "<p><em>word</em></p>\n")
-    test("*word*{#id}", latex, "\\textit{word}\\par\n")
+    test("*word*{#id}", html, "<p><em id=\"id\">word</em></p>\n")
+    test("*word*{.one.two}", html, "<p><em class=\"one two\">word</em></p>\n")
+    test("*word*{#id}", latex, "\\protect\\hyperlabel{id}{}\\textit{word}\\par\n")
 end
