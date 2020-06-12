@@ -37,6 +37,7 @@ export
 export
     AdmonitionRule,
     AttributeRule,
+    CitationRule,
     FootnoteRule,
     FrontMatterRule,
     MathRule,

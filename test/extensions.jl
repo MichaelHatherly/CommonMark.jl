@@ -7,4 +7,5 @@
     include("extensions/typography.jl")
     include("extensions/raw.jl")
     include("extensions/attributes.jl")
+    include("extensions/citations.jl")
 end

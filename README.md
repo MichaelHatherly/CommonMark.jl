@@ -235,6 +235,81 @@ make use of available metadata itself. The built-in `html` and `latex` outputs
 make use of included attributes. `html` will include *all* provided attributes
 in the output, while `latex` makes use of *only* the `#<id>` attribute.
 
+### Citations
+
+Use the following to enable in-text citations and reference list generation:
+
+```julia
+enable!(p, CitationRule())
+```
+
+Syntax for citations is similar to what is offered by
+[Pandoc](https://pandoc.org/MANUAL.html#citations). Citations start with `@`.
+
+```markdown
+Citations can either appear in square brackets [@id], or they can be written as
+part of the text like @id. Bracketed citations can contain more than one
+citation; separated by semi-colons [@one; @two; and @three].
+
+{#refs}
+# References
+```
+
+A reference section that will be populated with a list of all references can be
+marked using a `{#refs}` attribute from `AttributeRule` at the *toplevel* of
+the document. The list will be inserted after the node, in this case `# References`.
+
+Citations and reference lists are formatted following the
+[Chicago Manual of Style](https://www.chicagomanualofstyle.org/home.html).
+Styling will, in future versions, be customisable using
+[Citation Style Language](https://citationstyles.org/) styles.
+
+The reference data used for citations must be provided in a format matching
+[CSL JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html).
+Pass this data to `CommonMark.jl` when writing an AST to a output format.
+
+```julia
+html(ast, Dict{String,Any}("references" => JSON.parsefile("references.json")))
+```
+
+CSL JSON can be exported easily from reference management software such as
+[Zotero](https://www.zotero.org/) or generated via `pandoc-citeproc --bib2json`
+or similar. The `references` data can be provided by the front matter section
+of a document so long as the `FrontMatterRule` has been enabled, though this does
+require writing your CSL data manually.
+
+Note that the text format of the reference list is not important, and does not
+*have* to be JSON data. So long as the *shape* of the data matches CSL JSON it
+is valid. Below we use YAML `references` embedded in the document's front
+matter:
+
+```markdown
+---
+references:
+- id: abelson1996
+  author:
+    - family: Abelson
+      given: Harold
+    - family: Sussman
+      given: Gerald Jay
+  edition: 2nd Editon
+  event-place: Cambridge
+  ISBN: 0-262-01153-0
+  issued:
+    date-parts:
+      - - 1996
+  publisher: MIT Press/McGraw-Hill
+  publisher-place: Cambridge
+  title: Structure and interpretation of computer programs
+  type: book
+---
+
+Here's a citation [@abelson1996].
+
+{#refs}
+# References
+```
+
 ### CommonMark Defaults
 
 Block rules enabled by default in `Parser` objects:
