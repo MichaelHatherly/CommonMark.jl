@@ -2,9 +2,7 @@
 
 function Base.show(io::IO, ::MIME"text/markdown", ast::Node, env=Dict{String,Any}())
     writer = Writer(Markdown(io), io, env)
-    for (node, entering) in ast
-        write_markdown(node.t, writer, node, entering)
-    end
+    write_markdown(writer, ast)
     return nothing
 end
 markdown(args...) = writer(MIME"text/markdown"(), args...)
@@ -20,6 +18,12 @@ mutable struct Markdown{I <: IO}
     list_depth::Int
     list_item_number::Vector{Int}
     Markdown(io::I) where {I} = new{I}(io, 0, [], 0, [])
+end
+
+function write_markdown(writer::Writer, ast::Node)
+    for (node, entering) in ast
+        write_markdown(node.t, writer, node, entering)
+    end
 end
 
 function linebreak(w, node)

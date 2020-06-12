@@ -2,9 +2,7 @@
 
 function Base.show(io::IO, ::MIME"text/html", ast::Node, env=Dict{String,Any}())
     writer = Writer(HTML(), io, env)
-    for (node, entering) in ast
-        write_html(node.t, writer, node, entering)
-    end
+    write_html(writer, ast)
     return nothing
 end
 html(args...) = writer(MIME"text/html"(), args...)
@@ -28,6 +26,12 @@ mutable struct HTML
         format.safe = safe
         format.sourcepos = sourcepos
         return format
+    end
+end
+
+function write_html(writer::Writer, ast::Node)
+    for (node, entering) in ast
+        write_html(node.t, writer, node, entering)
     end
 end
 

@@ -2,9 +2,7 @@
 
 function Base.show(io::IO, ::MIME"text/plain", ast::Node, env=Dict{String,Any}())
     writer = Writer(Term(), io, env)
-    for (node, entering) in ast
-        write_term(node.t, writer, node, entering)
-    end
+    write_term(writer, ast)
     # Writing is done to an intermediate buffer and then written to the
     # user-provided one once we have traversed the AST so that we can avoid
     # noticable lag when displaying on the terminal.
@@ -33,6 +31,12 @@ mutable struct Term
     list_depth::Int
     list_item_number::Vector{Int}
     Term() = new(0, [], IOBuffer(), -1, 0, [])
+end
+
+function write_term(writer::Writer, ast::Node)
+    for (node, entering) in ast
+        write_term(node.t, writer, node, entering)
+    end
 end
 
 # Utilities.
