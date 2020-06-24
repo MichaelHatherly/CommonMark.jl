@@ -19,10 +19,16 @@ parser = Parser()
 enable!(parser, FootnoteRule())
 ```
 
-Parse some text to an abstract syntax tree.
+Parse some text to an abstract syntax tree from a `String`:
 
 ```julia
 ast = parser("Hello *world*")
+```
+
+Parse the contents of a source file:
+
+```julia
+ast = open(parser, "document.md")
 ```
 
 Write `ast` to a string.

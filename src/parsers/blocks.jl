@@ -423,8 +423,9 @@ contains_inlines(t) = false
 contains_inlines(::Paragraph) = true
 contains_inlines(::Heading) = true
 
-function parse(parser::Parser, my_input::AbstractString)
+function parse(parser::Parser, my_input::IO; kws...)
     parser.doc = Node(Document(), ((1, 1), (0, 0)))
+    isempty(kws) || (merge!(parser.doc.meta, Dict(string(k) => v for (k, v) in kws)))
     parser.tip = parser.doc
     parser.refmap = Dict{String, Tuple{String, String}}()
     parser.line_number = 0
@@ -435,7 +436,7 @@ function parse(parser::Parser, my_input::AbstractString)
     parser.buf = ""
     parser.len = 0
     line_count = 0
-    for line in eachline(IOBuffer(my_input))
+    for line in eachline(my_input)
         incorporate_line(parser, line)::Nothing
         line_count += 1
     end
@@ -446,4 +447,7 @@ function parse(parser::Parser, my_input::AbstractString)
     return parser.doc
 end
 
-(p::Parser)(text::AbstractString) = parse(p, text)
+(p::Parser)(text::AbstractString; kws...) = p(IOBuffer(text); kws...)
+(p::Parser)(io::IO; kws...) = parse(p, io; kws...)
+
+Base.open(p::Parser, file::AbstractString; kws...) = open(io->p(io; :source=>file, kws...), file)
