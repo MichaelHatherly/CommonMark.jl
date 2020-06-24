@@ -88,7 +88,7 @@ end
 function prepend_child(node::Node, child::Node)
     unlink(child)
     child.parent = node
-    if node.first_child
+    if !isnull(node.first_child)
         node.first_child.prv = child
         child.nxt = node.first_child
         node.first_child = child
@@ -133,13 +133,13 @@ end
 function insert_before(node::Node, sibling::Node)
     unlink(sibling)
     sibling.prv = node.prv
-    if sibling.prv
+    if !isnull(sibling.prv)
         sibling.prv.nxt = sibling
     end
     sibling.nxt = node
     node.prv = sibling
     sibling.parent = node.parent
-    if !sibling.prv
+    if isnull(sibling.prv)
         sibling.parent.first_child = sibling
     end
 end
