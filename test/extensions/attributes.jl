@@ -107,7 +107,7 @@
         @test f(ast) == output
     end
 
-    test("{#id}\n# H1", html, "<h1 id=\"id\">H1</h1>\n")
+    test("{#id}\n# H1", html, "<h1 id=\"id\"><a href=\"#id\" class=\"anchor\"></a>H1</h1>\n")
     test("{.one.two}\n# H1", html, "<h1 class=\"one two\">H1</h1>\n")
     test("{#id}\n# H1", latex, "\\protect\\hyperlabel{id}{}\n\\section{H1}\n")
 

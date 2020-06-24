@@ -11,8 +11,16 @@ struct Rule
     Rule(fn, priority, triggers="") = new(fn, priority, triggers)
 end
 
-enable!(parser, extension) = toggle!(true, parser, extension)
-disable!(parser, extension) = toggle!(false, parser, extension)
+function enable!(parser, extension)
+    push!(parser.rules, extension)
+    toggle!(true, parser, extension)
+    return parser
+end
+
+function disable!(parser, extension)
+    filter!(ex -> !(ex isa typeof(extension)), parser.rules)
+    toggle!(false, parser, extension)
+end
 
 enable!(p, xs::Union{Vector, Tuple}) = (foreach(x -> enable!(p, x), xs); p)
 disable!(p, xs::Union{Vector, Tuple}) = (foreach(x -> disable!(p, x), xs); p)
@@ -54,5 +62,9 @@ function clear_rules!(p::AbstractParser)
     empty!(p.modifiers)
     empty!(p.inline_parser.inline_parsers)
     empty!(p.inline_parser.modifiers)
+    empty!(p.rules)
     return p
 end
+
+reset_rules!(p::AbstractParser) = (foreach(reset_rule!, p.rules); p)
+reset_rule!(rule) = nothing

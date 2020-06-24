@@ -310,6 +310,19 @@ Here's a citation [@abelson1996].
 # References
 ```
 
+### Auto Indentifiers
+
+Headings within a document can be assigned `id`s automatically using
+
+```julia
+enable!(p, AutoIndentifierRule())
+```
+
+Identifiers are determined with `CommonMark.slugify`, which is based on the
+algorithm used by Pandoc. Non-unique identifiers are suffixed with a numeric
+counter and so cannot be considered stable. If you need stable identifiers then
+you should use `AttributeRule` to assign stable `id`s manually.
+
 ### CommonMark Defaults
 
 Block rules enabled by default in `Parser` objects:

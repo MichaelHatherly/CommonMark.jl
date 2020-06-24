@@ -47,6 +47,7 @@ mutable struct Parser <: AbstractParser
     refmap::Dict{String, Tuple{String, String}}
     last_line_length::Int
     inline_parser::InlineParser
+    rules::Vector
     modifiers::Vector{Function}
     priorities::Dict{Function, Float64}
 
@@ -72,6 +73,7 @@ mutable struct Parser <: AbstractParser
         parser.refmap = Dict()
         parser.last_line_length = 0
         parser.inline_parser = InlineParser()
+        parser.rules = []
         parser.modifiers = Function[]
         parser.priorities = Dict()
 
