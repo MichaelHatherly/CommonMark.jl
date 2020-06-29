@@ -7,7 +7,7 @@ writer(mime, ast::Node, env=nothing) = sprint(writer, mime, ast, env)
 
 function writer(io::IO, mime::MIME, ast::Node, env::Dict)
     # Merge all metadata provided, priority is right-to-left.
-    env = recursive_merge(default_config(), env, frontmatter(ast))
+    env = recursive_merge(default_config(), env, frontmatter(ast), ast.meta)
     if haskey(env, "template-engine")
         temp = template(env, mime_to_str(mime))
         # Empty templates will skip the template rendering step.
@@ -33,6 +33,9 @@ default_config() = Dict{String,Any}(
         "documentclass" => "article",
     ),
 )
+
+_smart_link(mime, obj, env) = haskey(env, "smartlink-engine") ?
+    env["smartlink-engine"](mime, obj, env) : obj
 
 function template(env, fmt)
     # Template load order:

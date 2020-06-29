@@ -9,4 +9,5 @@
     include("extensions/attributes.jl")
     include("extensions/citations.jl")
     include("extensions/autoidentifiers.jl")
+    include("extensions/smartlinks.jl")
 end

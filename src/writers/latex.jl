@@ -44,14 +44,18 @@ end
 
 write_latex(::HtmlInline, w, node, ent) = nothing
 
-write_latex(link::Link, w, node, ent) = literal(w, ent ? "\\href{$(link.destination)}{" : "}")
+function write_latex(link::Link, w, node, ent)
+    link = _smart_link(MIME"text/latex"(), link, w.env)
+    literal(w, ent ? "\\href{$(link.destination)}{" : "}")
+end
 
-function write_latex(::Image, w, node, ent)
+function write_latex(image::Image, w, node, ent)
     if ent
+        image = _smart_link(MIME"text/latex"(), image, w.env)
         cr(w)
         literal(w, "\\begin{figure}\n")
         literal(w, "\\centering\n")
-        literal(w, "\\includegraphics{", node.t.destination, "}\n")
+        literal(w, "\\includegraphics{", image.destination, "}\n")
         literal(w, "\\caption{")
     else
         literal(w, "}\n")

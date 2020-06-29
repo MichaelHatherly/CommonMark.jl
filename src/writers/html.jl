@@ -63,14 +63,15 @@ function write_html(::LineBreak, r, n, ent)
     cr(r)
 end
 
-function write_html(::Link, r, n, ent)
+function write_html(link::Link, r, n, ent)
     if ent
         attrs = []
-        if !(r.format.safe && potentially_unsafe(n.t.destination))
-            push!(attrs, "href" => escape_xml(n.t.destination))
+        if !(r.format.safe && potentially_unsafe(link.destination))
+            link = _smart_link(MIME"text/html"(), link, r.env)
+            push!(attrs, "href" => escape_xml(link.destination))
         end
-        if !isempty(n.t.title)
-            push!(attrs, "title" => escape_xml(n.t.title))
+        if !isempty(link.title)
+            push!(attrs, "title" => escape_xml(link.title))
         end
         tag(r, "a", attributes(r, n, attrs))
     else
@@ -78,21 +79,22 @@ function write_html(::Link, r, n, ent)
     end
 end
 
-function write_html(::Image, r, n, ent)
+function write_html(image::Image, r, n, ent)
     if ent
         if r.format.disable_tags == 0
-            if r.format.safe && potentially_unsafe(n.t.destination)
+            if r.format.safe && potentially_unsafe(image.destination)
                 literal(r, "<img src=\"\" alt=\"")
             else
-                literal(r, "<img src=\"", escape_xml(n.t.destination), "\" alt=\"")
+                image = _smart_link(MIME"text/html"(), image, r.env)
+                literal(r, "<img src=\"", escape_xml(image.destination), "\" alt=\"")
             end
         end
         r.format.disable_tags += 1
     else
         r.format.disable_tags -= 1
         if r.format.disable_tags == 0
-            if n.t.title !== nothing && !isempty(n.t.title)
-                literal(r, "\" title=\"", escape_xml(n.t.title))
+            if image.title !== nothing && !isempty(image.title)
+                literal(r, "\" title=\"", escape_xml(image.title))
             end
             literal(r, "\" />")
         end
