@@ -96,6 +96,28 @@
         """,
         "    code\n"
     )
+    test(
+        """
+        ```jldoctest
+        julia> a = 1
+        1
+
+        julia> b = 2
+        2
+        ```
+        """,
+        "```jldoctest\njulia> a = 1\n1\n\njulia> b = 2\n2\n```\n"
+    )
+    test(
+        """
+            julia> a = 1
+            1
+
+            julia> b = 2
+            2
+        """,
+        "    julia> a = 1\n    1\n\n    julia> b = 2\n    2\n"
+    )
     # Escapes.
     test(
         "\\\\",

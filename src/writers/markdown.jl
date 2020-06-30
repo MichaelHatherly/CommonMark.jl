@@ -164,19 +164,18 @@ function write_markdown(code::CodeBlock, w, node, ent)
         print_margin(w)
         literal(w, fence, code.info)
         cr(w)
-        for line in eachline(IOBuffer(node.literal))
+        for line in eachline(IOBuffer(node.literal); keep=true)
             print_margin(w)
             literal(w, line)
-            cr(w)
         end
         print_margin(w)
         literal(w, fence)
         cr(w)
     else
-        for line in eachline(IOBuffer(node.literal))
+        for line in eachline(IOBuffer(node.literal); keep=true)
             print_margin(w)
-            isempty(line) || literal(w, ' '^CODE_INDENT, line)
-            cr(w)
+            indent = all(isspace, line) ? 0 : CODE_INDENT
+            literal(w, ' '^indent, line)
         end
     end
     linebreak(w, node)
