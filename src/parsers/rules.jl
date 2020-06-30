@@ -11,44 +11,31 @@ struct Rule
     Rule(fn, priority, triggers="") = new(fn, priority, triggers)
 end
 
-function enable!(parser, extension)
-    push!(parser.rules, extension)
-    toggle!(true, parser, extension)
-    return parser
-end
-
-function disable!(parser, extension)
-    filter!(ex -> !(ex isa typeof(extension)), parser.rules)
-    toggle!(false, parser, extension)
-end
-
-enable!(p, xs::Union{Vector, Tuple}) = (foreach(x -> enable!(p, x), xs); p)
-disable!(p, xs::Union{Vector, Tuple}) = (foreach(x -> disable!(p, x), xs); p)
-
-function toggle!(on::Bool, parser::AbstractParser, extension)
-    toggle!(on, parser, block_rule, extension)
-    toggle!(on, parser, block_modifier, extension)
-    toggle!(on, parser, inline_rule, extension)
-    toggle!(on, parser, inline_modifier, extension)
-    return parser
-end
-
-toggle!(on, p, fn, extension) = toggle!(on, p, fn, fn(extension))
-toggle!(on, p, fn, rules::Tuple) = foreach(rule -> toggle!(on, p, fn, rule), rules)
-toggle!(::Bool, ::AbstractParser, ::Function, ::Nothing) = nothing
-
-function toggle!(on, p::AbstractParser, fn, r::Rule)
-    on ? (p.priorities[r.fn] = r.priority) : delete!(p.priorities, r.fn)
-    for trigger in (isempty(r.triggers) ? "\0" : r.triggers)
+function enable!(p::AbstractParser, fn, rule::Rule)
+    p.priorities[rule.fn] = rule.priority
+    for trigger in (isempty(rule.triggers) ? "\0" : rule.triggers)
         λs = get_funcs(p, fn, trigger)
-        if on
-            r.fn in λs || push!(λs, r.fn)
-            sort!(λs; by=λ -> p.priorities[λ])
-        else
-            filter!(f -> f != r.fn, λs)
+        if rule.fn ∉ λs
+            push!(λs, rule.fn)
+            sort!(λs; by=λ->p.priorities[λ])
         end
     end
+    return p
 end
+enable!(p::AbstractParser, fn, ::Nothing) = p
+enable!(p::AbstractParser, fn, rules::Union{Tuple,Vector}) = (foreach(r -> enable!(p, fn, r), rules); p)
+enable!(p::AbstractParser, fn, rule) = enable!(p, fn, fn(rule))
+
+function enable!(p::AbstractParser, rule)
+    enable!(p, inline_rule, rule)
+    enable!(p, inline_modifier, rule)
+    enable!(p, block_rule, rule)
+    enable!(p, block_modifier, rule)
+    push!(p.rules, rule)
+    return p
+end
+
+enable!(p::AbstractParser, rules::Union{Tuple, Vector}) = (foreach(r -> enable!(p, r), rules); p)
 
 get_funcs(p, ::typeof(block_rule), c)  = get!(() -> Function[], p.block_starts, c)
 get_funcs(p, ::typeof(inline_rule), c) = get!(() -> Function[], p.inline_parser.inline_parsers, c)
@@ -56,15 +43,16 @@ get_funcs(p, ::typeof(inline_rule), c) = get!(() -> Function[], p.inline_parser.
 get_funcs(p, ::typeof(block_modifier), _)  = p.modifiers
 get_funcs(p, ::typeof(inline_modifier), _) = p.inline_parser.modifiers
 
-function clear_rules!(p::AbstractParser)
+function disable!(p::AbstractParser, rules::Union{Tuple, Vector})
     empty!(p.priorities)
     empty!(p.block_starts)
     empty!(p.modifiers)
     empty!(p.inline_parser.inline_parsers)
     empty!(p.inline_parser.modifiers)
-    empty!(p.rules)
-    return p
+    filter!(f -> f ∉ rules, p.rules)
+    return enable!(p, p.rules)
 end
+disable!(p::AbstractParser, rule) = disable!(p, [rule])
 
 reset_rules!(p::AbstractParser) = (foreach(reset_rule!, p.rules); p)
 reset_rule!(rule) = nothing
