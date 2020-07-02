@@ -38,13 +38,9 @@ end
 
 write_markdown(::Document, w, node, ent) = nothing
 
-function write_markdown(::Text, w, node, ent)
-    for c in node.literal
-        c in MARKDOWN_ESCAPES && literal(w, '\\')
-        literal(w, c)
-    end
-end
-const MARKDOWN_ESCAPES = Set("\\[]*_#`")
+write_markdown(::Text, w, node, ent) = literal(w, node.literal)
+
+write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
 
 function write_markdown(::Union{SoftBreak, LineBreak}, w, node, ent)
     cr(w)

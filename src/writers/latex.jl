@@ -33,6 +33,8 @@ write_latex(::Document, w, node, ent) = nothing
 
 write_latex(::Text, w, node, ent) = latex_escape(w, node.literal)
 
+write_latex(::Backslash, w, node, ent) = nothing
+
 write_latex(::SoftBreak, w, node, ent) = cr(w)
 write_latex(::LineBreak, w, node, ent) = cr(w)
 

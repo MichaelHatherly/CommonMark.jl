@@ -38,5 +38,5 @@
     @test html(ast) == "<p>**not bold**</p>\n"
     @test latex(ast) == "**not bold**\\par\n"
     @test term(ast) == " **not bold**\n"
-    @test markdown(ast) == "\\*\\*not bold\\*\\*\n"
+    @test markdown(ast) == "**not bold**\n" # TODO: pass through raw content.
 end

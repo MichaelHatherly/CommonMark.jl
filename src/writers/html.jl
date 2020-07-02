@@ -56,6 +56,8 @@ write_html(::Document, r, n, ent) = nothing
 
 write_html(::Text, r, n, ent) = literal(r, escape_xml(n.literal))
 
+write_html(::Backslash, w, node, ent) = nothing
+
 write_html(::SoftBreak, r, n, ent) = literal(r, r.format.softbreak)
 
 function write_html(::LineBreak, r, n, ent)

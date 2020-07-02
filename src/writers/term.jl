@@ -195,6 +195,8 @@ function write_term(::Text, render, node, enter)
     print_literal(render, replace(node.literal, r"\s+" => ' '))
 end
 
+write_term(::Backslash, w, node, ent) = nothing
+
 function write_term(::SoftBreak, render, node, enter)
     print_literal(render, " ")
 end
