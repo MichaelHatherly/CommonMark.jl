@@ -151,6 +151,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
 
                     # Build contents for new Emph or Strong element.
                     emph = use_delims == 1 ? Node(Emph()) : Node(Strong())
+                    emph.literal = closercc^use_delims
 
                     tmp = opener_inl.nxt
                     while !isnull(tmp) && tmp !== closer_inl

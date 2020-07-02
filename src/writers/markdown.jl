@@ -80,9 +80,9 @@ function write_markdown(image::Image, w, node, ent)
     end
 end
 
-write_markdown(::Emph, w, node, ent) = literal(w, "*")
+write_markdown(::Emph, w, node, ent) = literal(w, node.literal)
 
-write_markdown(::Strong, w, node, ent) = literal(w, "**")
+write_markdown(::Strong, w, node, ent) = literal(w, node.literal)
 
 function write_markdown(::Paragraph, w, node, ent)
     if ent

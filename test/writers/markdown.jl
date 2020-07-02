@@ -37,6 +37,26 @@
         "**text**",
         "**text**\n"
     )
+    # Emphasis.
+    test(
+        "_text_",
+        "_text_\n"
+    )
+    # Strong.
+    test(
+        "__text__",
+        "__text__\n"
+    )
+    # Emphasis.
+    test(
+        "_**text**_",
+        "_**text**_\n"
+    )
+    # Strong.
+    test(
+        "*__text__*",
+        "*__text__*\n"
+    )
     # Headings.
     test(
         "# h1",
