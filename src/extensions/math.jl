@@ -5,10 +5,11 @@
 struct Math <: AbstractInline end
 
 function parse_inline_math_backticks(p::InlineParser, node::Node)
-    ticks = consume(p, match(reTicksHere, p))
+    ticks = match(reTicksHere, p)
     if ticks === nothing || isodd(length(ticks.match))
         return false
     end
+    consume(p, ticks)
     after_opener, count = position(p), length(ticks.match)
     while true
         matched = consume(p, match(reTicks, p))

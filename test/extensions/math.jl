@@ -11,6 +11,9 @@
     @test term(ast) == " Some \e[35mmath\e[39m.\n"
     @test markdown(ast) == "Some ``math``.\n"
 
+    ast = p("`x`")
+    @test html(ast) == "<p><code>x</code></p>\n"
+
     # Display
     text = "```math\nmath\n```"
     ast = p(text)
