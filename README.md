@@ -142,14 +142,19 @@ enable!(parser, MathRule())
 
 ### Tables
 
-Pipe-style tables, similar to GitHub's using `|`. **Strict alignment** required for pipes.
+Pipe-style tables, similar to GitHub's tables. Literal `|` characters that are
+not wrapped in other syntax such as `*` must be escaped with a backslash. The
+number of columns in the table is specified by the second line.
 
 ```markdown
 | Column One | Column Two | Column Three |
 |:---------- | ---------- |:------------:|
 | Row `1`    | Column `2` |              |
-| *Row* 2    | **Row** 2  | Column ``3`` |
+| *Row* 2    | **Row** 2  | Column ``|`` |
 ```
+
+Rows with more cells than specified have the trailing cells discarded, and rows
+with less cells are topped up with empty cells.
 
 Enabled with:
 
