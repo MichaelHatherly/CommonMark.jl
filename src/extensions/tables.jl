@@ -107,6 +107,7 @@ end
 # Low priority since this *must* happen after nested structure of emphasis and
 # links is determined. 100 should do fine.
 inline_modifier(rule::TableRule) = Rule(100) do parser, block
+    block.t isa TableRow || return
     isheader = block.parent.t isa TableHeader
     spec = block.parent.parent.t.spec
     max_cols = length(spec)
