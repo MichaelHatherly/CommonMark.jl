@@ -70,4 +70,19 @@
     @test latex(ast) == "\\begin{longtable}[]{@{}ll@{}}\n\\toprule\n & \\tabularnewline\n\\midrule\n\\endhead\n & \\tabularnewline\n\\bottomrule\n\\end{longtable}\n"
     @test term(ast) == " ┏━━━┯━━━┓\n ┃   │   ┃\n ┠───┼───┨\n ┃   │   ┃\n ┗━━━┷━━━┛\n"
     @test markdown(ast) == "|   |   |\n|:- |:- |\n|   |   |\n"
+
+    text =
+    """
+    # Header
+
+    | table |
+    | ----- |
+    | content |
+    """
+    ast = p(text)
+
+    @test html(ast) == "<h1>Header</h1>\n<table><thead><tr><th align=\"left\">table</th></tr></thead><tbody><tr><td align=\"left\">content</td></tr></tbody></table>"
+    @test latex(ast) == "\\section{Header}\n\\begin{longtable}[]{@{}l@{}}\n\\toprule\ntable\\tabularnewline\n\\midrule\n\\endhead\ncontent\\tabularnewline\n\\bottomrule\n\\end{longtable}\n"
+    @test term(ast) == " \e[34;1m#\e[39;22m Header\n \n ┏━━━━━━━━━┓\n ┃ table   ┃\n ┠─────────┨\n ┃ content ┃\n ┗━━━━━━━━━┛\n"
+    @test markdown(ast) == "# Header\n\n| table   |\n|:------- |\n| content |\n"
 end

@@ -99,7 +99,7 @@ function write_markdown(a::Admonition, w, node, ent)
         literal(w, "\n")
     else
         pop_margin!(w)
+        cr(w)
+        linebreak(w, node)
     end
-    cr(w)
-    linebreak(w, node)
 end

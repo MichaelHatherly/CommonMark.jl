@@ -21,6 +21,7 @@ function parse_block_attributes(parser::Parser, container::Node)
         if dict !== nothing
             advance_next_nonspace(parser)
             advance_offset(parser, length(literal), false)
+            close_unmatched_blocks(parser)
             child = add_child(parser, Attributes(dict, true), parser.next_nonspace)
             child.literal = literal
             advance_offset(parser, length(parser) - position(parser) + 1, false)
@@ -146,6 +147,8 @@ write_latex(::Attributes, w, n, ent) = nothing
 write_term(::Attributes, w, n, ent) = nothing
 
 function write_markdown(at::Attributes, w, n, ent)
-    at.block && print_margin(w)
-    literal(w, n.literal, at.block ? "\n" : "")
+    if ent
+        at.block && print_margin(w)
+        literal(w, n.literal, at.block ? "\n" : "")
+    end
 end

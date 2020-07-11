@@ -19,6 +19,7 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
     include("writers.jl")
     include("extensions.jl")
     include("templates.jl")
+    include("integration.jl")
 
     # Basics: just make sure the parsing and rendering doesn't throw or hang.
     @testset "Samples" begin

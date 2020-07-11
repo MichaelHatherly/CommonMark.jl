@@ -82,6 +82,18 @@ function push_margin!(r::Writer, text::AbstractString, style=crayon"")
 end
 
 """
+Adds new segmant to the margin buffer. `count` determines how many time
+`initial` is printed. After that, the width of `rest` is printed instead.
+"""
+function push_margin!(r::Writer, count::Integer, initial::AbstractString, rest::AbstractString)
+    width = Base.Unicode.textwidth(rest)
+    r.format.indent += width
+    seg = MarginSegment(initial, width, count)
+    push!(r.format.margin, seg)
+    return nothing
+end
+
+"""
 Adds a new segment to the margin buffer, but will only print out for the given
 number of `count` calls to `print_margin`. After `count` calls it will instead
 print out spaces equal to the width of `text`.

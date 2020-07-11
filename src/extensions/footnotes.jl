@@ -87,18 +87,11 @@ function write_term(f::FootnoteDefinition, rend, node, enter)
 end
 
 function write_markdown(f::FootnoteDefinition, w, node, ent)
-    tight = node.first_child === node.last_child
     if ent
-        literal(w, "[^", f.id, "]: ")
-        if !tight
-            push_margin!(w, "    ")
-            cr(w)
-            linebreak(w, node)
-        end
+        push_margin!(w, 1, "[^$(f.id)]: ", " "^4)
     else
-        tight || pop_margin!(w)
+        pop_margin!(w)
         cr(w)
-        linebreak(w, node)
     end
 end
 

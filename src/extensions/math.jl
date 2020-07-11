@@ -107,11 +107,13 @@ function write_term(::DisplayMath, rend, node, enter)
 end
 
 function write_markdown(::DisplayMath, w, node, ent)
+    print_margin(w)
     literal(w, "```math\n")
     for line in eachline(IOBuffer(node.literal))
         print_margin(w)
         literal(w, line, "\n")
     end
+    print_margin(w)
     literal(w, "```")
     cr(w)
     linebreak(w, node)

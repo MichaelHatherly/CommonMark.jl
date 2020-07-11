@@ -294,6 +294,7 @@ function write_markdown(table::Table, w::Writer, node, enter)
     else
         delete!(w.context, :cells)
         delete!(w.context, :widths)
+        linebreak(w, node)
     end
     return nothing
 end
