@@ -14,6 +14,7 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
         end
     end
 
+    include("spec.jl")
     include("ast.jl")
     include("parsing.jl")
     include("writers.jl")

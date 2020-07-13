@@ -178,10 +178,9 @@ function write_markdown(code::CodeBlock, w, node, ent)
 end
 
 function write_markdown(::HtmlBlock, w, node, ent)
-    for line in eachline(IOBuffer(node.literal))
+    for line in eachline(IOBuffer(node.literal); keep=true)
         print_margin(w)
         literal(w, line)
-        cr(w)
     end
     linebreak(w, node)
 end

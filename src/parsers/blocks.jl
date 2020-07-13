@@ -1,7 +1,7 @@
 const CODE_INDENT = 4
 
 const reHtmlBlockOpen = [
-    r"^<(?:script|pre|style)(?:\s|>|$)"i,
+    r"^<(?:script|pre|textarea|style)(?:\s|>|$)"i,
     r"^<!--",
     r"^<[?]",
     r"^<![A-Z]",
@@ -10,7 +10,7 @@ const reHtmlBlockOpen = [
     Regex("^(?:$(OPENTAG)|$(CLOSETAG))\\s*\$", "i")
 ]
 const reHtmlBlockClose = [
-    r"<\/(?:script|pre|style)>"i,
+    r"<\/(?:script|pre|textarea|style)>"i,
     r"-->",
     r"\?>",
     r">",
