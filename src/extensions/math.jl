@@ -51,6 +51,58 @@ end
 inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
 
 #
+# Dollar math
+#
+
+struct DollarMathRule end
+
+function parse_block_dollar_math(p::Parser, node::Node)
+    if node.t isa Paragraph
+        left = match(r"^(\$+)", node.literal)
+        left === nothing && return nothing
+        right = match(r"(\$+)$", rstrip(node.literal))
+        right === nothing && return nothing
+        if length(left[1]) == length(right[1]) == 2
+            node.literal = strip(c -> isspace(c) || c === '$', node.literal)
+            node.t = DisplayMath()
+        end
+    end
+    return nothing
+end
+
+block_modifier(::DollarMathRule) = Rule(parse_block_dollar_math, 0)
+
+const reDollarsHere = r"^\$+"
+const reDollars = r"\$+"
+
+function parse_inline_dollar_math(p::InlineParser, node::Node)
+    dollars = match(reDollarsHere, p)
+    if dollars === nothing || length(dollars.match) > 1
+        return false
+    end
+    consume(p, dollars)
+    after_opener, count = position(p), length(dollars.match)
+    while true
+        matched = consume(p, match(reDollars, p))
+        matched === nothing && break
+        if length(matched.match) === count
+            before_closer = position(p) - count - 1
+            raw = String(bytes(p, after_opener, before_closer))
+            child = Node(Math())
+            child.literal = strip(replace(raw, r"\s+" => ' '))
+            append_child(node, child)
+            return true
+        end
+    end
+    # We didn't match a balanced closing sequence.
+    seek(p, after_opener)
+    append_child(node, text(dollars.match))
+    return true
+end
+
+inline_rule(::DollarMathRule) = Rule(parse_inline_dollar_math, 0, "\$")
+
+#
 # Writers
 #
 

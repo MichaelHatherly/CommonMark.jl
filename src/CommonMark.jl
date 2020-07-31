@@ -39,6 +39,7 @@ export
     AttributeRule,
     AutoIdentifierRule,
     CitationRule,
+    DollarMathRule,
     FootnoteRule,
     FrontMatterRule,
     MathRule,

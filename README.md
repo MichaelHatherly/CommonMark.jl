@@ -140,6 +140,20 @@ Enabled with:
 enable!(parser, MathRule())
 ```
 
+Dollar-style inline and display math is also available using
+
+```julia
+enable!(parser, DollarMathRule())
+```
+
+Supported syntax:
+
+  * single dollar signs surrounding inline math,
+  * double dollars surrounding a single line paragraph for display math.
+
+For more complex math, such as multiline display math, use the literal block
+syntax available with `MathRule()`.
+
 ### Tables
 
 Pipe-style tables, similar to GitHub's tables. Literal `|` characters that are
