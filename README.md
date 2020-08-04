@@ -433,9 +433,15 @@ template. They are namespaced to avoid collision with other variables.
 
       - `html.js::Vector{String}` Vector of JavaScript files to include in document.
 
+      - `html.header::String` String content to add at end of `<head>`.
+
+      - `html.footer::String` String content to add at end of `<body>`.
+
   - `latex`
 
       - `latex.documentclass::String` Class file to use for document. Default is `article`.
+
+      - `latex.preamble::String` String content to add directly before `\begin{document}`.
 
 The following are automatically available in document templates.
 

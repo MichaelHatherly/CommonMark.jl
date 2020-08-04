@@ -32,9 +32,12 @@
         "html" => Dict(
             "css" => ["one.css", "two.css"],
             "js" => ["one.js", "two.js"],
+            "header" => "<script></script>",
+            "footer" => "<footer></footer>",
         ),
         "latex" => Dict(
             "documentclass" => "book",
+            "preamble" => "\\usepackage{custom}",
         )
     ))
 
