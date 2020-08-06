@@ -335,12 +335,12 @@ Here's a citation [@abelson1996].
 # References
 ```
 
-### Auto Indentifiers
+### Auto Identifiers
 
 Headings within a document can be assigned `id`s automatically using
 
 ```julia
-enable!(p, AutoIndentifierRule())
+enable!(p, AutoIdentifierRule())
 ```
 
 Identifiers are determined with `CommonMark.slugify`, which is based on the
