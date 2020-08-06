@@ -73,12 +73,12 @@ function gfm_table(parser::Parser, container::Node)
     return 0
 end
 
-valid_table_row(str) = startswith(str, '|') && endswith(str, '|')
+valid_table_row(str) = startswith(str, '|')
 valid_table_spec(str) = !occursin(r"[^\|:\- ]", str)
 
 function parse_table_spec(str)
-    map(eachmatch(r"\|([: ]?[-]+[ :]?)\|", str; overlap=true)) do match
-        str = match[1]
+    map(eachmatch(r"\|([ ]?[: ]?[-]+[ :]?[ ]?)\|", str; overlap=true)) do match
+        str = strip(match[1])
         left, right = str[1] === ':', str[end] === ':'
         center = left && right
         align = center ? :center : right ? :right : :left
@@ -96,6 +96,7 @@ block_rule(::TableRule) = Rule(gfm_table, 0.5, "|")
 struct TablePipe <:AbstractInline end
 
 inline_rule(rule::TableRule) = Rule(0, "|") do parser, block
+    block.t isa TableRow || return false
     @assert read(parser, Char) == '|'
     eof(parser) && return true # Skip last pipe.
     pipe = Node(TablePipe())

@@ -85,4 +85,21 @@
     @test latex(ast) == "\\section{Header}\n\\begin{longtable}[]{@{}l@{}}\n\\toprule\ntable\\tabularnewline\n\\midrule\n\\endhead\ncontent\\tabularnewline\n\\bottomrule\n\\end{longtable}\n"
     @test term(ast) == " \e[34;1m#\e[39;22m Header\n \n ┏━━━━━━━━━┓\n ┃ table   ┃\n ┠─────────┨\n ┃ content ┃\n ┗━━━━━━━━━┛\n"
     @test markdown(ast) == "# Header\n\n| table   |\n|:------- |\n| content |\n"
+
+    # 'messy' tables
+
+    text =
+    """
+    # Messy tables
+
+    | table
+    | :-: |
+    | *|*
+    """
+    ast = p(text)
+
+    @test html(ast) == "<h1>Messy tables</h1>\n<table><thead><tr><th align=\"center\">table</th></tr></thead><tbody><tr><td align=\"center\"><em>|</em></td></tr></tbody></table>"
+    @test latex(ast) == "\\section{Messy tables}\n\\begin{longtable}[]{@{}c@{}}\n\\toprule\ntable\\tabularnewline\n\\midrule\n\\endhead\n\\textit{|}\\tabularnewline\n\\bottomrule\n\\end{longtable}\n"
+    @test term(ast) == " \e[34;1m#\e[39;22m Messy tables\n \n ┏━━━━━━━┓\n ┃ table ┃\n ┠───────┨\n ┃   \e[3m|\e[23m   ┃\n ┗━━━━━━━┛\n"
+    @test markdown(ast) == "# Messy tables\n\n| table |\n|:-----:|\n| *|*   |\n"
 end
