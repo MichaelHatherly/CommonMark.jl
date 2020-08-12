@@ -70,9 +70,8 @@ parse_single_quote(parser, block) = handle_delim(parser, ''', block)
 parse_double_quote(parser, block) = handle_delim(parser, '"', block)
 
 function parse_ellipsis(parser::InlineParser, block::Node)
-    m = consume(parser, match(r"^\.+", parser))
-    append_child(block, text(length(m.match) === 3 ? "\u2026" : m.match))
-    return true
+    m = consume(parser, match(r"^\.{3}", parser))
+    return m === nothing ? false : (append_child(block, text("\u2026")); true)
 end
 
 function parse_dashes(parser::InlineParser, block::Node)
