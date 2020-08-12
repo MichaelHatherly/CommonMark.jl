@@ -1,11 +1,11 @@
 @testset "Smart Links" begin
-    function handler(::MIME"text/html", obj::CommonMark.Link, env)
+    function handler(::MIME"text/html", obj::CommonMark.Link, node::CommonMark.Node, env)
         name, _ = splitext(obj.destination)
         obj = deepcopy(obj)
         obj.destination = join([env["root"], "$name.html"], "/")
         return obj
     end
-    handler(mime, obj, env) = obj
+    handler(mime, obj, node, env) = obj
 
     p = Parser()
     env = Dict("root" => "/root", "smartlink-engine" => handler)

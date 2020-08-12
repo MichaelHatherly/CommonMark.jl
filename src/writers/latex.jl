@@ -47,13 +47,13 @@ end
 write_latex(::HtmlInline, w, node, ent) = nothing
 
 function write_latex(link::Link, w, node, ent)
-    link = _smart_link(MIME"text/latex"(), link, w.env)
+    link = _smart_link(MIME"text/latex"(), link, node, w.env)
     literal(w, ent ? "\\href{$(link.destination)}{" : "}")
 end
 
 function write_latex(image::Image, w, node, ent)
     if ent
-        image = _smart_link(MIME"text/latex"(), image, w.env)
+        image = _smart_link(MIME"text/latex"(), image, node, w.env)
         cr(w)
         literal(w, "\\begin{figure}\n")
         literal(w, "\\centering\n")

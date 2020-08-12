@@ -62,7 +62,7 @@ function write_markdown(link::Link, w, node, ent)
     if ent
         literal(w, "[")
     else
-        link = _smart_link(MIME"text/markdown"(), link, w.env)
+        link = _smart_link(MIME"text/markdown"(), link, node, w.env)
         literal(w, "](", link.destination)
         isempty(link.title) || literal(w, " \"", link.title, "\"")
         literal(w, ")")
@@ -73,7 +73,7 @@ function write_markdown(image::Image, w, node, ent)
     if ent
         literal(w, "![")
     else
-        image = _smart_link(MIME"text/markdown"(), image, w.env)
+        image = _smart_link(MIME"text/markdown"(), image, node, w.env)
         literal(w, "](", image.destination)
         isempty(image.title) || literal(w, " \"", image.title, "\"")
         literal(w, ")")

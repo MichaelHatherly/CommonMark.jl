@@ -69,7 +69,7 @@ function write_html(link::Link, r, n, ent)
     if ent
         attrs = []
         if !(r.format.safe && potentially_unsafe(link.destination))
-            link = _smart_link(MIME"text/html"(), link, r.env)
+            link = _smart_link(MIME"text/html"(), link, n, r.env)
             push!(attrs, "href" => escape_xml(link.destination))
         end
         if !isempty(link.title)
@@ -87,7 +87,7 @@ function write_html(image::Image, r, n, ent)
             if r.format.safe && potentially_unsafe(image.destination)
                 literal(r, "<img src=\"\" alt=\"")
             else
-                image = _smart_link(MIME"text/html"(), image, r.env)
+                image = _smart_link(MIME"text/html"(), image, n, r.env)
                 literal(r, "<img src=\"", escape_xml(image.destination), "\" alt=\"")
             end
         end

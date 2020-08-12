@@ -34,8 +34,8 @@ default_config() = Dict{String,Any}(
     ),
 )
 
-_smart_link(mime, obj, env) = haskey(env, "smartlink-engine") ?
-    env["smartlink-engine"](mime, obj, env) : obj
+_smart_link(mime, obj, node, env) = haskey(env, "smartlink-engine") ?
+    env["smartlink-engine"](mime, obj, node, env) : obj
 
 function template(env, fmt)
     # Template load order:
