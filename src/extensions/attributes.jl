@@ -46,6 +46,10 @@ end
 
 function try_parse_attributes(parser::AbstractParser)
     start_mark = pos = position(parser)
+    while peek(parser, Char) === ' '
+        # Consume leading spaces.
+        read(parser, Char)
+    end
     @assert read(parser, Char) === '{'
     valid = false
     dict = Dict{String,Any}()

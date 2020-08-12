@@ -84,6 +84,14 @@
         CommonMark.ThematicBreak,
         dict
     )
+    test(
+        """
+          {.hidden}
+          - list
+        """,
+        CommonMark.List,
+        Dict{String,Any}("class" => ["hidden"])
+    )
 
     # Inline metadata attachment.
 
