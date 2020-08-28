@@ -187,16 +187,16 @@ end
 
 function write_latex(::TableHeader, rend, node, enter)
     if enter
-        println(rend.buffer, "\\toprule")
+        println(rend.buffer, "\\hline")
     else
-        println(rend.buffer, "\\midrule")
-        println(rend.buffer, "\\endhead")
+        println(rend.buffer, "\\hline")
+        println(rend.buffer, "\\endfirsthead")
     end
 end
 
 function write_latex(::TableBody, rend, node, enter)
     if !enter
-        println(rend.buffer, "\\bottomrule")
+        println(rend.buffer, "\\hline")
     end
 end
 
