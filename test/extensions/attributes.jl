@@ -11,13 +11,20 @@
     end
 
     test("{}", Dict{String,Any}())
+    test("{empty}", Dict{String,Any}("empty" => ""))
     test("{#id}", Dict{String,Any}("id" => "id"))
+    test("{empty #id}", Dict{String,Any}("id" => "id", "empty" => ""))
+    test("{#id empty}", Dict{String,Any}("id" => "id", "empty" => ""))
     test("{#one #two}", Dict{String,Any}("id" => "two")) # Only last # is kept.
     test("{.class}", Dict{String,Any}("class" => ["class"]))
+    test("{empty .class}", Dict{String,Any}("class" => ["class"], "empty" => ""))
     test("{.one.two}", Dict{String,Any}("class" => ["one", "two"])) # All .s are kept.
     test("{:element}", Dict{String,Any}("element" => "element"))
+    test("{:element empty}", Dict{String,Any}("element" => "element", "empty" => ""))
     test("{one=two}", Dict{String,Any}("one" => "two"))
+    test("{empty one=two other}", Dict{String,Any}("one" => "two", "empty" => "", "other" => ""))
     test("{one=two three='four'}", Dict{String,Any}("one" => "two", "three" => "four"))
+    test("{one=two empty three='four'}", Dict{String,Any}("one" => "two", "three" => "four", "empty" => ""))
     test("{one=2 three=4}", Dict{String,Any}("one" => "2", "three" => "4"))
     test("{#id .class one=two three='four'}", Dict{String,Any}("id" => "id", "class" => ["class"], "one" => "two", "three" => "four"))
 

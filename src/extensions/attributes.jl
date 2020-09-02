@@ -86,6 +86,11 @@ function try_parse_attributes(parser::AbstractParser)
                 # Keys can't start with a number.
                 startswith(word, r"[0-9]") && break
                 key = word
+                # Check for empty attribute syntax.
+                if !startswith(parser, r"\s*=")
+                    dict[key] = ""
+                    key = ""
+                end
             else
                 if key == "class"
                     push!(get!(() -> String[], dict, key), word)
