@@ -40,5 +40,5 @@
     ast = p(text)
 
     @test html(ast) == "<div class=\"admonition warning\" id=\"id\"><p class=\"admonition-title\">Warning</p>\n<p>text</p>\n</div>"
-    @test latex(ast) == "\\protect\\hyperlabel{id}{}\n\\begin{admonition@warning}{Warning}\ntext\\par\n\\end{admonition@warning}\n"
+    @test latex(ast) == "\\protect\\hypertarget{id}{}\n\\begin{admonition@warning}{Warning}\ntext\\par\n\\end{admonition@warning}\n"
 end

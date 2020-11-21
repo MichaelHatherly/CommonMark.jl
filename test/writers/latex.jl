@@ -24,7 +24,7 @@
     # Images.
     test(
         "![link](url)",
-        "\\begin{figure}\n\\centering\n\\includegraphics{url}\n\\caption{link}\n\\end{figure}\n\\par\n"
+        "\\begin{figure}\n\\centering\n\\includegraphics[max width=\\linewidth]{url}\n\\caption{link}\n\\end{figure}\n\\par\n"
     )
     # Emphasis.
     test(

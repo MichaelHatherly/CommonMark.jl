@@ -78,9 +78,20 @@ function write_html(c::Citation, w, n, ent)
 end
 
 function write_latex(c::Citation, w, n, ent)
-    name = CSL.author_year(w.env, c.id)
-    name = name === nothing ? c.id : name
-    literal(w, "\\protect\\hyperlink{ref-", c.id, "}{", name, "}")
+    if ent
+        # Allow the latex writer environment to control how citations are
+        # printed. `basic` just uses the built in hyperlinking similar to the
+        # HTML writer. `biblatex` will generate citations suitable for use with
+        # `biblatex` and `biber`.
+        if get(w.env, "citations", "basic") == "biblatex"
+            literal(w, "\\cite{", c.id, "}")
+        else
+            name = CSL.author_year(w.env, c.id)
+            name = name === nothing ? c.id : name
+            literal(w, "\\protect\\hyperlink{ref-", c.id, "}{", name, "}")
+        end
+    end
+    return nothing
 end
 
 write_markdown(c::Citation, w, n, ent) = literal(w, "@", c.id)

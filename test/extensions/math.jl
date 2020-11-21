@@ -39,7 +39,7 @@
     ast = p(text)
 
     @test html(ast) == "<div class=\"display-math\" id=\"id\">\\[math\\]</div>"
-    @test latex(ast) == "\\protect\\hyperlabel{id}{}\\begin{equation*}\nmath\n\\end{equation*}\n"
+    @test latex(ast) == "\\protect\\hypertarget{id}{}\\begin{equation*}\nmath\n\\end{equation*}\n"
 
     # Dollar math
     p = enable!(Parser(), DollarMathRule())

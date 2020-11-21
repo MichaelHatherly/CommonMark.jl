@@ -22,7 +22,7 @@ function write_latex(writer::Writer, ast::Node)
         if entering
             meta = node.meta
             if haskey(meta, "id")
-                literal(writer, "\\protect\\hyperlabel{", meta["id"], "}{}")
+                literal(writer, "\\protect\\hypertarget{", meta["id"], "}{}")
             end
         end
         write_latex(node.t, writer, node, entering)
@@ -47,8 +47,17 @@ end
 write_latex(::HtmlInline, w, node, ent) = nothing
 
 function write_latex(link::Link, w, node, ent)
-    link = _smart_link(MIME"text/latex"(), link, node, w.env)
-    literal(w, ent ? "\\href{$(link.destination)}{" : "}")
+    if ent
+        link = _smart_link(MIME"text/latex"(), link, node, w.env)
+        # Link destinations that begin with a # are taken to be internal to the
+        # document. LaTeX wants to use a hyperlink rather than an href for
+        # these, so branch based on it to allow both types of links to be used.
+        # Generating `\url` commands is not supported.
+        type, n = startswith(link.destination, '#') ? ("hyperlink", 1) : ("href", 0)
+        literal(w, "\\$type{$(chop(link.destination; head=n, tail=0))}{")
+    else
+        literal(w, "}")
+    end
 end
 
 function write_latex(image::Image, w, node, ent)
@@ -57,7 +66,7 @@ function write_latex(image::Image, w, node, ent)
         cr(w)
         literal(w, "\\begin{figure}\n")
         literal(w, "\\centering\n")
-        literal(w, "\\includegraphics{", image.destination, "}\n")
+        literal(w, "\\includegraphics[max width=\\linewidth]{", image.destination, "}\n")
         literal(w, "\\caption{")
     else
         literal(w, "}\n")

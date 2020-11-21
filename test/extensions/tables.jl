@@ -40,7 +40,7 @@
 
     # HTML
     @test html(ast) == "<table id=\"id\"><thead><tr><th align=\"left\">1</th><th align=\"right\">10</th><th align=\"center\">100</th></tr></thead><tbody><tr><td align=\"left\">x</td><td align=\"right\">y</td><td align=\"center\">z</td></tr></tbody></table>"
-    @test latex(ast) == "\\protect\\hyperlabel{id}{}\\begin{longtable}[]{@{}lrc@{}}\n\\hline\n1 & 10 & 100\\tabularnewline\n\\hline\n\\endfirsthead\nx & y & z\\tabularnewline\n\\hline\n\\end{longtable}\n"
+    @test latex(ast) == "\\protect\\hypertarget{id}{}\\begin{longtable}[]{@{}lrc@{}}\n\\hline\n1 & 10 & 100\\tabularnewline\n\\hline\n\\endfirsthead\nx & y & z\\tabularnewline\n\\hline\n\\end{longtable}\n"
 
     # Internal pipes:
     text =
@@ -53,7 +53,7 @@
     ast = p(text)
 
     @test html(ast) == "<table><thead><tr><th align=\"right\">1</th><th align=\"left\">10</th><th align=\"center\"><code>|</code></th></tr></thead><tbody><tr><td align=\"right\"><em>|</em></td><td align=\"left\"><img src=\"url\" alt=\"|\" /></td><td align=\"left\"></td></tr><tr><td align=\"right\">1</td><td align=\"left\">2</td><td align=\"center\">3</td></tr></tbody></table>"
-    @test latex(ast) == "\\begin{longtable}[]{@{}rlc@{}}\n\\hline\n1 & 10 & \\texttt{|}\\tabularnewline\n\\hline\n\\endfirsthead\n\\textit{|} & \n\\begin{figure}\n\\centering\n\\includegraphics{url}\n\\caption{|}\n\\end{figure}\n & \\tabularnewline\n1 & 2 & 3\\tabularnewline\n\\hline\n\\end{longtable}\n"
+    @test latex(ast) == "\\begin{longtable}[]{@{}rlc@{}}\n\\hline\n1 & 10 & \\texttt{|}\\tabularnewline\n\\hline\n\\endfirsthead\n\\textit{|} & \n\\begin{figure}\n\\centering\n\\includegraphics[max width=\\linewidth]{url}\n\\caption{|}\n\\end{figure}\n & \\tabularnewline\n1 & 2 & 3\\tabularnewline\n\\hline\n\\end{longtable}\n"
     @test term(ast) == " ┏━━━┯━━━━┯━━━┓\n ┃ 1 │ 10 │ \e[36m|\e[39m ┃\n ┠───┼────┼───┨\n ┃ \e[3m|\e[23m │ \e[32m|\e[39m  │   ┃\n ┃ 1 │ 2  │ 3 ┃\n ┗━━━┷━━━━┷━━━┛\n"
     @test markdown(ast) == "| 1   | 10        | `|` |\n| ---:|:--------- |:---:|\n| *|* | ![|](url) |     |\n| 1   | 2         | 3   |\n"
 

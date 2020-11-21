@@ -124,9 +124,9 @@
 
     test("{#id}\n# H1", html, "<h1 id=\"id\"><a href=\"#id\" class=\"anchor\"></a>H1</h1>\n")
     test("{.one.two}\n# H1", html, "<h1 class=\"one two\">H1</h1>\n")
-    test("{#id}\n# H1", latex, "\\protect\\hyperlabel{id}{}\n\\section{H1}\n")
+    test("{#id}\n# H1", latex, "\\protect\\hypertarget{id}{}\n\\section{H1}\n")
 
     test("*word*{#id}", html, "<p><em id=\"id\">word</em></p>\n")
     test("*word*{.one.two}", html, "<p><em class=\"one two\">word</em></p>\n")
-    test("*word*{#id}", latex, "\\protect\\hyperlabel{id}{}\\textit{word}\\par\n")
+    test("*word*{#id}", latex, "\\protect\\hypertarget{id}{}\\textit{word}\\par\n")
 end

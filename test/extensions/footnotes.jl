@@ -50,5 +50,5 @@
     """
     ast = p(text)
     @test html(ast) == "<p>text<a href=\"#footnote-1\" class=\"footnote\" id=\"id\">1</a>.</p>\n<div class=\"footnote\" id=\"footnote-1\" key=\"value\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
-    @test latex(ast) == "text\\protect\\hyperlabel{id}{}\\footnote{text\\par\n\\label{fn:1}}.\\par\n"
+    @test latex(ast) == "text\\protect\\hypertarget{id}{}\\footnote{text\\par\n\\label{fn:1}}.\\par\n"
 end
