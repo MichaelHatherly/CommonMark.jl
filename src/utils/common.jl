@@ -29,7 +29,8 @@ unescape_char(s) = s[1] == '\\' ? s[2] : HTMLunescape(s)
 unescape_string(s) = occursin(reBackslashOrAmp, s) ?
     replace(s, reEntityOrEscapedChar =>  unescape_char) : s
 
-normalize_uri(s::AbstractString) = URIParser.escape_with(s, " \\`\"[]<>")
+@inline issafe(c::Char) = c in "?:/,-+@._()#=*&%" || (isascii(c) && (isletter(c) || isnumeric(c)))
+normalize_uri(s::AbstractString) = URIs.escapeuri(s, issafe)
 
 const UNSAFE_MAP = Dict(
     "&"  => "&amp;",

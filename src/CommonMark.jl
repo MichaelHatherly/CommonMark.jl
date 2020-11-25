@@ -1,6 +1,6 @@
 module CommonMark
 
-import JSON, URIParser
+import JSON, URIs
 
 include("utils.jl")
 include("ast.jl")
