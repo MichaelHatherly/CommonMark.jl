@@ -376,7 +376,7 @@ end
 function write_term(::CodeBlock, render, node, enter)
     pipe = crayon"cyan"
     style = crayon"dark_gray"
-    for line in eachline(IOBuffer(node.literal))
+    for line in eachline(IOBuffer(_syntax_highlighter(render, MIME("text/plain"), node)))
         print_margin(render)
         print_literal(render, "  ", pipe, "│", inv(pipe), " ")
         print_literal(render, style, line, inv(style), "\n")

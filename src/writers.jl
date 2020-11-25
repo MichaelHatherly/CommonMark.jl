@@ -90,6 +90,11 @@ function cr(r::Writer)
     return nothing
 end
 
+function _syntax_highlighter(w::Writer, mime::MIME, node::Node)
+    key = "syntax-highlighter"
+    return haskey(w.env, key) ? w.env[key](mime, node) : node.literal
+end
+
 include("writers/html.jl")
 include("writers/latex.jl")
 include("writers/term.jl")

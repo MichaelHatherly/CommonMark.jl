@@ -10,4 +10,5 @@
     include("extensions/citations.jl")
     include("extensions/autoidentifiers.jl")
     include("extensions/smartlinks.jl")
+    include("extensions/highlights.jl")
 end
