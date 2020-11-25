@@ -90,9 +90,9 @@ function cr(r::Writer)
     return nothing
 end
 
-function _syntax_highlighter(w::Writer, mime::MIME, node::Node)
+function _syntax_highlighter(w::Writer, mime::MIME, node::Node, escape=identity)
     key = "syntax-highlighter"
-    return haskey(w.env, key) ? w.env[key](mime, node) : node.literal
+    return haskey(w.env, key) ? w.env[key](mime, node) : escape(node.literal)
 end
 
 include("writers/html.jl")

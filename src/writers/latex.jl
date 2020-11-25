@@ -136,7 +136,7 @@ function write_latex(c::CodeBlock, w, node, ent)
     cr(w)
     literal(w, "\\begin{$environment}")
     cr(w)
-    latex_escape(w, _syntax_highlighter(w, MIME("text/latex"), node))
+    literal(w, _syntax_highlighter(w, MIME("text/latex"), node))
     cr(w)
     literal(w, "\\end{$environment}")
     cr(w)
@@ -156,5 +156,13 @@ let chars = Dict(
         for ch in s
             literal(w, get(chars, ch, ch))
         end
+    end
+
+    global function latex_escape(s::AbstractString)
+        buffer = IOBuffer()
+        for ch in s
+            write(buffer, get(chars, ch, ch))
+        end
+        return String(take!(buffer))
     end
 end
