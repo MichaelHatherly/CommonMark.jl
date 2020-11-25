@@ -100,11 +100,17 @@
     # Code blocks.
     test(
         """
+            code
+        """,
+        "\\begin{verbatim}\ncode\n\\end{verbatim}\n"
+    )
+    test(
+        """
         ```
         code
         ```
         """,
-        "\\begin{verbatim}\ncode\n\\end{verbatim}\n"
+        "\\begin{lstlisting}\ncode\n\\end{lstlisting}\n"
     )
     # Escapes.
     test(

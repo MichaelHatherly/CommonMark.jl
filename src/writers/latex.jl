@@ -131,13 +131,14 @@ function write_latex(::ThematicBreak, w, node, ent)
     cr(w)
 end
 
-function write_latex(::CodeBlock, w, node, ent)
+function write_latex(c::CodeBlock, w, node, ent)
+    environment = c.is_fenced ? "lstlisting" : "verbatim"
     cr(w)
-    literal(w, "\\begin{verbatim}")
+    literal(w, "\\begin{$environment}")
     cr(w)
     literal(w, node.literal)
     cr(w)
-    literal(w, "\\end{verbatim}")
+    literal(w, "\\end{$environment}")
     cr(w)
 end
 
