@@ -15,4 +15,11 @@
     ast = p(buffer)
     @test ast.first_child.t isa CommonMark.Heading
     @test markdown(ast) == "# heading\n"
+
+    # Disabling parser rules.
+    p = disable!(Parser(), CommonMark.AtxHeadingRule())
+    ast = p("# *not a header*")
+    @test ast.first_child.t isa CommonMark.Paragraph
+    @test ast.first_child.first_child.nxt.t isa CommonMark.Emph
+    @test markdown(ast) == "# *not a header*\n"
 end

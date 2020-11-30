@@ -50,7 +50,7 @@ function disable!(p::AbstractParser, rules::Union{Tuple, Vector})
     empty!(p.inline_parser.inline_parsers)
     empty!(p.inline_parser.modifiers)
     filter!(f -> f ∉ rules, p.rules)
-    return enable!(p, p.rules)
+    return enable!(p, copy(p.rules))
 end
 disable!(p::AbstractParser, rule) = disable!(p, [rule])
 
