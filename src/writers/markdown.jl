@@ -11,6 +11,7 @@ information as possible.
 markdown(args...; kws...) = fmt(markdown, args...; kws...)
 
 function before(f::Fmt{Ext, T"markdown"}, ::Node) where Ext
+    f[:last] = '\n'
     f[:enabled] = true
     f[:indent] = 0
     f[:margin] = MarginSegment[]

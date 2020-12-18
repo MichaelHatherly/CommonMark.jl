@@ -11,6 +11,7 @@ colouring different types of content.
 term(args...; kws...) = fmt(term, args...; kws...)
 
 function before(f::Fmt{Ext, T"term"}, ::Node) where Ext
+    f[:enabled] = true
     f[:indent] = 0
     f[:margin] = MarginSegment[]
     f[:wrap] = -1
