@@ -44,38 +44,38 @@ block_modifier(rule::RawContentRule) = Rule(2) do parser, node
 end
 
 # Raw LaTeX doesn't get displayed in HTML documents.
-write_html(::LaTeXBlock, w, n, en) = nothing
-write_html(::LaTeXInline, w, n, ent) = nothing
+html(::LaTeXBlock, ::Fmt, ::Node, ::Bool) = nothing
+html(::LaTeXInline, ::Fmt, ::Node, ::Bool) = nothing
 
 # Don't do any kind of escaping for the content.
-function write_latex(::LaTeXBlock, w, n, ent)
-    cr(w)
-    literal(w, n.literal)
-    cr(w)
+function latex(::LaTeXBlock, f::Fmt, n::Node, ::Bool)
+    cr(f)
+    literal(f, n.literal)
+    cr(f)
 end
-write_latex(::LaTeXInline, w, n, ent) = literal(w, n.literal)
+latex(::LaTeXInline, f::Fmt, n::Node, ::Bool) = literal(f, n.literal)
 
 # Printing to terminal using the same implementations as for HTML content.
-write_term(::LaTeXBlock, w, n, ent) = write_term(HtmlBlock(), w, n, ent)
-write_term(::LaTeXInline, w, n, ent) = write_term(HtmlInline(), w, n, ent)
+term(::LaTeXBlock, f::Fmt, n::Node, enter::Bool) = term(HtmlBlock(), f, n, enter)
+term(::LaTeXInline, f::Fmt, n::Node, enter::Bool) = term(HtmlInline(), f, n, enter)
 
-function write_markdown(::LaTeXBlock, w, n, ent)
-    print_margin(w)
-    literal(w, "```{=latex}\n")
+function markdown(::LaTeXBlock, f::Fmt, n::Node, ::Bool)
+    print_margin(f)
+    literal(f, "```{=latex}\n")
     for line in eachline(IOBuffer(n.literal))
-        print_margin(w)
-        literal(w, line, "\n")
+        print_margin(f)
+        literal(f, line, "\n")
     end
-    print_margin(w)
-    literal(w, "```\n")
-    linebreak(w, n)
+    print_margin(f)
+    literal(f, "```\n")
+    linebreak(f, n)
 end
 
-function write_markdown(::LaTeXInline, w, n, ent)
+function markdown(::LaTeXInline, f::Fmt, n::Node, ::Bool)
     num = foldl(eachmatch(r"`+", n.literal); init=0) do a, b
         max(a, length(b.match))
     end
-    literal(w, '`'^(num == 1 ? 2 : 1))
-    literal(w, n.literal)
-    literal(w, '`'^(num == 1 ? 2 : 1), "{=latex}")
+    literal(f, '`'^(num == 1 ? 2 : 1))
+    literal(f, n.literal)
+    literal(f, '`'^(num == 1 ? 2 : 1), "{=latex}")
 end
