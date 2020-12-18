@@ -9,6 +9,8 @@ Write `ast` to HTML format.
 """
 html(args...; kws...) = fmt(html, args...; kws...)
 
+mimefunc(::MIME"text/html") = html
+
 function before(f::Fmt{Ext, T"html"}, ast::Node) where Ext
     f.state[:disable_tags] = 0
     f.state[:softbreak] = "\n"

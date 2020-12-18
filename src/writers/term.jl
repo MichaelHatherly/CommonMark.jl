@@ -10,6 +10,8 @@ colouring different types of content.
 """
 term(args...; kws...) = fmt(term, args...; kws...)
 
+mimefunc(::MIME"text/plain") = term
+
 function before(f::Fmt{Ext, T"term"}, ::Node) where Ext
     f[:enabled] = true
     f[:indent] = 0

@@ -10,6 +10,8 @@ structure of the data.
 """
 ast(args...; kws...) = fmt(ast, args...; kws...)
 
+mimefunc(::MIME"text/ast") = ast
+
 function ast(t, f::Fmt, node, enter)
     indent = get!(f.state, :indent, -2)
     T = typeof(t)

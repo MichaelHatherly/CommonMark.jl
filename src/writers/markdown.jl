@@ -10,6 +10,8 @@ information as possible.
 """
 markdown(args...; kws...) = fmt(markdown, args...; kws...)
 
+mimefunc(::MIME"text/markdown") = markdown
+
 function before(f::Fmt{Ext, T"markdown"}, ::Node) where Ext
     f[:last] = '\n'
     f[:enabled] = true

@@ -9,6 +9,8 @@ Write `ast` to a Jupyter notebook format.
 """
 notebook(args...; kws...) = fmt(notebook, args...; kws...)
 
+mimefunc(::MIME"application/x-ipynb+json") = notebook
+
 function notebook(t, f::Fmt{Ext}, node, enter) where Ext
     split_lines = str -> collect(eachline(IOBuffer(str); keep=true))
     cells = f.state[:json]["cells"]

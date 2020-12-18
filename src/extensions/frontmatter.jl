@@ -73,6 +73,9 @@ block_modifier(f::FrontMatterRule) = Rule(0.5) do parser, node
     return nothing
 end
 
+has_frontmatter(n::Node) = !isnull(n.first_child) && isa(n.first_child.t, FrontMatter)
+frontmatter(n::Node) = has_frontmatter(n) ? n.first_child.t.data : Dict{String,Any}()
+
 # Frontmatter isn't displayed in the resulting output.
 
 html(::FrontMatter, ::Fmt, ::Node, ::Bool) = nothing

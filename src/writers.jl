@@ -1,12 +1,3 @@
-
-#
-# `show` interface.
-#
-
-for mime in ["text/ast", "text/html", "text/latex", "text/markdown", "text/plain", "application/x-ipynb+json"]
-    @eval Base.show(io::IO, m::$(MIME{Symbol(mime)}), ast::Node) = fmt(io, m, ast)
-end
-
 #
 # `fmt` interface.
 #
@@ -24,8 +15,13 @@ struct Fmt{Ext, F, I<:IO} <: IO
     state::Dict{Symbol,Any}
 end
 
-function Fmt(fn::F, io::I, Ext, ctx) where {F, I}
-    env = get(Dict{String,Any}, ctx, :env)
+function Fmt(fn::F, io::I, ast::Node, Ext, ctx) where {F, I}
+    env = recursive_merge(
+        default_env(),
+        get(Dict{String,Any}, ctx, :env),
+        frontmatter(ast),
+        ast.meta,
+    )
     return Fmt{Ext, F, I}(fn, io, env, Dict{Symbol,Any}())
 end
 
@@ -48,7 +44,7 @@ formatting pipeline by overloading individual formatting methods with
 """
 function fmt end
 
-fmt(fn, io::IO, ast::Node, Ext=Any; ctx...) = fmt(Fmt(fn, io, Ext, ctx), ast)
+fmt(fn, io::IO, ast::Node, Ext=Any; ctx...) = fmt(Fmt(fn, io, ast, Ext, ctx), ast)
 
 function fmt(fn, ast::Node, Ext=Any; ctx...)
     io = IOBuffer()
@@ -56,7 +52,10 @@ function fmt(fn, ast::Node, Ext=Any; ctx...)
     return String(take!(io))
 end
 
-fmt(fn, file::AbstractString, ast::Node, Ext=Any; ctx...) = open(io -> fmt(fn, io, ast, Ext; ctx...), file, "w")
+function fmt(fn, file::AbstractString, ast::Node, Ext=Any; ctx...)
+    ast.meta["outputfile"] = file
+    open(io -> fmt(fn, io, ast, Ext; ctx...), file, "w")
+end
 
 function fmt(f::Fmt, ast::Node)
     before(f, ast)
@@ -76,18 +75,20 @@ before(::Fmt, ::Node, ::Bool) = nothing
 after(::Fmt, ::Node) = nothing
 after(::Fmt, ::Node, ::Bool) = nothing
 
+#
+# `show` interface.
+#
+
+for mime in ["text/ast", "text/html", "text/latex", "text/markdown", "text/plain", "application/x-ipynb+json"]
+    @eval Base.show(io::IO, m::$(MIME{Symbol(mime)}), ast::Node) = fmt(io, m, ast)
+end
+
 fmt(io::IO, m::MIME, ast::Node) = fmt(mimefunc(m), io, ast, get(io, :Ext, Any); get(io, :ctx, NamedTuple())...)
 
-mimefunc(::MIME"text/html") = html
-mimefunc(::MIME"text/latex") = latex
-mimefunc(::MIME"text/markdown") = markdown
-mimefunc(::MIME"text/plain") = term
-mimefunc(::MIME"text/ast") = ast
-mimefunc(::MIME"application/x-ipynb+json") = notebook
 mimefunc(::MIME) = throw(ArgumentError("unsupported MIME type `$MIME`."))
 
 #
-# Writer utilities.
+# utilities
 #
 
 include("writers/utilities.jl")
@@ -96,16 +97,29 @@ include("writers/utilities.jl")
 # formats
 #
 
-function ast end
-function html end
-function latex end
-function markdown end
-function notebook end
-function term end
-
 include("writers/ast.jl")
 include("writers/html.jl")
 include("writers/latex.jl")
 include("writers/markdown.jl")
 include("writers/notebook.jl")
 include("writers/term.jl")
+
+#
+# environments
+#
+
+default_env() = Dict{String,Any}(
+    "authors" => [],
+    "curdir" => pwd(),
+    "title" => "",
+    "subtitle" => "",
+    "abstract" => "",
+    "keywords" => [],
+    "lang" => "en",
+    "latex" => Dict{String,Any}(
+        "documentclass" => "article",
+    ),
+)
+
+recursive_merge(ds::AbstractDict...) = merge(recursive_merge, ds...)
+recursive_merge(args...) = last(args)

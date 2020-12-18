@@ -9,6 +9,8 @@ Write `ast` to LaTeX format.
 """
 latex(args...; kws...) = fmt(latex, args...; kws...)
 
+mimefunc(::MIME"text/latex") = latex
+
 function before(f::Fmt{Ext, T"latex"}, ::Node) where Ext
     f[:enabled] = true
     f[:last] = '\n'
