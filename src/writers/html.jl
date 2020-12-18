@@ -32,7 +32,7 @@ html(::LineBreak, f::Fmt, n::Node, ::Bool) = (tag(f, "br", attributes(f, n), tru
 function html(link::Link, f::Fmt, n::Node, enter::Bool)
     if enter
         attrs = []
-        if !(r[:safe] && potentially_unsafe(link.destination))
+        if !(f[:safe] && potentially_unsafe(link.destination))
             push!(attrs, "href" => escape_xml(link.destination))
         end
         if !isempty(link.title)
@@ -44,7 +44,7 @@ function html(link::Link, f::Fmt, n::Node, enter::Bool)
     end
 end
 
-function html(image::Image, f::Fmt, n::Node, enter::Bool)
+function html(image::Image, f::Fmt, ::Node, enter::Bool)
     if enter
         if f[:disable_tags] == 0
             if f[:safe] && potentially_unsafe(image.destination)
