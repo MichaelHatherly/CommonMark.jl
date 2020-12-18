@@ -32,7 +32,9 @@ end
 Base.getindex(f::Fmt, s::Symbol) = f.state[s]
 Base.setindex!(f::Fmt, value, s::Symbol) = f.state[s] = value
 Base.get(f::Fmt, s::Symbol, default) = get(f.state, s, default)
-Base.get(default::Function, f::Fmt, s::Symbol) = get(default, f.state, s)
+Base.get!(f::Fmt, s::Symbol, default) = get!(f.state, s, default)
+Base.get(default::Base.Callable, f::Fmt, s::Symbol) = get(default, f.state, s)
+Base.get!(default::Base.Callable, f::Fmt, s::Symbol) = get!(default, f.state, s)
 
 """
     fmt(fn::Function, [io::IO | file::String], ast::Node, [Ext]; ctx...)

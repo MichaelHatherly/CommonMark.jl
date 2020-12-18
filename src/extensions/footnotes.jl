@@ -52,81 +52,83 @@ end
 
 # Definitions
 
-function write_html(f::FootnoteDefinition, rend, node, enter)
+function html(footnote::FootnoteDefinition, f::Fmt, n::Node, enter::Bool)
     if enter
-        tag(rend, "div", attributes(rend, node, ["class" => "footnote", "id" => "footnote-$(f.id)"]))
-        tag(rend, "p", ["class" => "footnote-title"])
-        print(rend.buffer, f.id)
-        tag(rend, "/p")
+        tag(f, "div", attributes(f, n, ["class" => "footnote", "id" => "footnote-$(footnote.id)"]))
+        tag(f, "p", ["class" => "footnote-title"])
+        literal(f, footnote.id)
+        tag(f, "/p")
     else
-        tag(rend, "/div")
+        tag(f, "/div")
     end
 end
 
-function write_latex(f::FootnoteDefinition, w, node, enter)
-    get(w.buffer, :footnote, false) || (w.enabled = !enter)
+function latex(::FootnoteDefinition, f::Fmt, ::Node, enter::Bool)
+    get(f, :footnote, false) || (f[:enabled] = !enter)
     return nothing
 end
 
-function write_term(f::FootnoteDefinition, rend, node, enter)
+function term(footnote::FootnoteDefinition, f::Fmt, n::Node, enter::Bool)
     style = crayon"red"
     if enter
-        header = rpad("┌ [^$(f.id)] ", available_columns(rend), "─")
-        print_margin(rend)
-        print_literal(rend, style, header, inv(style), "\n")
-        push_margin!(rend, "│", style)
-        push_margin!(rend, " ", crayon"")
+        header = rpad("┌ [^$(footnote.id)] ", available_columns(f), "─")
+        print_margin(f)
+        print_literal(f, style, header, inv(style), "\n")
+        push_margin!(f, "│", style)
+        push_margin!(f, " ", crayon"")
     else
-        pop_margin!(rend)
-        pop_margin!(rend)
-        print_margin(rend)
-        print_literal(rend, style, rpad("└", available_columns(rend), "─"), inv(style), "\n")
-        if !isnull(node.nxt)
-            print_margin(rend)
-            print_literal(rend, "\n")
+        pop_margin!(f)
+        pop_margin!(f)
+        print_margin(f)
+        print_literal(f, style, rpad("└", available_columns(f), "─"), inv(style), "\n")
+        if !isnull(n.nxt)
+            print_margin(f)
+            print_literal(f, "\n")
         end
     end
 end
 
-function write_markdown(f::FootnoteDefinition, w, node, ent)
-    if ent
-        push_margin!(w, 1, "[^$(f.id)]: ", " "^4)
+function markdown(footnote::FootnoteDefinition, f::Fmt, ::Node, enter::Bool)
+    if enter
+        push_margin!(f, 1, "[^$(footnote.id)]: ", " "^4)
     else
-        pop_margin!(w)
-        cr(w)
+        pop_margin!(f)
+        cr(f)
     end
 end
 
 # Links
 
-function write_html(f::FootnoteLink, rend, node, enter)
-    tag(rend, "a", attributes(rend, node, ["href" => "#footnote-$(f.id)", "class" => "footnote"]))
-    print(rend.buffer, f.id)
-    tag(rend, "/a")
+function html(footnote::FootnoteLink, f::Fmt, n::Node, enter::Bool)
+    tag(f, "a", attributes(f, n, ["href" => "#footnote-$(footnote.id)", "class" => "footnote"]))
+    literal(f, footnote.id)
+    tag(f, "/a")
 end
 
-function write_latex(f::FootnoteLink, w, node, enter)
-    if haskey(f.rule.cache, f.id)
-        seen = get!(() -> Set{String}(), w, :footnotes)
-        if f.id in seen
-            literal(w, "\\footref{fn:$(f.id)}")
+function latex(footnote::FootnoteLink, f::Fmt, ::Node, enter::Bool)
+    if haskey(footnote.rule.cache, footnote.id)
+        seen = get!(Set{String}, f, :footnotes)
+        if footnote.id in seen
+            literal(f, "\\footref{fn:$(footnote.id)}")
         else
-            push!(seen, f.id)
-            literal(w, "\\footnote{")
-            latex(IOContext(w.buffer, :footnote => true), f.rule.cache[f.id])
-            literal(w, "\\label{fn:$(f.id)}}")
+            push!(seen, footnote.id)
+            literal(f, "\\footnote{")
+            f[:footnote] = true
+            latex(f, footnote.rule.cache[footnote.id])
+            f[:footnote] = false
+            literal(f, "\\label{fn:$(footnote.id)}}")
         end
     end
     return nothing
 end
 
-function write_term(f::FootnoteLink, rend, node, enter)
+function term(footnote::FootnoteLink, f::Fmt, n::Node, enter::Bool)
     style = crayon"red"
-    print_literal(rend, style)
-    push_inline!(rend, style)
-    print_literal(rend, "[^", f.id, "]")
-    pop_inline!(rend)
-    print_literal(rend, inv(style))
+    print_literal(f, style)
+    push_inline!(f, style)
+    print_literal(f, "[^", footnote.id, "]")
+    pop_inline!(f)
+    print_literal(f, inv(style))
 end
 
-write_markdown(f::FootnoteLink, w, node, ent) = literal(w, "[^", f.id, "]")
+markdown(footnote::FootnoteLink, f::Fmt, ::Node, ::Bool) = literal(f, "[^", footnote.id, "]")
