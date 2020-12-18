@@ -75,14 +75,14 @@ end
 
 # Frontmatter isn't displayed in the resulting output.
 
-write_html(::FrontMatter, rend, node, enter) = nothing
-write_latex(::FrontMatter, rend, node, enter) = nothing
-write_term(::FrontMatter, rend, node, enter) = nothing
+html(::FrontMatter, ::Fmt, ::Node, ::Bool) = nothing
+latex(::FrontMatter, ::Fmt, ::Node, ::Bool) = nothing
+term(::FrontMatter, ::Fmt, ::Node, ::Bool) = nothing
 
-function write_markdown(f::FrontMatter, w, node, ent)
-    literal(w, f.fence, "\n")
+function markdown(fm::FrontMatter, f::Fmt, n::Node, ::Bool)
+    literal(f, fm.fence, "\n")
     # If frontmatter is not well-formed then it won't be round-trippable.
-    literal(w, node.literal)
-    literal(w, f.fence, "\n")
-    linebreak(w, node)
+    literal(f, n.literal)
+    literal(f, fm.fence, "\n")
+    linebreak(f, n)
 end
