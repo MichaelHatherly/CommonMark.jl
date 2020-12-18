@@ -40,29 +40,29 @@ block_rule(::AdmonitionRule) = Rule(parse_admonition, 0.5, "!")
 # Writers
 #
 
-function write_html(a::Admonition, rend, node, enter)
+function html(a::Admonition, f::Fmt, n::Node, enter::Bool)
     if enter
-        tag(rend, "div", attributes(rend, node, ["class" => "admonition $(a.category)"]))
-        tag(rend, "p", ["class" => "admonition-title"])
-        print(rend.buffer, a.title)
-        tag(rend, "/p")
+        tag(f, "div", attributes(f, n, ["class" => "admonition $(a.category)"]))
+        tag(f, "p", ["class" => "admonition-title"])
+        literal(f, a.title)
+        tag(f, "/p")
     else
-        tag(rend, "/div")
+        tag(f, "/div")
     end
 end
 
 # Requires tcolorbox package and custom newtcolorbox definitions.
-function write_latex(a::Admonition, w, node, enter)
+function latex(a::Admonition, f::Fmt, ::Node, enter::Bool)
     if enter
-        cr(w)
-        literal(w, "\\begin{admonition@$(a.category)}{$(a.title)}\n")
+        cr(f)
+        literal(f, "\\begin{admonition@$(a.category)}{$(a.title)}\n")
     else
-        literal(w, "\\end{admonition@$(a.category)}\n")
-        cr(w)
+        literal(f, "\\end{admonition@$(a.category)}\n")
+        cr(f)
     end
 end
 
-function write_term(a::Admonition, rend, node, enter)
+function term(a::Admonition, f::Fmt, n::Node, enter::Bool)
     styles = Dict(
         "danger"  => crayon"red bold",
         "warning" => crayon"yellow bold",
@@ -72,36 +72,36 @@ function write_term(a::Admonition, rend, node, enter)
     )
     style = get(styles, a.category, crayon"default bold")
     if enter
-        header = rpad("┌ $(a.title) ", available_columns(rend), "─")
-        print_margin(rend)
-        print_literal(rend, style, header, inv(style), "\n")
-        push_margin!(rend, "│", style)
-        push_margin!(rend, " ", crayon"")
+        header = rpad("┌ $(a.title) ", available_columns(f), "─")
+        print_margin(f)
+        print_literal(f, style, header, inv(style), "\n")
+        push_margin!(f, "│", style)
+        push_margin!(f, " ", crayon"")
     else
-        pop_margin!(rend)
-        pop_margin!(rend)
-        print_margin(rend)
-        print_literal(rend, style, rpad("└", available_columns(rend), "─"), inv(style), "\n")
-        if !isnull(node.nxt)
-            print_margin(rend)
-            print_literal(rend, "\n")
+        pop_margin!(f)
+        pop_margin!(f)
+        print_margin(f)
+        print_literal(f, style, rpad("└", available_columns(f), "─"), inv(style), "\n")
+        if !isnull(n.nxt)
+            print_margin(f)
+            print_literal(f, "\n")
         end
     end
 end
 
-function write_markdown(a::Admonition, w, node, ent)
-    if ent
-        push_margin!(w, "    ")
-        literal(w, "!!! ", a.category)
+function markdown(a::Admonition, f::Fmt, n::Node, enter::Bool)
+    if enter
+        push_margin!(f, "    ")
+        literal(f, "!!! ", a.category)
         if lowercase(a.title) != lowercase(a.category)
-            literal(w, " \"$(a.title)\"")
+            literal(f, " \"$(a.title)\"")
         end
-        literal(w, "\n")
-        print_margin(w)
-        literal(w, "\n")
+        literal(f, "\n")
+        print_margin(f)
+        literal(f, "\n")
     else
-        pop_margin!(w)
-        cr(w)
-        linebreak(w, node)
+        pop_margin!(f)
+        cr(f)
+        linebreak(f, n)
     end
 end
