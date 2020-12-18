@@ -1,100 +1,62 @@
-# Public.
+#
+# `html`
+#
 
-function Base.show(io::IO, ::MIME"text/html", ast::Node, env=Dict{String,Any}())
-    writer = Writer(HTML(), io, env)
-    write_html(writer, ast)
-    return nothing
-end
-html(args...) = writer(MIME"text/html"(), args...)
+"""
+    html([io | file], ast, Extension; env)
 
-# Internals.
+Write `ast` to HTML format.
+"""
+html(args...; kws...) = fmt(html, args...; kws...)
 
-mime_to_str(::MIME"text/html") = "html"
-
-TEMPLATES["html"] = joinpath(@__DIR__, "templates/html.mustache")
-
-mutable struct HTML
-    disable_tags::Int
-    softbreak::String
-    safe::Bool
-    sourcepos::Bool
-
-    function HTML(; softbreak="\n", safe=false, sourcepos=false)
-        format = new()
-        format.disable_tags = 0
-        format.softbreak = softbreak # Set to "<br />" to for hardbreaks, " " for no wrapping.
-        format.safe = safe
-        format.sourcepos = sourcepos
-        return format
-    end
-end
-
-function write_html(writer::Writer, ast::Node)
-    for (node, entering) in ast
-        write_html(node.t, writer, node, entering)
-    end
-end
-
-const reUnsafeProtocol = r"^javascript:|vbscript:|file:|data:"i
-const reSafeDataProtocol = r"^data:image\/(?:png|gif|jpeg|webp)"i
-
-potentially_unsafe(url) = occursin(reUnsafeProtocol, url) && !occursin(reSafeDataProtocol, url)
-
-function tag(r::Writer, name, attributes=[], self_closing=false)
-    r.format.disable_tags > 0 && return nothing
-    literal(r, '<', name)
-    for (key, value) in attributes
-        literal(r, " ", key, '=', '"', value, '"')
-    end
-    self_closing && literal(r, " /")
-    literal(r, '>')
-    r.last = '>'
+function before(f::Fmt{Ext, T"html"}, ast::Node) where Ext
+    f.state[:disable_tags] = 0
+    f.state[:softbreak] = "\n"
+    f.state[:last] = '\n'
+    f.state[:safe] = false
+    f.state[:sourcepos] = false
+    f.state[:enabled] = true
     return nothing
 end
 
-write_html(::Document, r, n, ent) = nothing
+html(::Document, ::Fmt, ::Node, ::Bool) = nothing
 
-write_html(::Text, r, n, ent) = literal(r, escape_xml(n.literal))
+html(::Text, f::Fmt, n::Node, ::Bool) = literal(f, escape_xml(n.literal))
 
-write_html(::Backslash, w, node, ent) = nothing
+html(::Backslash, ::Fmt, ::Node, ::Bool) = nothing
 
-write_html(::SoftBreak, r, n, ent) = literal(r, r.format.softbreak)
+html(::SoftBreak, f::Fmt, ::Node, ::Bool) = literal(f, f[:softbreak])
 
-function write_html(::LineBreak, r, n, ent)
-    tag(r, "br", attributes(r, n), true)
-    cr(r)
-end
+html(::LineBreak, f::Fmt, n::Node, ::Bool) = (tag(f, "br", attributes(f, n), true); cr(f))
 
-function write_html(link::Link, r, n, ent)
-    if ent
+function html(link::Link, f::Fmt, n::Node, enter::Bool)
+    if enter
         attrs = []
-        if !(r.format.safe && potentially_unsafe(link.destination))
-            link = _smart_link(MIME"text/html"(), link, n, r.env)
+        if !(r[:safe] && potentially_unsafe(link.destination))
             push!(attrs, "href" => escape_xml(link.destination))
         end
         if !isempty(link.title)
             push!(attrs, "title" => escape_xml(link.title))
         end
-        tag(r, "a", attributes(r, n, attrs))
+        tag(f, "a", attributes(f, n, attrs))
     else
-        tag(r, "/a")
+        tag(f, "/a")
     end
 end
 
-function write_html(image::Image, r, n, ent)
-    if ent
-        if r.format.disable_tags == 0
-            if r.format.safe && potentially_unsafe(image.destination)
-                literal(r, "<img src=\"\" alt=\"")
+function html(image::Image, f::Fmt, n::Node, enter::Bool)
+    if enter
+        if f[:disable_tags] == 0
+            if f[:safe] && potentially_unsafe(image.destination)
+                literal(f, "<img src=\"\" alt=\"")
             else
-                image = _smart_link(MIME"text/html"(), image, n, r.env)
-                literal(r, "<img src=\"", escape_xml(image.destination), "\" alt=\"")
+                literal(f, "<img src=\"", escape_xml(image.destination), "\" alt=\"")
             end
         end
-        r.format.disable_tags += 1
+        f[:disable_tags] += 1
     else
-        r.format.disable_tags -= 1
-        if r.format.disable_tags == 0
+        f[:disable_tags] -= 1
+        if f[:disable_tags] == 0
             if image.title !== nothing && !isempty(image.title)
                 literal(r, "\" title=\"", escape_xml(image.title))
             end
@@ -103,126 +65,141 @@ function write_html(image::Image, r, n, ent)
     end
 end
 
-write_html(::Emph, r, n, ent) = tag(r, ent ? "em" : "/em", ent ? attributes(r, n) : [])
+html(::Emph, f::Fmt, n::Node, enter::Bool) = tag(f, enter ? "em" : "/em", enter ? attributes(f, n) : [])
+html(::Strong, f::Fmt, n::Node, enter::Bool) = tag(f, enter ? "strong" : "/strong", enter ? attributes(f, n) : [])
 
-write_html(::Strong, r, n, ent) = tag(r, ent ? "strong" : "/strong", ent ? attributes(r, n) : [])
-
-function write_html(::Paragraph, r, n, ent)
+function html(::Paragraph, f::Fmt, n::Node, enter::Bool)
     grandparent = n.parent.parent
     if !isnull(grandparent) && grandparent.t isa List
         if grandparent.t.list_data.tight
-            return
+            return nothing
         end
     end
-    if ent
-        attrs = attributes(r, n)
-        cr(r)
-        tag(r, "p", attrs)
+    if enter
+        attrs = attributes(f, n)
+        cr(f)
+        tag(f, "p", attrs)
     else
-        tag(r, "/p")
-        cr(r)
+        tag(f, "/p")
+        cr(f)
     end
 end
 
-function write_html(::Heading, r, n, ent)
+function html(::Heading, f::Fmt, n::Node, enter::Bool)
     tagname = "h$(n.t.level)"
-    if ent
-        attrs = attributes(r, n)
-        cr(r)
-        tag(r, tagname, attrs)
+    if enter
+        attrs = attributes(f, n)
+        cr(f)
+        tag(f, tagname, attrs)
         # Insert auto-generated anchor Links for all Headings with IDs.
         # The Link is not added to the document's AST.
         if haskey(n.meta, "id")
             anchor = Node(Link())
             anchor.t.destination = "#" * n.meta["id"]
             anchor.meta["class"] = ["anchor"]
-            write_html(r, anchor)
+            literal(f, html(anchor))
         end
     else
-        tag(r, "/$(tagname)")
-        cr(r)
+        tag(f, "/$(tagname)")
+        cr(f)
     end
 end
 
-function write_html(::Code, r, n, ent)
-    tag(r, "code", attributes(r, n))
-    literal(r, escape_xml(n.literal))
-    tag(r, "/code")
+function html(::Code, f::Fmt, n::Node, ::Bool)
+    tag(f, "code", attributes(f, n))
+    literal(f, escape_xml(n.literal))
+    tag(f, "/code")
 end
 
-function write_html(::CodeBlock, r, n, ent)
+function html(::CodeBlock, f::Fmt, n::Node, ::Bool)
     info_words = split(n.t.info === nothing ? "" : n.t.info)
-    attrs = attributes(r, n)
+    attrs = attributes(f, n)
     if !isempty(info_words) && !isempty(first(info_words))
         push!(attrs, "class" => "language-$(escape_xml(first(info_words)))")
     end
-    cr(r)
-    tag(r, "pre")
-    tag(r, "code", attrs)
-    literal(r, _syntax_highlighter(r, MIME("text/html"), n, escape_xml))
-    tag(r, "/code")
-    tag(r, "/pre")
-    cr(r)
+    cr(f)
+    tag(f, "pre")
+    tag(f, "code", attrs)
+    literal(f, escape_xml(n.literal))
+    tag(f, "/code")
+    tag(f, "/pre")
+    cr(f)
 end
 
-function write_html(::ThematicBreak, r, n, ent)
-    attrs = attributes(r, n)
-    cr(r)
-    tag(r, "hr", attrs, true)
-    cr(r)
+function html(::ThematicBreak, f::Fmt, n::Node, ::Bool)
+    attrs = attributes(f, n)
+    cr(f)
+    tag(f, "hr", attrs, true)
+    cr(f)
 end
 
-function write_html(::BlockQuote, r, n, ent)
-    if ent
-        attrs = attributes(r, n)
-        cr(r)
-        tag(r, "blockquote", attrs)
-        cr(r)
+function html(::BlockQuote, f::Fmt, n::Node, enter::Bool)
+    if enter
+        attrs = attributes(f, n)
+        cr(f)
+        tag(f, "blockquote", attrs)
+        cr(f)
     else
-        cr(r)
-        tag(r, "/blockquote")
-        cr(r)
+        cr(f)
+        tag(f, "/blockquote")
+        cr(f)
     end
 end
 
-function write_html(::List, r, n, ent)
+function html(::List, f::Fmt, n::Node, enter::Bool)
     tagname = n.t.list_data.type === :bullet ? "ul" : "ol"
-    if ent
-        attrs = attributes(r, n)
+    if enter
+        attrs = attributes(f, n)
         start = n.t.list_data.start
         if start !== nothing && start != 1
             push!(attrs, "start" => string(start))
         end
-        cr(r)
-        tag(r, tagname, attrs)
-        cr(r)
+        cr(f)
+        tag(f, tagname, attrs)
+        cr(f)
     else
-        cr(r)
-        tag(r, "/$(tagname)")
-        cr(r)
+        cr(f)
+        tag(f, "/$(tagname)")
+        cr(f)
     end
 end
 
-function write_html(::Item, r, n, ent)
-    if ent
-        attrs = attributes(r, n)
-        tag(r, "li", attrs)
+function html(::Item, f::Fmt, n::Node, enter::Bool)
+    if enter
+        attrs = attributes(f, n)
+        tag(f, "li", attrs)
     else
-        tag(r, "/li")
-        cr(r)
+        tag(f, "/li")
+        cr(f)
     end
 end
 
-write_html(::HtmlInline, r, n, ent) = literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
-
-function write_html(::HtmlBlock, r, n, ent)
-    cr(r)
-    literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
-    cr(r)
+function html(::HtmlInline, f::Fmt, n::Node, ::Bool)
+    literal(f, f[:safe] ? "<!-- raw HTML omitted -->" : n.literal)
 end
 
-function attributes(r, n, out=[])
-    if r.format.sourcepos
+function html(::HtmlBlock, f::Fmt, n::Node, ::Bool)
+    cr(f)
+    literal(f, r[:safe] ? "<!-- raw HTML omitted -->" : n.literal)
+    cr(f)
+end
+
+potentially_unsafe(url) = occursin(r"^javascript:|vbscript:|file:|data:"i, url) && !occursin(r"^data:image\/(?:png|gif|jpeg|webp)"i, url)
+
+function tag(f::Fmt, name, attributes=[], self_closing=false)
+    f.state[:disable_tags] > 0 && return nothing
+    literal(f, '<', name)
+    for (key, value) in attributes
+        literal(f, " ", key, '=', '"', value, '"')
+    end
+    self_closing && literal(f, " /")
+    literal(f, '>')
+    f.state[:last] = '>'
+    return nothing
+end
+
+function attributes(f::Fmt, n::Node, out=[])
+    if f[:sourcepos]
         if n.sourcepos !== nothing
             p = n.sourcepos
             push!(out, "data-sourcepos" => "$(p[1][1]):$(p[1][2])-$(p[2][1]):$(p[2][2])")

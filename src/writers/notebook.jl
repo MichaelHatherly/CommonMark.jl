@@ -1,7 +1,48 @@
-# Public.
+#
+# `notebook`
+#
 
-function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node, env=Dict{String,Any}())
-    json = Dict(
+"""
+    notebook([io | file], ast, Extension; env)
+
+Write `ast` to a Jupyter notebook format.
+"""
+notebook(args...; kws...) = fmt(notebook, args...; kws...)
+
+function notebook(t, f::Fmt{Ext}, node, enter) where Ext
+    split_lines = str -> collect(eachline(IOBuffer(str); keep=true))
+    cells = f.state[:json]["cells"]
+    if !isnull(node) && node.t isa CodeBlock && node.parent.t isa Document && node.t.info == "julia"
+        # Toplevel Julia codeblocks become code cells.
+        cell = Dict(
+            "cell_type" => "code",
+            "execution_count" => nothing,
+            "metadata" => Dict(),
+            "source" => split_lines(rstrip(node.literal, '\n')),
+            "outputs" => [],
+        )
+        push!(cells, cell)
+    elseif !isnull(node.parent) && node.parent.t isa Document && enter
+        # All other toplevel turns into markdown cells.
+        md = split_lines(markdown(node, Ext; env = f.env))
+        if !isempty(cells) && cells[end]["cell_type"] == "markdown"
+            # When we already have a current markdown cell then append content.
+            append!(cells[end]["source"], md)
+        else
+            # ... otherwise open a new cell.
+            cell = Dict(
+                "cell_type" => "markdown",
+                "metadata" => Dict(),
+                "source" => md,
+            )
+            push!(cells, cell)
+        end
+    end
+    return nothing
+end
+
+function before(f::Fmt{Ext,T"notebook"}, ast::Node) where Ext
+    f.state[:json] = Dict(
         "cells" => [],
         "metadata" => Dict(
             "kernelspec" => Dict(
@@ -19,44 +60,10 @@ function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node, env=Dict
         "nbformat" => 4,
         "nbformat_minor" => 4,
     )
-    for (node, enter) in ast
-        write_notebook(json, node, enter, env)
-    end
-    JSON.Writer.print(io, json)
     return nothing
 end
-notebook(args...) = writer(MIME"application/x-ipynb+json"(), args...)
 
-# Internal.
-
-mime_to_str(::MIME"application/x-ipynb+json") = "notebook"
-
-function write_notebook(json, node, enter, env)
-    split_lines = str -> collect(eachline(IOBuffer(str); keep=true))
-    if !isnull(node) && node.t isa CodeBlock && node.parent.t isa Document && node.t.info == "julia"
-        # Toplevel Julia codeblocks become code cells.
-        cell = Dict(
-            "cell_type" => "code",
-            "execution_count" => nothing,
-            "metadata" => Dict(),
-            "source" => split_lines(rstrip(node.literal, '\n')),
-            "outputs" => [],
-        )
-        push!(json["cells"], cell)
-    elseif !isnull(node.parent) && node.parent.t isa Document && enter
-        # All other toplevel turns into markdown cells.
-        cells = json["cells"]
-        if !isempty(cells) && cells[end]["cell_type"] == "markdown"
-            # When we already have a current markdown cell then append content.
-            append!(cells[end]["source"], split_lines(markdown(node, env)))
-        else
-            # ... otherwise open a new cell.
-            cell = Dict(
-                "cell_type" => "markdown",
-                "metadata" => Dict(),
-                "source" => split_lines(markdown(node)),
-            )
-            push!(cells, cell)
-        end
-    end
+function after(f::Fmt{Ext,T"notebook"}, ast::Node) where Ext
+    JSON.Writer.print(f.io, f.state[:json])
+    return nothing
 end

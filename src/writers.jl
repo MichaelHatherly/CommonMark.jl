@@ -1,117 +1,109 @@
-function writer(mime, file::AbstractString, ast::Node, env=Dict{String,Any}())
-    env = merge(env, Dict("outputfile" => file))
-    open(io -> writer(io, mime, ast, env), file, "w")
+
+#
+# `show` interface.
+#
+
+for mime in ["text/ast", "text/html", "text/latex", "text/markdown", "text/plain", "application/x-ipynb+json"]
+    @eval Base.show(io::IO, m::$(MIME{Symbol(mime)}), ast::Node) = fmt(io, m, ast)
 end
-writer(mime, io::IO, ast::Node, env=nothing) = writer(io, mime, ast, env)
-writer(mime, ast::Node, env=nothing) = sprint(writer, mime, ast, env)
 
-function writer(io::IO, mime::MIME, ast::Node, env::Dict)
-    # Merge all metadata provided, priority is right-to-left.
-    env = recursive_merge(default_config(), env, frontmatter(ast), ast.meta)
-    if haskey(env, "template-engine")
-        temp = template(env, mime_to_str(mime))
-        # Empty templates will skip the template rendering step.
-        if !isempty(temp)
-            env["body"] = sprint(show, mime, ast, env)
-            env["template-engine"](io, temp, env; tags=("\${", "}"))
-            return nothing
-        end
-    end
-    show(io, mime, ast, env)
-end
-writer(io::IO, mime::MIME, ast::Node, ::Nothing) = show(io, mime, ast)
+#
+# `fmt` interface.
+#
 
-default_config() = Dict{String,Any}(
-    "authors" => [],
-    "curdir" => pwd(),
-    "title" => "",
-    "subtitle" => "",
-    "abstract" => "",
-    "keywords" => [],
-    "lang" => "en",
-    "latex" => Dict{String,Any}(
-        "documentclass" => "article",
-    ),
-)
+"""
+    Fmt{Ext}
 
-_smart_link(mime, obj, node, env) = haskey(env, "smartlink-engine") ?
-    env["smartlink-engine"](mime, obj, node, env) : obj
-
-function template(env, fmt)
-    # Template load order:
-    #
-    # - <fmt>.template.string
-    # - <fmt>.template.file
-    # - TEMPLATES["<fmt>"]
-    #
-    config = get(() -> Dict{String, Any}(), env, fmt)
-    tmp = get(() -> Dict{String, Any}(), config, "template")
-    get(tmp, "string") do
-        haskey(tmp, "file") ? read(tmp["file"], String) :
-        haskey(TEMPLATES, fmt) ? read(TEMPLATES[fmt], String) : ""
-    end
-end
-const TEMPLATES = Dict{String,String}()
-
-recursive_merge(ds::AbstractDict...) = merge(recursive_merge, ds...)
-recursive_merge(args...) = last(args)
-
-frontmatter(n::Node) = has_frontmatter(n) ? n.first_child.t.data : Dict{String,Any}()
-has_frontmatter(n::Node) = !isnull(n.first_child) && n.first_child.t isa FrontMatter
-
-mutable struct Writer{F, I <: IO}
-    format::F
-    buffer::I
-    last::Char
-    enabled::Bool
-    context::Dict{Symbol, Any}
+Formatter object that controls how an AST is displayed. `Ext` is an "extension"
+type exposed to users for customising the display of the AST.
+"""
+struct Fmt{Ext, F, I<:IO} <: IO
+    fn::F
+    io::I
     env::Dict{String,Any}
+    state::Dict{Symbol,Any}
 end
-Writer(format, buffer=IOBuffer(), env=Dict{String,Any}()) = Writer(format, buffer, '\n', true, Dict{Symbol, Any}(), env)
 
-Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
-Base.get!(f, w::Writer, k::Symbol) = get!(f, w.context, k)
+function Fmt(fn::F, io::I, Ext, ctx) where {F, I}
+    env = get(Dict{String,Any}, ctx, :env)
+    return Fmt{Ext, F, I}(fn, io, env, Dict{Symbol,Any}())
+end
 
-function literal(r::Writer, args...)
-    if r.enabled
-        for arg in args
-            write(r.buffer, arg)
-            r.last = isempty(arg) ? r.last : last(arg)
-        end
+Base.getindex(f::Fmt, s::Symbol) = f.state[s]
+Base.setindex!(f::Fmt, value, s::Symbol) = f.state[s] = value
+Base.get(f::Fmt, s::Symbol, default) = get(f.state, s, default)
+Base.get(default::Function, f::Fmt, s::Symbol) = get(default, f.state, s)
+
+"""
+    fmt(fn::Function, [io::IO | file::String], ast::Node, [Ext]; ctx...)
+
+Write `ast` to `io` or `file` using `fn` in context `ctx`. When neither `io`
+not `file` are provided then return a `String` of the resulting formatting.
+
+The optional `Ext` argument can be passed to allow customisation of the
+formatting pipeline by overloading individual formatting methods with
+`Fmt{Ext}` definitions.
+"""
+function fmt end
+
+fmt(fn, io::IO, ast::Node, Ext=Any; ctx...) = fmt(Fmt(fn, io, Ext, ctx), ast)
+
+function fmt(fn, ast::Node, Ext=Any; ctx...)
+    io = IOBuffer()
+    fmt(fn, io, ast, Ext; ctx...)
+    return String(take!(io))
+end
+
+fmt(fn, file::AbstractString, ast::Node, Ext=Any; ctx...) = open(io -> fmt(fn, io, ast, Ext; ctx...), file, "w")
+
+function fmt(f::Fmt, ast::Node)
+    before(f, ast)
+    for (node, enter) in ast
+        before(f, node, enter)
+        fmt(f, node, enter)
+        after(f, node, enter)
     end
+    after(f, ast)
     return nothing
 end
 
-function cr(r::Writer)
-    if r.enabled && r.last != '\n'
-        r.last = '\n'
-        write(r.buffer, '\n')
-    end
-    return nothing
-end
+@noinline fmt(f::Fmt, node::Node, enter::Bool) = f.fn(node.t, f, node, enter)
 
-function _syntax_highlighter(w::Writer, mime::MIME, node::Node, escape=identity)
-    key = "syntax-highlighter"
-    return haskey(w.env, key) ? w.env[key](mime, node) : escape(node.literal)
-end
+before(::Fmt, ::Node) = nothing
+before(::Fmt, ::Node, ::Bool) = nothing
+after(::Fmt, ::Node) = nothing
+after(::Fmt, ::Node, ::Bool) = nothing
 
+fmt(io::IO, m::MIME, ast::Node) = fmt(mimefunc(m), io, ast, get(io, :Ext, Any); get(io, :ctx, NamedTuple())...)
+
+mimefunc(::MIME"text/html") = html
+mimefunc(::MIME"text/latex") = latex
+mimefunc(::MIME"text/markdown") = markdown
+mimefunc(::MIME"text/plain") = term
+mimefunc(::MIME"text/ast") = ast
+mimefunc(::MIME"application/x-ipynb+json") = notebook
+mimefunc(::MIME) = throw(ArgumentError("unsupported MIME type `$MIME`."))
+
+#
+# Writer utilities.
+#
+
+include("writers/utilities.jl")
+
+#
+# formats
+#
+
+function ast end
+function html end
+function latex end
+function markdown end
+function notebook end
+function term end
+
+include("writers/ast.jl")
 include("writers/html.jl")
 include("writers/latex.jl")
-include("writers/term.jl")
 include("writers/markdown.jl")
 include("writers/notebook.jl")
-
-function ast_dump(io::IO, ast::Node)
-    indent = -2
-    for (node, enter) in ast
-        T = typeof(node.t).name.name
-        if is_container(node)
-            indent += enter ? 2 : -2
-            enter && printstyled(io, ' '^indent, T, "\n"; color=:blue)
-        else
-            printstyled(io, ' '^(indent + 2), T, "\n"; bold=true, color=:red)
-            println(io, ' '^(indent + 4), repr(node.literal))
-        end
-    end
-end
-ast_dump(ast::Node) = ast_dump(stdout, ast)
+include("writers/term.jl")

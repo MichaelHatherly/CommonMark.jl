@@ -6,7 +6,7 @@ include("utils.jl")
 include("ast.jl")
 include("parsers.jl")
 include("writers.jl")
-include("extensions.jl")
+# include("extensions.jl")
 
 # Interface
 export Parser, enable!, disable!, html, latex, term, markdown, notebook

@@ -1,191 +1,164 @@
-# Public.
+#
+# `markdown`
+#
 
-function Base.show(io::IO, ::MIME"text/markdown", ast::Node, env=Dict{String,Any}())
-    writer = Writer(Markdown(io), io, env)
-    write_markdown(writer, ast)
-    return nothing
-end
-markdown(args...) = writer(MIME"text/markdown"(), args...)
+"""
+    markdown([io | file], ast, Extension; env)
 
-# Internals.
+Round-trip printing of `ast` back to markdown format with as little loss of
+information as possible.
+"""
+markdown(args...; kws...) = fmt(markdown, args...; kws...)
 
-mime_to_str(::MIME"text/markdown") = "markdown"
-
-mutable struct Markdown{I <: IO}
-    buffer::I
-    indent::Int
-    margin::Vector{MarginSegment}
-    list_depth::Int
-    list_item_number::Vector{Int}
-    Markdown(io::I) where {I} = new{I}(io, 0, [], 0, [])
-end
-
-function write_markdown(writer::Writer, ast::Node)
-    for (node, entering) in ast
-        write_markdown(node.t, writer, node, entering)
-    end
-end
-
-function linebreak(w, node)
-    if !isnull(node.nxt)
-        print_margin(w)
-        literal(w, "\n")
-    end
+function before(f::Fmt{Ext, T"markdown"}, ::Node) where Ext
+    f[:enabled] = true
+    f[:indent] = 0
+    f[:margin] = MarginSegment[]
+    f[:list_depth] = 0
+    f[:list_item_number] = Int[]
     return nothing
 end
 
-# Writers.
+markdown(::Document, ::Fmt, ::Node, ::Bool) = nothing
 
-write_markdown(::Document, w, node, ent) = nothing
+markdown(::Text, f::Fmt, n::Node, ::Bool) = literal(f, n.literal)
 
-write_markdown(::Text, w, node, ent) = literal(w, node.literal)
+markdown(::Backslash, f::Fmt, ::Node, ::Bool) = literal(f, "\\")
 
-write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
+markdown(::Union{SoftBreak, LineBreak}, f::Fmt, ::Node, ::Bool) = (cr(f); print_margin(f))
 
-function write_markdown(::Union{SoftBreak, LineBreak}, w, node, ent)
-    cr(w)
-    print_margin(w)
-end
-
-function write_markdown(::Code, w, node, ent)
-    num = foldl(eachmatch(r"`+", node.literal); init=0) do a, b
+function markdown(::Code, f::Fmt, n::Node, ::Bool)
+    num = foldl(eachmatch(r"`+", n.literal); init=0) do a, b
         max(a, length(b.match))
     end
-    literal(w, "`"^(num == 1 ? 3 : 1))
-    literal(w, node.literal)
-    literal(w, "`"^(num == 1 ? 3 : 1))
+    literal(f, "`"^(num == 1 ? 3 : 1))
+    literal(f, n.literal)
+    literal(f, "`"^(num == 1 ? 3 : 1))
 end
 
-write_markdown(::HtmlInline, w, node, ent) = literal(w, node.literal)
+markdown(::HtmlInline, f::Fmt, n::Node, ::Bool) = literal(f, n.literal)
 
-function write_markdown(link::Link, w, node, ent)
-    if ent
-        literal(w, "[")
+function markdown(link::Link, f::Fmt, n::Node, enter::Bool)
+    if enter
+        literal(f, "[")
     else
-        link = _smart_link(MIME"text/markdown"(), link, node, w.env)
-        literal(w, "](", link.destination)
-        isempty(link.title) || literal(w, " \"", link.title, "\"")
-        literal(w, ")")
+        literal(f, "](", link.destination)
+        isempty(link.title) || literal(f, " \"", link.title, "\"")
+        literal(f, ")")
     end
 end
 
-function write_markdown(image::Image, w, node, ent)
-    if ent
-        literal(w, "![")
+function markdown(image::Image, f::Fmt, n::Node, enter::Bool)
+    if enter
+        literal(f, "![")
     else
-        image = _smart_link(MIME"text/markdown"(), image, node, w.env)
-        literal(w, "](", image.destination)
-        isempty(image.title) || literal(w, " \"", image.title, "\"")
-        literal(w, ")")
+        literal(f, "](", image.destination)
+        isempty(image.title) || literal(f, " \"", image.title, "\"")
+        literal(f, ")")
     end
 end
 
-write_markdown(::Emph, w, node, ent) = literal(w, node.literal)
+markdown(::Emph, f::Fmt, n::Node, ::Bool) = literal(f, n.literal)
 
-write_markdown(::Strong, w, node, ent) = literal(w, node.literal)
+markdown(::Strong, f::Fmt, n::Node, ::Bool) = literal(f, n.literal)
 
-function write_markdown(::Paragraph, w, node, ent)
-    if ent
-        print_margin(w)
+function markdown(::Paragraph, f::Fmt, n::Node, enter::Bool)
+    if enter
+        print_margin(f)
     else
-        cr(w)
-        linebreak(w, node)
+        cr(f)
+        linebreak(f, n)
     end
 end
 
-function write_markdown(heading::Heading, w, node, ent)
-    if ent
-        print_margin(w)
-        literal(w, "#"^heading.level, " ")
+function markdown(heading::Heading, f::Fmt, n::Node, enter::Bool)
+    if enter
+        print_margin(f)
+        literal(f, "#"^heading.level, " ")
     else
-        cr(w)
-        linebreak(w, node)
+        cr(f)
+        linebreak(f, n)
     end
 end
 
-function write_markdown(::BlockQuote, w, node, ent)
-    if ent
-        push_margin!(w, ">")
-        push_margin!(w, " ")
+function markdown(::BlockQuote, f::Fmt, n::Node, enter::Bool)
+    if enter
+        push_margin!(f, ">")
+        push_margin!(f, " ")
     else
-        pop_margin!(w)
-        maybe_print_margin(w, node)
-        pop_margin!(w)
-        cr(w)
-        linebreak(w, node)
+        pop_margin!(f)
+        pop_margin!(f)
+        cr(f)
+        linebreak(f, n)
     end
 end
 
-function write_markdown(list::List, w, node, ent)
-    if ent
-        w.format.list_depth += 1
-        push!(w.format.list_item_number, list.list_data.start)
+function markdown(list::List, f::Fmt, n::Node, enter::Bool)
+    if enter
+        f[:list_depth] += 1
+        push!(f[:list_item_number], list.list_data.start)
     else
-        w.format.list_depth -= 1
-        pop!(w.format.list_item_number)
-        cr(w)
-        linebreak(w, node)
+        f[:list_depth] -= 1
+        pop!(f[:list_item_number])
+        cr(f)
+        linebreak(f, n)
     end
 end
 
-function write_markdown(item::Item, w, node, enter)
+function markdown(item::Item, f::Fmt, n::Node, enter::Bool)
     if enter
         if item.list_data.type === :ordered
-            number = lpad(string(w.format.list_item_number[end], ". "), 4, " ")
-            w.format.list_item_number[end] += 1
-            push_margin!(w, 1, number)
+            number = lpad(string(f[:list_item_number][end], ". "), 4, " ")
+            f[:list_item_number][end] += 1
+            push_margin!(f, 1, number)
         else
             bullets = ['-', '+', '*', '-', '+', '*']
-            bullet = bullets[min(w.format.list_depth, length(bullets))]
-            push_margin!(w, 1, lpad("$bullet ", 4, " "))
+            bullet = bullets[min(f[:list_depth], length(bullets))]
+            push_margin!(f, 1, lpad("$bullet ", 4, " "))
         end
     else
-        if isnull(node.first_child)
-            print_margin(w)
-            linebreak(w, node)
-        end
-        pop_margin!(w)
+        pop_margin!(f)
         if !item.list_data.tight
-            cr(w)
-            linebreak(w, node)
+            cr(f)
+            linebreak(f, n)
         end
     end
 end
 
-function write_markdown(::ThematicBreak, w, node, ent)
-    print_margin(w)
-    literal(w, "* * *")
-    cr(w)
-    linebreak(w, node)
+function markdown(::ThematicBreak, f::Fmt, n::Node, ::Bool)
+    print_margin(f)
+    literal(f, "* * *")
+    cr(f)
+    linebreak(f, n)
 end
 
-function write_markdown(code::CodeBlock, w, node, ent)
+function markdown(code::CodeBlock, f::Fmt, n::Node, ::Bool)
     if code.is_fenced
         fence = code.fence_char^code.fence_length
-        print_margin(w)
-        literal(w, fence, code.info)
-        cr(w)
-        for line in eachline(IOBuffer(node.literal); keep=true)
-            print_margin(w)
-            literal(w, line)
+        print_margin(f)
+        literal(f, fence, code.info)
+        cr(f)
+        for line in eachline(IOBuffer(n.literal); keep=true)
+            print_margin(f)
+            literal(f, line)
         end
-        print_margin(w)
-        literal(w, fence)
-        cr(w)
+        print_margin(f)
+        literal(f, fence)
+        cr(f)
     else
-        for line in eachline(IOBuffer(node.literal); keep=true)
-            print_margin(w)
+        for line in eachline(IOBuffer(n.literal); keep=true)
+            print_margin(f)
             indent = all(isspace, line) ? 0 : CODE_INDENT
-            literal(w, ' '^indent, line)
+            literal(f, ' '^indent, line)
         end
     end
-    linebreak(w, node)
+    linebreak(f, n)
 end
 
-function write_markdown(::HtmlBlock, w, node, ent)
+function markdown(::HtmlBlock, f::Fmt, n::Node, ::Bool)
     for line in eachline(IOBuffer(node.literal); keep=true)
-        print_margin(w)
-        literal(w, line)
+        print_margin(f)
+        literal(f, line)
     end
-    linebreak(w, node)
+    linebreak(f, n)
 end
