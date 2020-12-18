@@ -106,67 +106,65 @@ inline_rule(::DollarMathRule) = Rule(parse_inline_dollar_math, 0, "\$")
 # Writers
 #
 
-function write_html(::Math, rend, node, enter)
-    tag(rend, "span", attributes(rend, node, ["class" => "math"]))
-    print(rend.buffer, "\\(", node.literal, "\\)")
-    tag(rend, "/span")
+function html(::Math, f::Fmt, n::Node, ::Bool)
+    tag(f, "span", attributes(f, n, ["class" => "math"]))
+    literal(f, "\\(", n.literal, "\\)")
+    tag(f, "/span")
 end
 
-function write_latex(::Math, rend, node, enter)
-    print(rend.buffer, "\\(", node.literal, "\\)")
-end
+latex(::Math, f::Fmt, n::Node, ::Bool) = literal(f, "\\(", n.literal, "\\)")
 
-function write_term(::Math, rend, node, enter)
+function term(::Math, f::Fmt, n::Node, ::Bool)
     style = crayon"magenta"
-    push_inline!(rend, style)
-    print_literal(rend, style, node.literal, inv(style))
-    pop_inline!(rend)
+    push_inline!(f, style)
+    print_literal(f, style, n.literal, inv(style))
+    pop_inline!(f)
 end
 
-function write_markdown(::Math, w, node, ent)
-    num = foldl(eachmatch(r"`+", node.literal); init=0) do a, b
+function markdown(::Math, f::Fmt, n::Node, ::Bool)
+    num = foldl(eachmatch(r"`+", n.literal); init=0) do a, b
         max(a, length(b.match))
     end
-    literal(w, "`"^(num == 2 ? 4 : 2))
-    literal(w, node.literal)
-    literal(w, "`"^(num == 2 ? 4 : 2))
+    literal(f, "`"^(num == 2 ? 4 : 2))
+    literal(f, n.literal)
+    literal(f, "`"^(num == 2 ? 4 : 2))
 end
 
-function write_html(::DisplayMath, rend, node, enter)
-    tag(rend, "div", attributes(rend, node, ["class" => "display-math"]))
-    print(rend.buffer, "\\[", node.literal, "\\]")
-    tag(rend, "/div")
+function html(::DisplayMath, f::Fmt, n::Node, ::Bool)
+    tag(f, "div", attributes(f, n, ["class" => "display-math"]))
+    literal(f, "\\[", n.literal, "\\]")
+    tag(f, "/div")
 end
 
-function write_latex(::DisplayMath, rend, node, enter)
-    println(rend.buffer, "\\begin{equation*}")
-    println(rend.buffer, node.literal)
-    println(rend.buffer, "\\end{equation*}")
+function latex(::DisplayMath, f::Fmt, n::Node, ::Bool)
+    literal(f, "\\begin{equation*}\n")
+    literal(f, n.literal, "\n")
+    literal(f, "\\end{equation*}\n")
 end
 
-function write_term(::DisplayMath, rend, node, enter)
+function term(::DisplayMath, f::Fmt, n::Node, ::Bool)
     pipe = crayon"magenta"
     style = crayon"dark_gray"
-    for line in eachline(IOBuffer(node.literal))
-        print_margin(rend)
-        print_literal(rend, "  ", pipe, "│", inv(pipe), " ")
-        print_literal(rend, style, line, inv(style), "\n")
+    for line in eachline(IOBuffer(n.literal))
+        print_margin(f)
+        print_literal(f, "  ", pipe, "│", inv(pipe), " ")
+        print_literal(f, style, line, inv(style), "\n")
     end
-    if !isnull(node.nxt)
-        print_margin(rend)
-        print_literal(rend, "\n")
+    if !isnull(n.nxt)
+        print_margin(f)
+        print_literal(f, "\n")
     end
 end
 
-function write_markdown(::DisplayMath, w, node, ent)
-    print_margin(w)
-    literal(w, "```math\n")
-    for line in eachline(IOBuffer(node.literal))
-        print_margin(w)
-        literal(w, line, "\n")
+function markdown(::DisplayMath, f::Fmt, n::Node, ::Bool)
+    print_margin(f)
+    literal(f, "```math\n")
+    for line in eachline(IOBuffer(n.literal))
+        print_margin(f)
+        literal(f, line, "\n")
     end
-    print_margin(w)
-    literal(w, "```")
-    cr(w)
-    linebreak(w, node)
+    print_margin(f)
+    literal(f, "```")
+    cr(f)
+    linebreak(f, n)
 end
