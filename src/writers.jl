@@ -123,3 +123,59 @@ default_env() = Dict{String,Any}(
 
 recursive_merge(ds::AbstractDict...) = merge(recursive_merge, ds...)
 recursive_merge(args...) = last(args)
+
+#
+# Template support
+#
+
+# Support for using "templates" with the various output functions is controlled
+# by overloading the `fmt(f::Fmt, ast::Node)` method with a custom `Ext` type
+# parameter.
+#
+# ```julia
+# using CommonMark, Mustache
+#
+# abstract type Templated end
+#
+# function CommonMark.fmt(f::Fmt{Templated}, ast::Node)
+#     f.env["body"] = f.fn(ast, supertype(Templated); env = f.env)
+#     template = read(f.env["template"], String)
+#     Mustache.render(f.io, template, f.env)
+# end
+# ```
+#
+# The use of `supertype(Templated)` here is important since otherwise dispatch
+# will keep calling this same definition. By dispatching to `Any` instead we
+# "unpeal" the extension layers. To support extensions to other parts of the
+# formatting pipeline `Templated` would need to be a subtype of any other
+# extensions, such as syntax highlighting and smartlinks types.
+
+#
+# Smart links and other formatting customisation
+#
+
+# Similar to the template extension support provided by defining a custom
+# extension type and formatting methods other parts of the formatting pipeline
+# can be extended by defining methods that target specific `Node` types. To
+# define a custom link extension that changes how all links are rendered we can
+# use the following:
+#
+# ```julia
+# using CommonMark
+# const CM = CommonMark
+#
+# abstract type LinkExtension end
+#
+# function CM.html(::CM.Link, ::CM.Fmt{LinkExtension}, ::CM.Node, ::Bool)
+#     # ...
+# end
+# ```
+#
+# This will intercept all `html` rendering of `Link` nodes within an AST.
+#
+# ```julia
+# html(ast, LinkExtension)
+# ```
+#
+# To make use of templating and other extensions at the same time you must define
+# the `TemplateExtension` as a subtype of the `LinkExtension`.
