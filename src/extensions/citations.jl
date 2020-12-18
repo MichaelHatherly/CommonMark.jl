@@ -69,55 +69,55 @@ end
 
 # Writers. TODO: implement real CSL for citation styling.
 
-function write_html(c::Citation, w, n, ent)
-    tag(w, "span", attributes(w, n, ["class" => "citation"]))
-    tag(w, "a", ["href" => "#ref-$(c.id)"])
-    literal(w, CSL.author_year(w.env, c.id))
-    tag(w, "/a")
-    tag(w, "/span")
+function html(c::Citation, f::Fmt, n::Node, ::Bool)
+    tag(f, "span", attributes(f, n, ["class" => "citation"]))
+    tag(f, "a", ["href" => "#ref-$(c.id)"])
+    literal(f, CSL.author_year(f.env, c.id))
+    tag(f, "/a")
+    tag(f, "/span")
 end
 
-function write_latex(c::Citation, w, n, ent)
-    if ent
+function write_latex(c::Citation, f::Fmt, ::Node, enter::Bool)
+    if enter
         # Allow the latex writer environment to control how citations are
         # printed. `basic` just uses the built in hyperlinking similar to the
         # HTML writer. `biblatex` will generate citations suitable for use with
         # `biblatex` and `biber`.
-        if get(w.env, "citations", "basic") == "biblatex"
-            literal(w, "\\cite{", c.id, "}")
+        if get(f.env, "citations", "basic") == "biblatex"
+            literal(f, "\\cite{", c.id, "}")
         else
-            name = CSL.author_year(w.env, c.id)
+            name = CSL.author_year(f.env, c.id)
             name = name === nothing ? c.id : name
-            literal(w, "\\protect\\hyperlink{ref-", c.id, "}{", name, "}")
+            literal(f, "\\protect\\hyperlink{ref-", c.id, "}{", name, "}")
         end
     end
     return nothing
 end
 
-write_markdown(c::Citation, w, n, ent) = literal(w, "@", c.id)
+markdown(c::Citation, f::Fmt, ::Node, ::Bool) = literal(f, "@", c.id)
 
-function write_term(c::Citation, w, n, ent)
+function term(c::Citation, f::Fmt, ::Node, ::Bool)
     style = crayon"red"
-    print_literal(w, style)
-    push_inline!(w, style)
-    print_literal(w, CSL.author_year(w.env, c.id))
-    pop_inline!(w)
-    print_literal(w, inv(style))
+    print_literal(f, style)
+    push_inline!(f, style)
+    print_literal(f, CSL.author_year(f.env, c.id))
+    pop_inline!(f)
+    print_literal(f, inv(style))
 end
 
-write_html(::CitationBracket, w, n, ent) = literal(w, n.literal == "[" ? "(" : ")")
-write_latex(::CitationBracket, w, n, ent) = literal(w, n.literal == "[" ? "(" : ")")
-write_markdown(::CitationBracket, w, n, ent) = literal(w, n.literal)
-write_term(::CitationBracket, w, n, ent) = print_literal(w, n.literal == "[" ? "(" : ")")
+html(::CitationBracket, f::Fmt, n::Node, ::Bool) = literal(f, n.literal == "[" ? "(" : ")")
+latex(::CitationBracket, f::Fmt, n::Node, ::Bool) = literal(f, n.literal == "[" ? "(" : ")")
+markdown(::CitationBracket, f::Fmt, n::Node, ::Bool) = literal(f, n.literal)
+term(::CitationBracket, f::Fmt, n::Node, ::Bool) = print_literal(f, n.literal == "[" ? "(" : ")")
 
-write_markdown(::References, w, n, ent) = nothing
-write_html(::References, w, n, ent) = write_references(write_html, w)
-write_latex(::References, w, n, ent) = write_references(write_latex, w)
-write_term(::References, w, n, ent) = write_references(write_term, w)
+markdown(::References, ::Fmt, ::Node, ::Bool) = nothing
+html(::References, f::Fmt, ::Node, ::Bool) = write_references(html, f)
+latex(::References, f::Fmt, ::Node, ::Bool) = write_references(latex, f)
+term(::References, f::Fmt, ::Node, ::Bool) = write_references(term, f)
 
-function write_references(f, writer)
-    ast = build_references(get(writer.env, "references", nothing))
-    f(writer, ast)
+function write_references(func::Function, f::Fmt)
+    ast = build_references(get(f.env, "references", nothing))
+    func(f, ast)
 end
 
 struct ReferenceList <: AbstractBlock
@@ -125,10 +125,10 @@ end
 
 is_container(::ReferenceList) = true
 
-write_markdown(::ReferenceList, w, n, ent) = nothing
-write_html(::ReferenceList, w, n, ent) = nothing
-write_latex(::ReferenceList, w, n, ent) = nothing
-write_term(::ReferenceList, w, n, ent) = nothing
+markdown(::ReferenceList, ::Fmt, ::Node, ::Bool) = nothing
+html(::ReferenceList, ::Fmt, ::Node, ::Bool) = nothing
+latex(::ReferenceList, ::Fmt, ::Node, ::Bool) = nothing
+term(::ReferenceList, ::Fmt, ::Node, ::Bool) = nothing
 
 function build_references(items::AbstractVector)
     block = Node(ReferenceList())
