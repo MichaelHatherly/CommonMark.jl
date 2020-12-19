@@ -60,9 +60,9 @@ function html(image::Image, f::Fmt, ::Node, enter::Bool)
         f[:disable_tags] -= 1
         if f[:disable_tags] == 0
             if image.title !== nothing && !isempty(image.title)
-                literal(r, "\" title=\"", escape_xml(image.title))
+                literal(f, "\" title=\"", escape_xml(image.title))
             end
-            literal(r, "\" />")
+            literal(f, "\" />")
         end
     end
 end
@@ -182,7 +182,7 @@ end
 
 function html(::HtmlBlock, f::Fmt, n::Node, ::Bool)
     cr(f)
-    literal(f, r[:safe] ? "<!-- raw HTML omitted -->" : n.literal)
+    literal(f, f[:safe] ? "<!-- raw HTML omitted -->" : n.literal)
     cr(f)
 end
 

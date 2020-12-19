@@ -159,7 +159,7 @@ function markdown(code::CodeBlock, f::Fmt, n::Node, ::Bool)
 end
 
 function markdown(::HtmlBlock, f::Fmt, n::Node, ::Bool)
-    for line in eachline(IOBuffer(node.literal); keep=true)
+    for line in eachline(IOBuffer(n.literal); keep=true)
         print_margin(f)
         literal(f, line)
     end
