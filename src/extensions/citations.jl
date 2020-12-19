@@ -77,7 +77,7 @@ function html(c::Citation, f::Fmt, n::Node, ::Bool)
     tag(f, "/span")
 end
 
-function write_latex(c::Citation, f::Fmt, ::Node, enter::Bool)
+function latex(c::Citation, f::Fmt, ::Node, enter::Bool)
     if enter
         # Allow the latex writer environment to control how citations are
         # printed. `basic` just uses the built in hyperlinking similar to the
@@ -115,9 +115,9 @@ html(::References, f::Fmt, ::Node, ::Bool) = write_references(html, f)
 latex(::References, f::Fmt, ::Node, ::Bool) = write_references(latex, f)
 term(::References, f::Fmt, ::Node, ::Bool) = write_references(term, f)
 
-function write_references(func::Function, f::Fmt)
+function write_references(::Function, f::Fmt)
     ast = build_references(get(f.env, "references", nothing))
-    func(f, ast)
+    fmt(f, ast; setup=false)
 end
 
 struct ReferenceList <: AbstractBlock

@@ -68,14 +68,14 @@ end
 # Main driver method for formatting. Iterates over an `ast` and formats it
 # using the provided `f::Fmt`. Runs a `before` and `after` hook prior and post
 # iteration, as well as ones before and after each node is inspected.
-function fmt(f::Fmt, ast::Node)
-    before(f, ast)
+function fmt(f::Fmt, ast::Node; setup=true, cleanup=true)
+    setup && before(f, ast)
     for (node, enter) in ast
         before(f, node, enter)
         fmt(f, node, enter)
         after(f, node, enter)
     end
-    after(f, ast)
+    cleanup && after(f, ast)
     return nothing
 end
 
