@@ -114,7 +114,9 @@ function latex(footnote::FootnoteLink, f::Fmt, ::Node, enter::Bool)
             push!(seen, footnote.id)
             literal(f, "\\footnote{")
             f[:footnote] = true
-            latex(f, footnote.rule.cache[footnote.id])
+            for (each, enter) in footnote.rule.cache[footnote.id]
+                latex(each.t, f, each, enter)
+            end
             f[:footnote] = false
             literal(f, "\\label{fn:$(footnote.id)}}")
         end
