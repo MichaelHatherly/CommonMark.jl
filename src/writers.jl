@@ -15,7 +15,7 @@ struct Fmt{Ext, F, I<:IO} <: IO
     state::Dict{Symbol,Any}
 end
 
-function Fmt(fn::F, io::I, ast::Node, Ext, ctx) where {F, I}
+function Fmt(fn::F, io::I, ast::Node, Ext; ctx...) where {F, I}
     # Create an environment that is the merged result of taking all the
     # available environments and recursively merging them from bottom to top.
     env = recursive_merge(
@@ -26,6 +26,8 @@ function Fmt(fn::F, io::I, ast::Node, Ext, ctx) where {F, I}
     )
     return Fmt{Ext, F, I}(fn, io, env, Dict{Symbol,Any}())
 end
+
+Fmt(f::Fmt{Ext, F, I}, NewExt) where {Ext, F, I} = Fmt{NewExt, F, I}(f.fn, f.io, f.env, f.state)
 
 #
 # Dict-like interface for the `.state` field of `Fmt` objects.
@@ -50,7 +52,7 @@ formatting pipeline by overloading individual formatting methods with
 """
 function fmt end
 
-fmt(fn, io::IO, ast::Node, Ext=Any; ctx...) = fmt(Fmt(fn, io, ast, Ext, ctx), ast)
+fmt(fn, io::IO, ast::Node, Ext=Any; ctx...) = fmt(Fmt(fn, io, ast, Ext; ctx...), ast)
 
 function fmt(fn, ast::Node, Ext=Any; ctx...)
     io = IOBuffer()
