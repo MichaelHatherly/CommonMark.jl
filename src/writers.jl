@@ -16,6 +16,8 @@ struct Fmt{Ext, F, I<:IO} <: IO
 end
 
 function Fmt(fn::F, io::I, ast::Node, Ext, ctx) where {F, I}
+    # Create an environment that is the merged result of taking all the
+    # available environments and recursively merging them from bottom to top.
     env = recursive_merge(
         default_env(),
         get(Dict{String,Any}, ctx, :env),
@@ -24,6 +26,10 @@ function Fmt(fn::F, io::I, ast::Node, Ext, ctx) where {F, I}
     )
     return Fmt{Ext, F, I}(fn, io, env, Dict{Symbol,Any}())
 end
+
+#
+# Dict-like interface for the `.state` field of `Fmt` objects.
+#
 
 Base.getindex(f::Fmt, s::Symbol) = f.state[s]
 Base.setindex!(f::Fmt, value, s::Symbol) = f.state[s] = value
@@ -53,10 +59,15 @@ function fmt(fn, ast::Node, Ext=Any; ctx...)
 end
 
 function fmt(fn, file::AbstractString, ast::Node, Ext=Any; ctx...)
+    # When writing directly to a file path as the output destination we make
+    # the file name available within the formatter's `.env`.
     ast.meta["outputfile"] = file
     open(io -> fmt(fn, io, ast, Ext; ctx...), file, "w")
 end
 
+# Main driver method for formatting. Iterates over an `ast` and formats it
+# using the provided `f::Fmt`. Runs a `before` and `after` hook prior and post
+# iteration, as well as ones before and after each node is inspected.
 function fmt(f::Fmt, ast::Node)
     before(f, ast)
     for (node, enter) in ast
@@ -68,11 +79,38 @@ function fmt(f::Fmt, ast::Node)
     return nothing
 end
 
+# Not inlined since `node.t` is not type-stable so we introduce a function
+# barrier here to isolate the dynamic dispatch.
 @noinline fmt(f::Fmt, node::Node, enter::Bool) = f.fn(node.t, f, node, enter)
 
+"""
+    before(fmt, ast)
+
+Run prior to iterating over each element of the `ast`. Used for setting up the
+`fmt` object for specific formats.
+"""
 before(::Fmt, ::Node) = nothing
+
+"""
+    before(fmt, node, enter)
+
+Run prior to calling `fmt` on each `node`.
+"""
 before(::Fmt, ::Node, ::Bool) = nothing
+
+"""
+    after(fmt, ast)
+
+Run once iteration of the `ast` is complete. Used for finalisation actions
+needed for a `fmt` object.
+"""
 after(::Fmt, ::Node) = nothing
+
+"""
+    after(fmt, node, enter)
+
+Run after each `fmt` call on each `node`.
+"""
 after(::Fmt, ::Node, ::Bool) = nothing
 
 #
@@ -83,8 +121,22 @@ for mime in ["text/ast", "text/html", "text/latex", "text/markdown", "text/plain
     @eval Base.show(io::IO, m::$(MIME{Symbol(mime)}), ast::Node) = fmt(io, m, ast)
 end
 
+"""
+    fmt(io, mime, ast)
+
+A shim method for hooking into the `Base.show` display system. This method is
+called by the defined `show` methods. To pass in the `ctx` and `Ext` arguments
+that are natively supported by the normal `fmt` definitions that must be packed
+into an `IOContext` object which is then passed to `show`.
+"""
 fmt(io::IO, m::MIME, ast::Node) = fmt(mimefunc(m), io, ast, get(io, :Ext, Any); get(io, :ctx, NamedTuple())...)
 
+"""
+    mimefunc(mime)
+
+Converts a `mime` object into the required `Function` used to actually format
+an AST.
+"""
 mimefunc(::MIME) = throw(ArgumentError("unsupported MIME type `$MIME`."))
 
 #
