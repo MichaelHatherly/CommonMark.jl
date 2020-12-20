@@ -179,32 +179,6 @@ recursive_merge(ds::AbstractDict...) = merge(recursive_merge, ds...)
 recursive_merge(args...) = last(args)
 
 #
-# Template support
-#
-
-# Support for using "templates" with the various output functions is controlled
-# by overloading the `fmt(f::Fmt, ast::Node)` method with a custom `Ext` type
-# parameter.
-#
-# ```julia
-# using CommonMark, Mustache
-#
-# abstract type Templated end
-#
-# function CommonMark.fmt(f::Fmt{Templated}, ast::Node)
-#     f.env["body"] = f.fn(ast, supertype(Templated); env = f.env)
-#     template = read(f.env["template"], String)
-#     Mustache.render(f.io, template, f.env)
-# end
-# ```
-#
-# The use of `supertype(Templated)` here is important since otherwise dispatch
-# will keep calling this same definition. By dispatching to `Any` instead we
-# "unpeal" the extension layers. To support extensions to other parts of the
-# formatting pipeline `Templated` would need to be a subtype of any other
-# extensions, such as syntax highlighting and smartlinks types.
-
-#
 # Smart links and other formatting customisation
 #
 
@@ -233,3 +207,68 @@ recursive_merge(args...) = last(args)
 #
 # To make use of templating and other extensions at the same time you must define
 # the `TemplateExtension` as a subtype of the `LinkExtension`.
+
+"""
+Root type for template rendering. To make use of templating a user must define
+a subtype of `TemplateExtension` as well as implement `renderer` and optionally
+`ancestor` if other extensions are expected to be used during templating.
+
+```julia
+using CommonMark, Mustache
+
+struct Custom <: CommonMark.TemplateExtension end
+
+CommonMark.renderer(f::CommonMark.Fmt{Custom}, env) = Mustache.render(f.io, env["template"], env)
+```
+
+The user, as mentioned above, should implement `ancestor` if they wish to alter
+other parts of the formatting pipeline.
+
+```julia
+CommonMark.ancestor(::Type{Custom}) = LinkExtension
+```
+
+The rendered inner content that will be written to the template is stored in a
+field called `"body"` within the `env` `Dict` passed as the second argument to
+`renderer`.
+"""
+abstract type TemplateExtension end
+
+"""
+    ancestor(::Type{T})
+
+Defines the "supertype" of a subtype `T` of `TemplateExtension` for the
+purposes of dispatching template rendering to the correct methods.
+
+By default this will return `Any` such that it will always result in a useful
+formatting pipeline. If you have other defined extensions that form part of
+the pipeline then `ancestor` should return that type instead.
+
+```julia
+CommonMark.ancestor(::Type{Custom}) = Other
+```
+"""
+ancestor(::Type) = Any
+
+"""
+    renderer(f::Fmt{T}, env)
+
+Defines what template renderer implementation is called to fill in a template
+provided by the `env`. This method should always be defined for your custom
+subtype of `TemplateExtension` otherwise the templating is skipped.
+
+```julia
+CommonMark.renderer(f::Fmt{Custom}, env) = render(f.io, env["template"], env)
+```
+
+Different formats can define their own renderers by defining the method signatures
+more tightly:
+
+```julia
+CommonMark.renderer(f::Fmt{Custom, T"html"}, env) = render(f.io, env["html"]["template"], env)
+CommonMark.renderer(f::Fmt{Custom, T"latex"}, env) = render(f.io, env["latex"]["template"], env)
+```
+"""
+renderer(f::Fmt, env) = print(f.io, env["body"])
+
+fmt(f::Fmt{T}, ast::Node) where T<:TemplateExtension = renderer(f, recursive_merge(f.env, Dict("body" => fmt(f.fn, ast, ancestor(T)))))
