@@ -3,19 +3,24 @@
 #
 
 """
-    Fmt{Ext}
+    Fmt{Ext, Fn}
 
 Formatter object that controls how an AST is displayed. `Ext` is an "extension"
-type exposed to users for customising the display of the AST.
+type exposed to users for customising the display of the AST. `Fn` is the
+formatter function type to be called when formatting the AST. `Fn` shouldn't
+need to be listed explicitly in most cases.
+
+`Fmt` types don't need to be created manually by users. They are exposed to
+users for the purpose of dispatching in method definitions.
 """
-struct Fmt{Ext, F, I<:IO} <: IO
-    fn::F
+struct Fmt{Ext, Fn, I<:IO} <: IO
+    fn::Fn
     io::I
     env::Dict{String,Any}
     state::Dict{Symbol,Any}
 end
 
-function Fmt(fn::F, io::I, ast::Node, Ext; ctx...) where {F, I}
+function Fmt(fn::Fn, io::I, ast::Node, Ext; ctx...) where {Fn, I}
     # Create an environment that is the merged result of taking all the
     # available environments and recursively merging them from bottom to top.
     env = recursive_merge(
@@ -24,10 +29,10 @@ function Fmt(fn::F, io::I, ast::Node, Ext; ctx...) where {F, I}
         frontmatter(ast),
         ast.meta,
     )
-    return Fmt{Ext, F, I}(fn, io, env, Dict{Symbol,Any}())
+    return Fmt{Ext, Fn, I}(fn, io, env, Dict{Symbol,Any}())
 end
 
-Fmt(f::Fmt{Ext, F, I}, NewExt) where {Ext, F, I} = Fmt{NewExt, F, I}(f.fn, f.io, f.env, f.state)
+Fmt(f::Fmt{Ext, Fn, I}, NewExt) where {Ext, Fn, I} = Fmt{NewExt, Fn, I}(f.fn, f.io, f.env, f.state)
 
 #
 # Dict-like interface for the `.state` field of `Fmt` objects.
@@ -204,6 +209,9 @@ recursive_merge(args...) = last(args)
 # ```julia
 # html(ast, LinkExtension)
 # ```
+#
+# The 'parent' implementation of `html` can be called from within this
+# extension by using `invoke(...)` on the unparameterised `Fmt` argument.
 #
 # To make use of templating and other extensions at the same time you must define
 # the `TemplateExtension` as a subtype of the `LinkExtension`.

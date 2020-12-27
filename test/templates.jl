@@ -1,5 +1,5 @@
 @testset "Templates" begin
-    struct MustacheTemplate <: CM.TemplateExtension end
+    struct MustacheTemplate <: TemplateExtension end
 
     function template(env, fmt)
         # Template load order:
@@ -20,10 +20,10 @@
         end
     end
 
-    CM.renderer(f::CM.Fmt{MustacheTemplate, CM.T"html"}, env) =
+    CM.renderer(f::Fmt{MustacheTemplate, CM.T"html"}, env) =
         Mustache.render(f.io, template(env, "html"), env; tags = ("\${", "}"))
 
-    CM.renderer(f::CM.Fmt{MustacheTemplate, CM.T"latex"}, env) =
+    CM.renderer(f::Fmt{MustacheTemplate, CM.T"latex"}, env) =
         Mustache.render(f.io, template(env, "latex"), env; tags = ("\${", "}"))
 
     p = Parser()
