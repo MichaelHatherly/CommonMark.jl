@@ -1,4 +1,16 @@
-const ENTITY_DATA = JSON.Parser.parsefile(joinpath(@__DIR__, "entities.json"))
+include("entities.jl")
+
+function generate_entities(; input="entities.json", output="entities.jl")
+    cd(@__DIR__) do
+        open(output, "w") do io
+            println(io, "const ENTITY_DATA = Dict{String,String}(")
+            for (k, v) in sort!(collect(JSON.Parser.parsefile(input)); by = first)
+                println(io, "    ", repr(k), " => ", repr(v["characters"]), ",")
+            end
+            println(io, ")")
+        end
+    end
+end
 
 function HTMLunescape(s)
     @assert startswith(s, '&')
@@ -16,7 +28,6 @@ function HTMLunescape(s)
             return "\uFFFD"
         end
     else
-        haskey(ENTITY_DATA, s) || return s
-        return ENTITY_DATA[s]["characters"]
+        return get(ENTITY_DATA, s, s)
     end
 end
