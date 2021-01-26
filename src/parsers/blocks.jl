@@ -47,9 +47,9 @@ mutable struct Parser <: AbstractParser
     refmap::Dict{String, Tuple{String, String}}
     last_line_length::Int
     inline_parser::InlineParser
-    rules::Vector
+    rules::Vector{Any}
     modifiers::Vector{Function}
-    priorities::Dict{Function, Float64}
+    priorities::IdDict{Function, Float64}
 
     function Parser()
         parser = new()
@@ -75,7 +75,7 @@ mutable struct Parser <: AbstractParser
         parser.inline_parser = InlineParser()
         parser.rules = []
         parser.modifiers = Function[]
-        parser.priorities = Dict()
+        parser.priorities = IdDict{Function,Float64}()
 
         # Enable the standard CommonMark rule set.
         enable!(parser, COMMONMARK_BLOCK_RULES)
