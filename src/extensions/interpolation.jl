@@ -39,9 +39,11 @@ inline_rule(ji::JuliaInterpolation) = Rule(1, "\$") do p, node
     end
 end
 
-macro cm_str(str)
+export @cm_str
+
+macro cm_str(str, name = "jmd")
     ji = JuliaInterpolation([])
-    parser = Parser()
+    parser = _init_parser(__module__, name)
     enable!(parser, ji)
     ast = parser(str)
     quote
@@ -51,6 +53,39 @@ macro cm_str(str)
         $([:($(v.ref)[] = $(esc(v.ex))) for v in ji.captured]...)
         $ast
     end
+end
+
+function _init_parser(mod::Module, name::AbstractString)
+    options = (
+        jmd = function ()
+            p = Parser()
+            enable!(p, [
+                AdmonitionRule(),
+                AttributeRule(),
+                AutoIdentifierRule(),
+                CitationRule(),
+                FootnoteRule(),
+                MathRule(),
+                RawContentRule(),
+                TableRule(),
+                TypographyRule(),
+            ])
+            return p
+        end,
+        cm = () -> Parser()
+    )
+    s = Symbol(name)
+    if isdefined(mod, s)
+        obj = getfield(mod, s)()
+        if isa(obj, Function)
+            try
+                p = obj()
+                isa(p, Parser) && return p
+            catch
+            end
+        end
+    end
+    return get(options, s, Parser)()::Parser
 end
 
 #
