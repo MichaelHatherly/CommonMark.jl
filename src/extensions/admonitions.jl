@@ -8,8 +8,10 @@ accepts_lines(::Admonition) = false
 can_contain(::Admonition, t) = !(t isa Item)
 finalize(::Admonition, parser::Parser, node::Node) = nothing
 function continue_(::Admonition, parser::Parser, ::Any)
-    if parser.indent ≥ 4 || parser.blank
-        advance_offset(parser, 4, false)
+    if parser.indent ≥ 4
+        advance_offset(parser, 4, true)
+    elseif parser.blank
+        advance_next_nonspace(parser)
     else
         return 1
     end

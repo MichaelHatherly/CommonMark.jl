@@ -36,8 +36,10 @@ accepts_lines(::FootnoteDefinition) = false
 can_contain(::FootnoteDefinition, t) = !(t isa Item)
 finalize(::FootnoteDefinition, ::Parser, ::Node) = nothing
 function continue_(::FootnoteDefinition, parser::Parser, ::Any)
-    if parser.indent ≥ 4 || parser.blank
-        advance_offset(parser, 4, false)
+    if parser.indent ≥ 4
+        advance_offset(parser, 4, true)
+    elseif parser.blank
+        advance_next_nonspace(parser)
     else
         return 1
     end
