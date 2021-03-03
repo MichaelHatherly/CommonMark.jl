@@ -3,11 +3,6 @@
 # values of the expressions in the markdown AST. Should only really be used
 # from within the `@cm_str` macro otherwise the expressions won't have "time"
 # to actually evaluate.
-struct JuliaInterpolation
-    captured::Vector{Any}
-end
-
-const reInterpHere = r"^\$"
 
 # Captures an expression and the future value associated with it after
 # macro expansion.
@@ -16,6 +11,13 @@ struct JuliaValue <: AbstractInline
     ref::Ref{Any}
     JuliaValue(ex) = new(ex, Ref{Any}())
 end
+
+struct JuliaInterpolation
+    captured::Vector{JuliaValue}
+    JuliaInterpolation() = new(JuliaValue[])
+end
+
+const reInterpHere = r"^\$"
 
 inline_rule(ji::JuliaInterpolation) = Rule(1, "\$") do p, node
     dollar = match(reInterpHere, p)
@@ -42,17 +44,18 @@ end
 export @cm_str
 
 macro cm_str(str, name = "jmd")
-    ji = JuliaInterpolation([])
+    ji = JuliaInterpolation()
     parser = _init_parser(__module__, name)
     enable!(parser, ji)
     ast = parser(str)
-    quote
-        # Evaluate the parsed expressions that we just captured into the
-        # calling context prior to returning the markdown AST containing the
-        # references to the values of the expressions.
-        $([:($(v.ref)[] = $(esc(v.ex))) for v in ji.captured]...)
-        $ast
+    return :(_interp!($ast, $(ji.captured), $(Expr(:vect, [esc(v.ex) for v in ji.captured]...))))
+end
+
+function _interp!(ast::Node, refs::Vector, values::Vector)
+    for (jv, value) in zip(refs, values)
+        jv.ref[] = value
     end
+    return ast
 end
 
 function _init_parser(mod::Module, name::AbstractString)
