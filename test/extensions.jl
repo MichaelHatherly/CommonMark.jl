@@ -11,4 +11,5 @@
     include("extensions/autoidentifiers.jl")
     include("extensions/smartlinks.jl")
     include("extensions/highlights.jl")
+    include("extensions/interpolation.jl")
 end

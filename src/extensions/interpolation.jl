@@ -173,8 +173,6 @@ function write_term(jv::JuliaValue, rend, node, enter)
     pop_inline!(rend)
 end
 
-# TODO: we'd like the markdown output to be pretty much round-trip-able, so how
-# do we handle interpolated values? As their expression or as the value?
-function write_markdown(jv::JuliaValue, w, node, ent)
-    error("not implemented")
-end
+# Markdown output should be roundtrip-able, so printout the interpolated
+# expression rather than it's value.
+write_markdown(jv::JuliaValue, rend, node, ent) = print(rend.buffer, '$', "($(jv.ex))")
