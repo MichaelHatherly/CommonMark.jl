@@ -56,4 +56,12 @@ end
     @test latex(ast) == "1 2 2 3\\par\n"
     @test markdown(ast) == "\$(value) \$(value + 1) \$(value += 1) \$(value += 1)\n"
     @test term(ast) == " \e[33m1\e[39m \e[33m2\e[39m \e[33m2\e[39m \e[33m3\e[39m\n"
+
+    # Interpolated strings are not markdown-interpreted
+    ast = cm"""*expressions* $("**test**")"""
+    @test html(ast) == "<p><em>expressions</em> <span class=\"julia-value\">**test**</span></p>\n"
+    @test latex(ast) == "\\textit{expressions} **test**\\par\n"
+    @test markdown(ast) == "*expressions* \$(**test**)\n"
+    @test term(ast) == " \e[3mexpressions\e[23m \e[33m**test**\e[39m\n"
+
 end
