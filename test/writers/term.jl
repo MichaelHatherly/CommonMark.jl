@@ -66,6 +66,10 @@
         "> quote",
         " \e[1m│\e[22m quote\n"
     )
+    test(
+        ">",
+        " \e[1m│\e[22m\n",
+    )
     # Lists.
     test(
         "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
@@ -74,6 +78,22 @@
     test(
         "- - - - - - - item",
         "  ●  ○  ▶  ▷  ■  □  □ item\n"
+    )
+    test(
+        "  - ",
+        "  ● \n",
+    )
+    test(
+        "1. ",
+        "  1. \n",
+    )
+    test(
+        "  - one\n  *\n  + three\n",
+        "  ● one\n \n  ● \n \n  ● three\n",
+    )
+    test(
+        "1. one\n2.\n3. three",
+        "  1. one\n  \n  2. \n  \n  3. three\n",
     )
 
     # Thematic Breaks.

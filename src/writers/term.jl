@@ -147,6 +147,15 @@ function print_margin(r::Writer)
     end
 end
 
+function maybe_print_margin(r, node::Node)
+    if isnull(node.first_child)
+        push_margin!(r, "\n")
+        print_margin(r)
+        pop_margin!(r)
+    end
+    return nothing
+end
+
 """
 Literal printing of a of `parts`. Behaviour depends on when `.wrap` is active
 at the moment, which is set in `Paragraph` rendering.
@@ -315,6 +324,7 @@ function write_term(::BlockQuote, render, node, enter)
         push_margin!(render, " ", crayon"")
     else
         pop_margin!(render)
+        maybe_print_margin(render, node)
         pop_margin!(render)
         if !isnull(node.nxt)
             print_margin(render)
@@ -339,7 +349,6 @@ function write_term(list::List, render, node, enter)
     end
 end
 
-
 function write_term(item::Item, render, node, enter)
     if enter
         if item.list_data.type === :ordered
@@ -353,6 +362,7 @@ function write_term(item::Item, render, node, enter)
             push_margin!(render, 1, "$bullet ", crayon"")
         end
     else
+        maybe_print_margin(render, node)
         pop_margin!(render)
         if !isnull(node.nxt)
             print_margin(render)

@@ -87,6 +87,10 @@
         "> quote",
         "> quote\n"
     )
+    test(
+        ">",
+        ">\n"
+    )
     # Lists.
     test(
         "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
@@ -95,6 +99,22 @@
     test(
         "- - - - - - - item",
         "  -   +   *   -   +   *   * item\n"
+    )
+    test(
+        "  - ",
+        "  - ",
+    )
+    test(
+        "1. ",
+        " 1. ",
+    )
+    test(
+        "  - one\n  - \n  - three\n",
+        "  - one\n  -     \n  - three\n"
+    )
+    test(
+        "1. one\n2.\n3. three",
+        " 1. one\n 2.     \n 3. three\n"
     )
     # Thematic Breaks.
     test(

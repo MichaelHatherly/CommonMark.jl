@@ -109,6 +109,7 @@ function write_markdown(::BlockQuote, w, node, ent)
         push_margin!(w, " ")
     else
         pop_margin!(w)
+        maybe_print_margin(w, node)
         pop_margin!(w)
         cr(w)
         linebreak(w, node)
@@ -139,6 +140,10 @@ function write_markdown(item::Item, w, node, enter)
             push_margin!(w, 1, lpad("$bullet ", 4, " "))
         end
     else
+        if isnull(node.first_child)
+            print_margin(w)
+            linebreak(w, node)
+        end
         pop_margin!(w)
         if !item.list_data.tight
             cr(w)
