@@ -1,4 +1,18 @@
 @testset "Notebook" begin
+    @testset "MiniJSON" begin
+        cases = [
+            "\"zebra\"",
+            "[\"aardvark\",\"horse\",{\"z\":\"zebra\"}]",
+            "{\"symbolarray\":[\"apple\",\"pear\"]}",
+            "{\"symbolsingleton\":\"hello\"}",
+            "[[0,2],[1,0]]",
+            "[NaN,Infinity,-Infinity,0,1.5]",
+        ]
+        for str in cases
+            @test str == sprint(CommonMark.mini_json, JSON.parse(str))
+        end
+    end
+
     p = Parser()
 
     test = function(text, expected)

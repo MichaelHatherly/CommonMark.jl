@@ -65,7 +65,30 @@ function before(f::Fmt{Ext,T"notebook"}, ast::Node) where Ext
     return nothing
 end
 
-function after(f::Fmt{Ext,T"notebook"}, ast::Node) where Ext
-    JSON.Writer.print(f.io, f.state[:json])
+function after(f::Fmt{Ext,T"notebook"}, ::Node) where Ext
+    mini_json(f.io, f.state[:json])
     return nothing
 end
+
+# Mini JSON printer. Sufficient for the restricted datatypes that get used for `notebook`.
+function mini_json(io::IO, v::AbstractVector)
+    print(io, '[')
+    for (nth, item) in enumerate(v)
+        nth > 1 && print(io, ',')
+        mini_json(io, item)
+    end
+    print(io, ']')
+end
+function mini_json(io::IO, d::AbstractDict)
+    print(io, '{')
+    for (nth, (k, v)) in enumerate(d)
+        nth > 1 && print(io, ',')
+        mini_json(io, k)
+        print(io, ':')
+        mini_json(io, v)
+    end
+    print(io, '}')
+end
+mini_json(io::IO, s::AbstractString) = show(io, s)
+mini_json(io::IO, r::Real) = print(io, r == -Inf ? "-Infinity" : r == Inf ? "Infinity" : isnan(r) ? "NaN" : r)
+mini_json(io::IO, ::Nothing) = print(io, "null")

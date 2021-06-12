@@ -1,10 +1,10 @@
 include("entities.jl")
 
-function generate_entities(; input="entities.json", output="entities.jl")
+function generate_entities(fileparser; input="entities.json", output="entities.jl")
     cd(@__DIR__) do
         open(output, "w") do io
             println(io, "const ENTITY_DATA = Dict{String,String}(")
-            for (k, v) in sort!(collect(JSON.Parser.parsefile(input)); by = first)
+            for (k, v) in sort!(collect(fileparser(input)); by = first)
                 println(io, "    ", repr(k), " => ", repr(v["characters"]), ",")
             end
             println(io, ")")
