@@ -112,6 +112,15 @@ function print_margin(f::Fmt)
     end
 end
 
+function maybe_print_margin(f::Fmt, node::Node)
+    if isnull(node.first_child)
+        push_margin!(f, "\n")
+        print_margin(f)
+        pop_margin!(f)
+    end
+    return nothing
+end
+
 function print_literal(f::Fmt, parts...)
     # Ignore printing literals when there isn't much space, stops causing
     # stackoverflows and avoids printing badly wrapped lines when there's no

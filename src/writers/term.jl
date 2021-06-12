@@ -132,6 +132,7 @@ function term(::BlockQuote, f::Fmt, n::Node, enter::Bool)
         push_margin!(f, " ", crayon"")
     else
         pop_margin!(f)
+        maybe_print_margin(f, n)
         pop_margin!(f)
         if !isnull(n.nxt)
             print_margin(f)
@@ -169,6 +170,7 @@ function term(item::Item, f::Fmt, n::Node, enter::Bool)
             push_margin!(f, 1, "$bullet ", crayon"")
         end
     else
+        maybe_print_margin(f, n)
         pop_margin!(f)
         if !isnull(n.nxt)
             print_margin(f)

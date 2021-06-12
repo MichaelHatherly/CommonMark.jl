@@ -90,6 +90,7 @@ function markdown(::BlockQuote, f::Fmt, n::Node, enter::Bool)
         push_margin!(f, " ")
     else
         pop_margin!(f)
+        maybe_print_margin(f, n)
         pop_margin!(f)
         cr(f)
         linebreak(f, n)
@@ -120,6 +121,10 @@ function markdown(item::Item, f::Fmt, n::Node, enter::Bool)
             push_margin!(f, 1, lpad("$bullet ", 4, " "))
         end
     else
+        if isnull(n.first_child)
+            print_margin(f)
+            linebreak(f, n)
+        end
         pop_margin!(f)
         if !item.list_data.tight
             cr(f)
