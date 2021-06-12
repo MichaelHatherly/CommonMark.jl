@@ -29,8 +29,13 @@ unescape_char(s) = s[1] == '\\' ? s[2] : HTMLunescape(s)
 unescape_string(s) = occursin(reBackslashOrAmp, s) ?
     replace(s, reEntityOrEscapedChar =>  unescape_char) : s
 
+# From URIs.jl, MIT licensed.
+utf8_chars(str::AbstractString) = (Char(c) for c in codeunits(str))
+escapeuri(c::Char) = string('%', uppercase(string(Int(c), base=16, pad=2)))
+escapeuri(str::AbstractString, safe::Function) = join(safe(c) ? c : escapeuri(c) for c in utf8_chars(str))
+
 @inline issafe(c::Char) = c in "?:/,-+@._()#=*&%" || (isascii(c) && (isletter(c) || isnumeric(c)))
-normalize_uri(s::AbstractString) = URIs.escapeuri(s, issafe)
+normalize_uri(s::AbstractString) = escapeuri(s, issafe)
 
 const UNSAFE_MAP = Dict(
     "&"  => "&amp;",

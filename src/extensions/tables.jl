@@ -163,122 +163,122 @@ end
 
 # HTML
 
-write_html(::Table, rend, n, ent) = tag(rend, ent ? "table" : "/table", ent ? attributes(rend, n) : [])
-write_html(::TableHeader, rend, node, enter) = tag(rend, enter ? "thead" : "/thead")
-write_html(::TableBody, rend, node, enter) = tag(rend, enter ? "tbody" : "/tbody")
-write_html(::TableRow, rend, node, enter) = tag(rend, enter ? "tr" : "/tr")
+html(::Table, f::Fmt, n::Node, enter::Bool) = tag(f, enter ? "table" : "/table", enter ? attributes(f, n) : [])
+html(::TableHeader, f::Fmt, ::Node, enter::Bool) = tag(f, enter ? "thead" : "/thead")
+html(::TableBody, f::Fmt, ::Node, enter::Bool) = tag(f, enter ? "tbody" : "/tbody")
+html(::TableRow, f::Fmt, ::Node, enter::Bool) = tag(f, enter ? "tr" : "/tr")
 
-function write_html(cell::TableCell, rend, node, enter)
+function html(cell::TableCell, f::Fmt, ::Node, enter::Bool)
     tag_name = cell.header ? "th" : "td"
-    tag(rend, enter ? "$tag_name align=\"$(cell.align)\"" : "/$tag_name")
+    tag(f, enter ? "$tag_name align=\"$(cell.align)\"" : "/$tag_name")
 end
 
 # LaTeX
 
-function write_latex(table::Table, rend, node, enter)
+function latex(table::Table, f::Fmt, ::Node, enter::Bool)
     if enter
-        print(rend.buffer, "\\begin{longtable}[]{@{}")
-        join(rend.buffer, (string(align)[1] for align in table.spec))
-        println(rend.buffer, "@{}}")
+        literal(f, "\\begin{longtable}[]{@{}")
+        join(f.io, (string(align)[1] for align in table.spec))
+        literal(f, "@{}}\n")
     else
-        println(rend.buffer, "\\end{longtable}")
+        literal(f, "\\end{longtable}\n")
     end
 end
 
-function write_latex(::TableHeader, rend, node, enter)
+function latex(::TableHeader, f::Fmt, ::Node, enter::Bool)
     if enter
-        println(rend.buffer, "\\hline")
+        literal(f, "\\hline\n")
     else
-        println(rend.buffer, "\\hline")
-        println(rend.buffer, "\\endfirsthead")
+        literal(f, "\\hline\n")
+        literal(f, "\\endfirsthead\n")
     end
 end
 
-function write_latex(::TableBody, rend, node, enter)
+function latex(::TableBody, f::Fmt, ::Node, enter::Bool)
     if !enter
-        println(rend.buffer, "\\hline")
+        literal(f, "\\hline\n")
     end
 end
 
-function write_latex(::TableRow, rend, node, enter)
-    enter ? nothing : println(rend.buffer, "\\tabularnewline")
+function latex(::TableRow, f::Fmt, ::Node, enter::Bool)
+    enter ? nothing : literal(f, "\\tabularnewline\n")
 end
 
-function write_latex(::TableCell, rend, node, enter)
-    if !enter && node.parent.last_child !== node
-        print(rend.buffer, " & ")
+function latex(::TableCell, f::Fmt, n::Node, enter::Bool)
+    if !enter && n.parent.last_child !== n
+        literal(f, " & ")
     end
 end
 
 # Term
 
-function write_term(table::Table, rend, node, enter)
+function term(table::Table, f::Fmt, n::Node, enter::Bool)
     if enter
-        cells, widths = calculate_columns_widths(table, node) do node
+        cells, widths = calculate_columns_widths(table, n) do node
             length(replace(term(node), r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
         end
-        rend.context[:cells] = cells
-        rend.context[:widths] = widths
+        f[:cells] = cells
+        f[:widths] = widths
 
-        print_margin(rend)
-        print(rend.format.buffer, "┏━")
-        join(rend.format.buffer, ("━"^w for w in widths), "━┯━")
-        println(rend.format.buffer, "━┓")
+        print_margin(f)
+        literal(f, "┏━")
+        join(f.io, ("━"^w for w in widths), "━┯━")
+        literal(f, "━┓\n")
     else
-        print_margin(rend)
-        print(rend.format.buffer, "┗━")
-        join(rend.format.buffer, ("━"^w for w in rend.context[:widths]), "━┷━")
-        println(rend.format.buffer, "━┛")
+        print_margin(f)
+        literal(f, "┗━")
+        join(f.io, ("━"^w for w in f[:widths]), "━┷━")
+        literal(f, "━┛\n")
 
-        delete!(rend.context, :cells)
-        delete!(rend.context, :widths)
+        delete!(f.state, :cells)
+        delete!(f.state, :widths)
     end
     return nothing
 end
 
-function write_term(::TableHeader, rend, node, enter)
+function term(::TableHeader, f::Fmt, ::Node, enter::Bool)
     if !enter
-        print_margin(rend)
-        print(rend.format.buffer, "┠─")
-        join(rend.format.buffer, ("─"^w for w in rend.context[:widths]), "─┼─")
-        println(rend.format.buffer, "─┨")
+        print_margin(f)
+        literal(f, "┠─")
+        join(f.io, ("─"^w for w in f[:widths]), "─┼─")
+        literal(f, "─┨\n")
     end
     return nothing
 end
 
-write_term(::TableBody, rend, node, enter) = nothing
+term(::TableBody, ::Fmt, ::Node, ::Bool) = nothing
 
-function write_term(::TableRow, rend, node, enter)
+function term(::TableRow, f::Fmt, ::Node, enter::Bool)
     if enter
-        print_margin(rend)
-        print(rend.format.buffer, "┃ ")
+        print_margin(f)
+        literal(f, "┃ ")
     else
-        println(rend.format.buffer, " ┃")
+        literal(f, " ┃\n")
     end
     return nothing
 end
 
-function write_term(cell::TableCell, rend, node, enter)
-    if haskey(rend.context, :widths)
-        pad = rend.context[:widths][cell.column] - rend.context[:cells][node]
+function term(cell::TableCell, f::Fmt, n::Node, enter::Bool)
+    if haskey(f.state, :widths)
+        pad = f[:widths][cell.column] - f[:cells][n]
         if enter
             if cell.align == :left
             elseif cell.align == :right
-                print(rend.format.buffer, ' '^pad)
+                literal(f, ' '^pad)
             elseif cell.align == :center
                 left = Int(round(pad/2, RoundDown))
-                print(rend.format.buffer, ' '^left)
+                literal(f, ' '^left)
             end
         else
             if cell.align == :left
-                print(rend.format.buffer, ' '^pad)
+                literal(f, ' '^pad)
             elseif cell.align == :right
             elseif cell.align == :center
                 right = Int(round(pad/2, RoundUp))
-                print(rend.format.buffer, ' '^right)
+                literal(f, ' '^right)
             end
-            if !isnull(node.nxt)
-                print(rend.format.buffer, " │ ")
+            if !isnull(n.nxt)
+                literal(f, " │ ")
             end
         end
     end
@@ -287,56 +287,53 @@ end
 
 # Markdown
 
-function write_markdown(table::Table, w::Writer, node, enter)
+function markdown(table::Table, f::Fmt, n::Node, enter::Bool)
     if enter
-        cells, widths = calculate_columns_widths(node -> length(markdown(node)), table, node)
-        w.context[:cells] = cells
-        w.context[:widths] = widths
+        cells, widths = calculate_columns_widths(node -> length(markdown(node)), table, n)
+        f[:cells] = cells
+        f[:widths] = widths
     else
-        delete!(w.context, :cells)
-        delete!(w.context, :widths)
-        linebreak(w, node)
+        delete!(f.state, :cells)
+        delete!(f.state, :widths)
+        linebreak(f, n)
     end
     return nothing
 end
 
-function write_markdown(::TableHeader, w, node, enter)
-    if enter
-    else
-        spec = node.parent.t.spec
-        print_margin(w)
-        literal(w, "|")
-        for (width, align) in zip(w.context[:widths], spec)
-            literal(w, align in (:left, :center)  ? ":" : " ")
-            literal(w, "-"^width)
-            literal(w, align in (:center, :right) ? ":" : " ")
-            literal(w, "|")
+function markdown(::TableHeader, f::Fmt, n::Node, enter::Bool)
+    if !enter
+        spec = n.parent.t.spec
+        print_margin(f)
+        literal(f, "|")
+        for (width, align) in zip(f[:widths], spec)
+            literal(f, align in (:left, :center)  ? ":" : " ")
+            literal(f, "-"^width)
+            literal(f, align in (:center, :right) ? ":" : " ")
+            literal(f, "|")
         end
-        cr(w)
+        cr(f)
     end
     return nothing
 end
 
-write_markdown(::TableBody, w, node, enter) = nothing
+markdown(::TableBody, ::Fmt, ::Node, ::Bool) = nothing
 
-function write_markdown(::TableRow, w, node, enter)
+function markdown(::TableRow, f::Fmt, ::Node, enter::Bool)
     if enter
-        print_margin(w)
-        literal(w, "| ")
+        print_margin(f)
+        literal(f, "| ")
     else
-        literal(w, " |")
-        cr(w)
+        literal(f, " |")
+        cr(f)
     end
     return nothing
 end
 
-function write_markdown(cell::TableCell, w, node, enter)
-    if haskey(w.context, :widths)
-        if !enter
-            padding = w.context[:widths][cell.column] - w.context[:cells][node]
-            literal(w, " "^padding)
-            isnull(node.nxt) || literal(w, " | ")
-        end
+function markdown(cell::TableCell, f::Fmt, n::Node, enter::Bool)
+    if !enter && haskey(f.state, :widths)
+        padding = f[:widths][cell.column] - f[:cells][n]
+        literal(f, " "^padding)
+        isnull(n.nxt) || literal(f, " | ")
     end
     return nothing
 end

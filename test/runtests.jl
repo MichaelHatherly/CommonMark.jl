@@ -1,4 +1,5 @@
 using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
+const CM = CommonMark
 
 @testset "CommonMark" begin
     # Do we pass the CommonMark spec -- version 0.29.0.
@@ -11,6 +12,9 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
             # rendering. Proper tests are found below.
             latex(ast)
             term(ast)
+            markdown(ast)
+            CommonMark.ast(ast)
+            notebook(ast)
         end
     end
 
@@ -38,6 +42,9 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
                         # TODO: just renders, no checks.
                         latex(ast)
                         term(ast)
+                        markdown(ast)
+                        CommonMark.ast(ast)
+                        notebook(ast)
                     end
                 end
             end

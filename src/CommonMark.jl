@@ -1,15 +1,32 @@
 module CommonMark
 
-import JSON, URIs
-
 include("utils.jl")
 include("ast.jl")
 include("parsers.jl")
 include("writers.jl")
 include("extensions.jl")
 
-# Interface
-export Parser, enable!, disable!, html, latex, term, markdown, notebook
+# Parsing
+export
+    Parser,
+    enable!,
+    disable!
+
+# Formatting
+export
+    Fmt,
+    ast,
+    html,
+    latex,
+    markdown,
+    notebook,
+    term
+
+# Templating
+export
+    TemplateExtension,
+    ancestor,
+    renderer
 
 # Core block rules
 export

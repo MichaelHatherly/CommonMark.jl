@@ -151,13 +151,14 @@ end
 
 # Writers.
 
-write_html(::Attributes, w, n, ent) = nothing
-write_latex(::Attributes, w, n, ent) = nothing
-write_term(::Attributes, w, n, ent) = nothing
+html(::Attributes, ::Fmt, ::Node, ::Bool) = nothing
+latex(::Attributes, ::Fmt, ::Node, ::Bool) = nothing
+term(::Attributes, ::Fmt, ::Node, ::Bool) = nothing
 
-function write_markdown(at::Attributes, w, n, ent)
-    if ent
-        at.block && print_margin(w)
-        literal(w, n.literal, at.block ? "\n" : "")
+function markdown(at::Attributes, f::Fmt, n::Node, enter::Bool)
+    if enter
+        at.block && print_margin(f)
+        literal(f, n.literal, at.block ? "\n" : "")
     end
+    return nothing
 end

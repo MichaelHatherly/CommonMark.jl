@@ -154,25 +154,25 @@ end
 # Writers
 #
 
-function write_html(jv::JuliaValue, rend, node, enter)
-    tag(rend, "span", attributes(rend, node, ["class" => "julia-value"]))
-    print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref[]))
-    tag(rend, "/span")
+function html(jv::JuliaValue, f::Fmt, n::Node, ::Bool)
+    tag(f, "span", attributes(f, n, ["class" => "julia-value"]))
+    print(f.io, sprint(_showas, MIME("text/html"), jv.ref[]))
+    tag(f, "/span")
 end
 
-function write_latex(jv::JuliaValue, rend, node, enter)
-    print(rend.buffer, sprint(_showas, MIME("text/latex"), jv.ref[]))
+function latex(jv::JuliaValue, f::Fmt, ::Node, ::Bool)
+    print(f.io, sprint(_showas, MIME("text/latex"), jv.ref[]))
 end
 
 _showas(io::IO, m::MIME, obj) = showable(m, obj) ? show(io, m, obj) : print(io, obj)
 
-function write_term(jv::JuliaValue, rend, node, enter)
+function term(jv::JuliaValue, f::Fmt, ::Node, ::Bool)
     style = crayon"yellow"
-    push_inline!(rend, style)
-    print_literal(rend, style, sprint(print, jv.ref[]), inv(style))
-    pop_inline!(rend)
+    push_inline!(f, style)
+    print_literal(f, style, sprint(print, jv.ref[]), inv(style))
+    pop_inline!(f)
 end
 
 # Markdown output should be roundtrip-able, so printout the interpolated
 # expression rather than it's value.
-write_markdown(jv::JuliaValue, rend, node, ent) = print(rend.buffer, '$', "($(jv.ex))")
+markdown(jv::JuliaValue, f::Fmt, ::Node, ::Bool) = print(f.io, '$', "($(jv.ex))")

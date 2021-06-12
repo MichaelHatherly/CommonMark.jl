@@ -4,10 +4,10 @@
 
     test = function (bib, ast, _html, _latex, _markdown, _term)
         env = Dict{String,Any}("references" => bib)
-        @test html(ast, env) == _html
-        @test latex(ast, env) == _latex
-        @test markdown(ast, env) == _markdown
-        @test term(ast, env) == _term
+        @test html(ast; env=env) == _html
+        @test latex(ast; env=env) == _latex
+        @test markdown(ast; env=env) == _markdown
+        @test term(ast; env=env) == _term
     end
 
     # Unbracketed citations.
