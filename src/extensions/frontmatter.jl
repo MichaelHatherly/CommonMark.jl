@@ -86,3 +86,12 @@ function write_markdown(f::FrontMatter, w, node, ent)
     literal(w, f.fence, "\n")
     linebreak(w, node)
 end
+
+# Easilly extract the front matter from a parsed document
+function frontmatter(x::Node)
+    for (node, _) in x
+        if node.t isa FrontMatter
+            return node.t.data
+        end
+    end
+end
