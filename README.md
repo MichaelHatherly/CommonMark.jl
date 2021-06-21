@@ -116,6 +116,13 @@ using JSON
 enable!(parser, FrontMatterRule(json=JSON.Parser.parse))
 ```
 
+You can access front matter from a parsed file using `frontmatter`. As follows.
+
+```julia
+ast = open(parser, "document.md")
+meta = frontmatter(ast)
+```
+
 ### Footnotes
 
 ```julia

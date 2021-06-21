@@ -4,7 +4,7 @@
 
     test = function (text, expected)
         ast = p(text)
-        data = ast.first_child.t.data
+        data = frontmatter(ast)
         @test length(data) == 1
         @test data["field"] == "data"
         @test html(ast) == expected
@@ -51,7 +51,7 @@
     two = 2
     """
     ast = p(text)
-    data = ast.first_child.t.data
+    data = frontmatter(ast)
     @test data["one"] == 1
     @test data["two"] == 2
 
