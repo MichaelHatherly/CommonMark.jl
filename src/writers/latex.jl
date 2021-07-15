@@ -108,7 +108,7 @@ function write_latex(list::List, w, node, ent)
         literal(w, "\\begin{$command}\n")
         if command == "enumerate"
             literal(w, "\\def\\labelenumi{\\arabic{enumi}.}\n")
-            literal(w, "\\setcounter{enumi}{$(list.list_data.start)}\n")
+            literal(w, "\\setcounter{enumi}{$(list.list_data.start-1)}\n")
         end
         if list.list_data.tight
             literal(w, "\\setlength{\\itemsep}{0pt}\n")

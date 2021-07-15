@@ -73,11 +73,11 @@
     )
     test(
         "1. item",
-        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{1}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n"
+        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{0}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n"
     )
     test(
         "3. item",
-        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{3}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n"
+        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{2}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n"
     )
     test(
         "- item\n- item",
@@ -85,7 +85,7 @@
     )
     test(
         "1. item\n2. item",
-        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{1}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{enumerate}\n"
+        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{0}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{enumerate}\n"
     )
     test(
         "- item\n\n- item",
