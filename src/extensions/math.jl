@@ -107,7 +107,7 @@ inline_rule(::DollarMathRule) = Rule(parse_inline_dollar_math, 0, "\$")
 #
 
 function write_html(::Math, rend, node, enter)
-    tag(rend, "span", attributes(rend, node, ["class" => "math"]))
+    tag(rend, "span", attributes(rend, node, ["class" => "math tex"]))
     print(rend.buffer, "\\(", node.literal, "\\)")
     tag(rend, "/span")
 end
@@ -133,7 +133,7 @@ function write_markdown(::Math, w, node, ent)
 end
 
 function write_html(::DisplayMath, rend, node, enter)
-    tag(rend, "div", attributes(rend, node, ["class" => "display-math"]))
+    tag(rend, "div", attributes(rend, node, ["class" => "display-math tex"]))
     print(rend.buffer, "\\[", node.literal, "\\]")
     tag(rend, "/div")
 end

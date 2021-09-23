@@ -45,7 +45,7 @@ end
 
     value = :interpolation
     ast = cm"'some' ``math`` $value $(value)"custom_parser
-    @test html(ast) == "<p>'some' <span class=\"math\">\\(math\\)</span> <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
+    @test html(ast) == "<p>'some' <span class=\"math tex\">\\(math\\)</span> <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
     @test latex(ast) == "'some' \\(math\\) interpolation interpolation\\par\n"
     @test markdown(ast) == "'some' ``math`` \$(value) \$(value)\n"
     @test term(ast) == " 'some' \e[35mmath\e[39m \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
