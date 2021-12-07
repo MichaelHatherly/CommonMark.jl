@@ -70,7 +70,7 @@ end
 Writer(format, buffer=IOBuffer(), env=Dict{String,Any}()) = Writer(format, buffer, '\n', true, Dict{Symbol, Any}(), env)
 
 Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
-Base.get!(f, w::Writer, k::Symbol) = get!(f, w.context, k)
+Base.get!(f::Function, w::Writer, k::Symbol) = get!(f, w.context, k)
 
 function literal(r::Writer, args...)
     if r.enabled

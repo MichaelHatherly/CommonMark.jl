@@ -1,6 +1,9 @@
 using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
 
 @testset "CommonMark" begin
+    # Ensure no method ambiguities.
+    @test isempty(Test.detect_ambiguities(Base, Core, CommonMark; recursive = true))
+
     # Do we pass the CommonMark spec -- version 0.29.0.
     @testset "Spec" begin
         for case in JSON.Parser.parsefile(joinpath(@__DIR__, "spec.json"))
