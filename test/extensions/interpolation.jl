@@ -73,4 +73,10 @@ end
     # Interpolating collections.
     worlds = [HTML("<div>world $i</div>") for i in 1:3]
     @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+
+    worlds = (HTML("<div>world $i</div>") for i in 1:3)
+    @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+
+    worlds = Tuple(HTML("<div>world $i</div>") for i in 1:3)
+    @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
 end
