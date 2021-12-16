@@ -64,4 +64,9 @@ end
     @test markdown(ast) == "*expressions* \$(**test**)\n"
     @test term(ast) == " \e[3mexpressions\e[23m \e[33m**test**\e[39m\n"
 
+    # Interpolated values are not linked to their macroexpansion origin.
+    asts = [cm"Value = **$(each)**" for each in 1:3]
+    @test html(asts[1]) == "<p>Value = <strong><span class=\"julia-value\">1</span></strong></p>\n"
+    @test html(asts[2]) == "<p>Value = <strong><span class=\"julia-value\">2</span></strong></p>\n"
+    @test html(asts[3]) == "<p>Value = <strong><span class=\"julia-value\">3</span></strong></p>\n"
 end
