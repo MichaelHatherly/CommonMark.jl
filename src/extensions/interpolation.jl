@@ -165,6 +165,12 @@ function write_latex(jv::JuliaValue, rend, node, enter)
     print(rend.buffer, sprint(_showas, MIME("text/latex"), jv.ref))
 end
 
+function _showas(io::IO, m::MIME, collection::Union{Tuple,AbstractArray,Base.Generator})
+    for each in collection
+        _showas(io, m, each)
+        print(io, " ")
+    end
+end
 _showas(io::IO, m::MIME, obj) = showable(m, obj) ? show(io, m, obj) : print(io, obj)
 
 function write_term(jv::JuliaValue, rend, node, enter)

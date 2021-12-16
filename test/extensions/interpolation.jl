@@ -69,4 +69,8 @@ end
     @test html(asts[1]) == "<p>Value = <strong><span class=\"julia-value\">1</span></strong></p>\n"
     @test html(asts[2]) == "<p>Value = <strong><span class=\"julia-value\">2</span></strong></p>\n"
     @test html(asts[3]) == "<p>Value = <strong><span class=\"julia-value\">3</span></strong></p>\n"
+
+    # Interpolating collections.
+    worlds = [HTML("<div>world $i</div>") for i in 1:3]
+    @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
 end
