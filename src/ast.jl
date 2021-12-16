@@ -40,6 +40,39 @@ mutable struct Node
     end
 end
 
+function copy_tree(func::Function, root::Node)
+    lookup = Dict{Node,Node}()
+    for (old, enter) in root
+        if enter
+            lookup[old] = Node()
+        end
+    end
+    for (old, enter) in root
+        if enter
+            new = lookup[old]
+
+            # Custom copying of the node payload.
+            new.t = func(old.t)
+
+            new.parent = get(lookup, old.parent, NULL_NODE)
+            new.first_child = get(lookup, old.first_child, NULL_NODE)
+            new.last_child = get(lookup, old.last_child, NULL_NODE)
+            new.prv = get(lookup, old.prv, NULL_NODE)
+            new.nxt = get(lookup, old.nxt, NULL_NODE)
+
+            new.sourcepos = old.sourcepos
+            new.last_line_blank = old.last_line_blank
+            new.last_line_checked = old.last_line_checked
+            new.is_open = old.is_open
+            new.literal = old.literal
+
+            new.meta = copy(old.meta)
+        end
+    end
+    return lookup[root]
+end
+copy_tree(root::Node) = copy_tree(identity, root)
+
 const NULL_NODE = Node()
 isnull(node::Node) = node === NULL_NODE
 

@@ -8,8 +8,8 @@
 # macro expansion.
 struct JuliaValue <: AbstractInline
     ex
-    ref::Ref{Any}
-    JuliaValue(ex) = new(ex, Ref{Any}(nothing))
+    ref
+    JuliaValue(ex, value = nothing) = new(ex, value)
 end
 
 # This rule should only be used from the exported `@cm_str` macro and not
@@ -111,10 +111,11 @@ macro cm_str(str, name = "jmd")
 end
 
 function _interp!(ast::Node, refs::Vector, values::Vector)
-    for (jv, value) in zip(refs, values)
-        jv.ref[] = value
-    end
-    return ast
+    # Copy the parsed AST and replace any interpolations with their values.
+    lookup = Dict{JuliaValue,Any}(ref => value for (ref, value) in zip(refs, values))
+    replace(t::JuliaValue) = JuliaValue(t.ex, lookup[t])
+    replace(@nospecialize(other)) = other
+    return copy_tree(replace, ast)
 end
 
 function _init_parser(mod::Module, name::AbstractString)::Parser
@@ -156,20 +157,26 @@ end
 
 function write_html(jv::JuliaValue, rend, node, enter)
     tag(rend, "span", attributes(rend, node, ["class" => "julia-value"]))
-    print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref[]))
+    print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref))
     tag(rend, "/span")
 end
 
 function write_latex(jv::JuliaValue, rend, node, enter)
-    print(rend.buffer, sprint(_showas, MIME("text/latex"), jv.ref[]))
+    print(rend.buffer, sprint(_showas, MIME("text/latex"), jv.ref))
 end
 
+function _showas(io::IO, m::MIME, collection::Union{Tuple,AbstractArray,Base.Generator})
+    for each in collection
+        _showas(io, m, each)
+        print(io, " ")
+    end
+end
 _showas(io::IO, m::MIME, obj) = showable(m, obj) ? show(io, m, obj) : print(io, obj)
 
 function write_term(jv::JuliaValue, rend, node, enter)
     style = crayon"yellow"
     push_inline!(rend, style)
-    print_literal(rend, style, sprint(print, jv.ref[]), inv(style))
+    print_literal(rend, style, sprint(print, jv.ref), inv(style))
     pop_inline!(rend)
 end
 
