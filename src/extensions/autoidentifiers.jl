@@ -28,3 +28,12 @@ function slugify(str::AbstractString)
     str = lstrip(c -> isnumeric(c) || ispunct(c), str)
     return isempty(str) ? "section" : str
 end
+
+# https://github.com/MichaelHatherly/CommonMark.jl/issues/33
+function Base.get!(f::Function, d::IdDict{K,V}, k::K) where {K,V}
+    if haskey(d, k)
+        d[k]
+    else
+        d[k] = f()
+    end
+end
