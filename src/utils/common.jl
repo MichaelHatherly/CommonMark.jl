@@ -1,7 +1,7 @@
 # TODO: entity regex #[0-9]{1,8} not technically correct, should be #[0-9]{1,7}
 # but this seems to be required for passing one of the sample cases from cmark.
 const ENTITY                = "&(?:#x[a-f0-9]{1,6}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
-const TAGNAME               = "[A-Za-z][A-Za-z0-9-]*"
+const TAGNAME               = "[A-Za-z][A-Za-z0-9_-]*"
 const ATTRIBUTENAME         = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
 const UNQUOTEDVALUE         = "[^\"'=<>`\\x00-\\x20]+"
 const SINGLEQUOTEDVALUE     = "'[^']*'"
