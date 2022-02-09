@@ -77,7 +77,7 @@ valid_table_row(str) = startswith(str, '|')
 valid_table_spec(str) = !occursin(r"[^\|:\- ]", str)
 
 function parse_table_spec(str)
-    map(eachmatch(r"\|([ ]?[: ]?[-]+[ :]?[ ]?)\|", str; overlap=true)) do match
+    map(eachmatch(r"\|([ ]*[: ]?[-]+[ :]?[ ]*)\|", str; overlap=true)) do match
         str = strip(match[1])
         left, right = str[1] === ':', str[end] === ':'
         center = left && right

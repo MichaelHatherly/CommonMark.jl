@@ -102,4 +102,22 @@
     @test latex(ast) == "\\section{Messy tables}\n\\begin{longtable}[]{@{}c@{}}\n\\hline\ntable\\tabularnewline\n\\hline\n\\endfirsthead\n\\textit{|}\\tabularnewline\n\\hline\n\\end{longtable}\n"
     @test term(ast) == " \e[34;1m#\e[39;22m Messy tables\n \n ┏━━━━━━━┓\n ┃ table ┃\n ┠───────┨\n ┃   \e[3m|\e[23m   ┃\n ┗━━━━━━━┛\n"
     @test markdown(ast) == "# Messy tables\n\n| table |\n|:-----:|\n| *|*   |\n"
+
+
+    # tables with lots of whitespace
+
+    text =
+    """
+    # whitespace (#38)
+
+    | 1         | 2         | 3       |       4 |
+    |   :--:    |   :--     |   ---   |   -:    |
+    | one       | two       |   three |   four  |
+    """
+    ast = p(text)
+
+    @test html(ast) == "<h1>whitespace (#38)</h1>\n<table><thead><tr><th align=\"center\">1</th><th align=\"left\">2</th><th align=\"left\">3</th><th align=\"right\">4</th></tr></thead><tbody><tr><td align=\"center\">one</td><td align=\"left\">two</td><td align=\"left\">three</td><td align=\"right\">four</td></tr></tbody></table>"
+    @test latex(ast) == "\\section{whitespace (\\#38)}\n\\begin{longtable}[]{@{}cllr@{}}\n\\hline\n1 & 2 & 3 & 4\\tabularnewline\n\\hline\n\\endfirsthead\none & two & three & four\\tabularnewline\n\\hline\n\\end{longtable}\n"
+    @test term(ast) == " \e[34;1m#\e[39;22m whitespace (#38)\n \n ┏━━━━━┯━━━━━┯━━━━━━━┯━━━━━━┓\n ┃  1  │ 2   │ 3     │    4 ┃\n ┠─────┼─────┼───────┼──────┨\n ┃ one │ two │ three │ four ┃\n ┗━━━━━┷━━━━━┷━━━━━━━┷━━━━━━┛\n"
+    @test markdown(ast) == "# whitespace (#38)\n\n| 1   | 2   | 3     | 4    |\n|:---:|:--- |:----- | ----:|\n| one | two | three | four |\n"
 end
