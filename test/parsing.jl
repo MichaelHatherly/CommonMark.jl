@@ -22,4 +22,19 @@
     @test ast.first_child.t isa CommonMark.Paragraph
     @test ast.first_child.first_child.nxt.t isa CommonMark.Emph
     @test markdown(ast) == "# *not a header*\n"
+
+    # Make sure that enable! or disable! do not create duplicate rules
+    # https://github.com/MichaelHatherly/CommonMark.jl/issues/45
+    are_rules_unique(p::Parser) = p.rules == unique(p.rules)
+    @test are_rules_unique(Parser())
+    @test are_rules_unique(enable!(Parser(), TableRule()))
+    @test are_rules_unique(enable!(Parser(), [TableRule(), FootnoteRule()]))
+    @test_broken are_rules_unique(enable!(Parser(), LinkRule()))
+    @test_broken are_rules_unique(enable!(Parser(), [LinkRule(), ImageRule()]))
+    @test_broken are_rules_unique(enable!(Parser(), [LinkRule(), FootnoteRule()]))
+    @test_broken are_rules_unique(disable!(Parser(), LinkRule()))
+    @test_broken are_rules_unique(disable!(Parser(), [LinkRule(), ImageRule()]))
+    @test_broken are_rules_unique(disable!(Parser(), TableRule()))
+    @test_broken are_rules_unique(disable!(Parser(), [TableRule(), FootnoteRule()]))
+    @test_broken are_rules_unique(disable!(Parser(), [LinkRule(), FootnoteRule()]))
 end
