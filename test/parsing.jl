@@ -26,15 +26,81 @@
     # Make sure that enable! or disable! do not create duplicate rules
     # https://github.com/MichaelHatherly/CommonMark.jl/issues/45
     are_rules_unique(p::Parser) = p.rules == unique(p.rules)
-    @test are_rules_unique(Parser())
-    @test are_rules_unique(enable!(Parser(), TableRule()))
-    @test are_rules_unique(enable!(Parser(), [TableRule(), FootnoteRule()]))
-    @test_broken are_rules_unique(enable!(Parser(), LinkRule()))
-    @test_broken are_rules_unique(enable!(Parser(), [LinkRule(), ImageRule()]))
-    @test_broken are_rules_unique(enable!(Parser(), [LinkRule(), FootnoteRule()]))
-    @test_broken are_rules_unique(disable!(Parser(), LinkRule()))
-    @test_broken are_rules_unique(disable!(Parser(), [LinkRule(), ImageRule()]))
-    @test_broken are_rules_unique(disable!(Parser(), TableRule()))
-    @test_broken are_rules_unique(disable!(Parser(), [TableRule(), FootnoteRule()]))
-    @test_broken are_rules_unique(disable!(Parser(), [LinkRule(), FootnoteRule()]))
+    let p = Parser()
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = enable!(Parser(), TableRule())
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∈ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = enable!(Parser(), [TableRule(), FootnoteRule()])
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∈ p.rules
+        @test FootnoteRule() ∈ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = enable!(Parser(), LinkRule())
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = enable!(Parser(), [LinkRule(), ImageRule()])
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = enable!(Parser(), [LinkRule(), FootnoteRule()])
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∈ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = disable!(Parser(), LinkRule())
+        @test LinkRule() ∉ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = disable!(Parser(), [LinkRule(), ImageRule()])
+        @test LinkRule() ∉ p.rules
+        @test ImageRule() ∉ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = disable!(Parser(), TableRule())
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = disable!(Parser(), [TableRule(), FootnoteRule()])
+        @test LinkRule() ∈ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
+    let p = disable!(Parser(), [LinkRule(), FootnoteRule()])
+        @test LinkRule() ∉ p.rules
+        @test ImageRule() ∈ p.rules
+        @test TableRule() ∉ p.rules
+        @test FootnoteRule() ∉ p.rules
+        @test are_rules_unique(p)
+    end
 end

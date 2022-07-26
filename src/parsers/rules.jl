@@ -27,6 +27,7 @@ enable!(p::AbstractParser, fn, rules::Union{Tuple,Vector}) = (foreach(r -> enabl
 enable!(p::AbstractParser, fn, rule) = enable!(p, fn, fn(rule))
 
 function enable!(p::AbstractParser, rule)
+    rule ∈ p.rules && return p
     enable!(p, inline_rule, rule)
     enable!(p, inline_modifier, rule)
     enable!(p, block_rule, rule)
@@ -44,13 +45,14 @@ get_funcs(p, ::typeof(block_modifier), _)  = p.modifiers
 get_funcs(p, ::typeof(inline_modifier), _) = p.inline_parser.modifiers
 
 function disable!(p::AbstractParser, rules::Union{Tuple, Vector})
+    rules_kept = filter(f -> f ∉ rules, p.rules)
     empty!(p.priorities)
     empty!(p.block_starts)
     empty!(p.modifiers)
     empty!(p.inline_parser.inline_parsers)
     empty!(p.inline_parser.modifiers)
-    filter!(f -> f ∉ rules, p.rules)
-    return enable!(p, copy(p.rules))
+    empty!(p.rules)
+    return enable!(p, rules_kept)
 end
 disable!(p::AbstractParser, rule) = disable!(p, [rule])
 
