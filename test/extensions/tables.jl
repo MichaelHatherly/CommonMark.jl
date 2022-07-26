@@ -120,4 +120,13 @@
     @test latex(ast) == "\\section{whitespace (\\#38)}\n\\begin{longtable}[]{@{}cllr@{}}\n\\hline\n1 & 2 & 3 & 4\\tabularnewline\n\\hline\n\\endfirsthead\none & two & three & four\\tabularnewline\n\\hline\n\\end{longtable}\n"
     @test term(ast) == " \e[34;1m#\e[39;22m whitespace (#38)\n \n ┏━━━━━┯━━━━━┯━━━━━━━┯━━━━━━┓\n ┃  1  │ 2   │ 3     │    4 ┃\n ┠─────┼─────┼───────┼──────┨\n ┃ one │ two │ three │ four ┃\n ┗━━━━━┷━━━━━┷━━━━━━━┷━━━━━━┛\n"
     @test markdown(ast) == "# whitespace (#38)\n\n| 1   | 2   | 3     | 4    |\n|:---:|:--- |:----- | ----:|\n| one | two | three | four |\n"
+
+    let trule1 = TableRule(), trule2 = TableRule()
+        @test trule1 !== trule2
+        @test trule1 == trule2
+        push!(trule1.pipes, CommonMark.Node())
+        @test trule1 == trule2
+        push!(trule2.pipes, CommonMark.Node())
+        @test trule1 == trule2
+    end
 end

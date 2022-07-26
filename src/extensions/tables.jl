@@ -90,6 +90,8 @@ struct TableRule
     pipes::Vector{Node}
     TableRule() = new([])
 end
+# Two TableRules are considered equal independent of the contents of .pipes
+Base.:(==)(::TableRule, ::TableRule) = true
 
 block_rule(::TableRule) = Rule(gfm_table, 0.5, "|")
 
