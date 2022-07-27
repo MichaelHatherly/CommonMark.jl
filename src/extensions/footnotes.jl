@@ -2,8 +2,6 @@ struct FootnoteRule
     cache::Dict{String, Node}
     FootnoteRule() = new(Dict())
 end
-# Two FootnoteRules are considered equal independent of their cache status
-Base.:(==)(::FootnoteRule, ::FootnoteRule) = true
 block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
     if !parser.indented
         ln = SubString(parser.buf, parser.next_nonspace)

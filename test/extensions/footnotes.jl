@@ -67,13 +67,4 @@
     @test latex(ast) == "" # Definitions vanish in LaTeX since they are inlined.
     @test term(ast) == " \e[31m┌ [^1] ───────────────────────────────────────────────────────────────────────\e[39m\n \e[31m│\e[39m text\n \e[31m└─────────────────────────────────────────────────────────────────────────────\e[39m\n"
     @test markdown(ast) == "[^1]: text\n"
-
-    let fnrule1 = FootnoteRule(), fnrule2 = FootnoteRule()
-        @test fnrule1 !== fnrule2
-        @test fnrule1 == fnrule2
-        fnrule1.cache["foo"] = CommonMark.Node()
-        @test fnrule1 == fnrule2
-        fnrule2.cache["bar"] = CommonMark.Node()
-        @test fnrule1 == fnrule2
-    end
 end
