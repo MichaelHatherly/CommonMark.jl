@@ -155,13 +155,12 @@ function parse_close_bracket(parser::InlineParser, block::Node)
             # If shortcut reference link, rewind before spaces we skipped.
             seek(parser, savepos)
         end
-        if !isempty(reflabel)
-            # Lookup rawlabel in refmap.
-            link = get(parser.refmap, normalize_reference(reflabel), nothing)
-            if link !== nothing
-                dest, title = link
-                matched = true
-            end
+        # Lookup rawlabel in refmap. Note: it is possible for the refmap callbacks to
+        # return a meaningful link for empty reflabels too.
+        link = get(parser.refmap, normalize_reference(reflabel), nothing)
+        if link !== nothing
+            dest, title = link
+            matched = true
         end
     end
     if matched
@@ -211,7 +210,7 @@ end
 
 remove_bracket!(p::InlineParser) = p.brackets = p.brackets.previous
 
-function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
+function parse_reference(parser::InlineParser, s::AbstractString, refmap::RefMap)
     parser.buf = s
     seek(parser, 1)
     startpos = position(parser)

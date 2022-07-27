@@ -44,7 +44,7 @@ mutable struct Parser <: AbstractParser
     partially_consumed_tab::Bool
     all_closed::Bool
     last_matched_container::Node
-    refmap::Dict{String, Tuple{String, String}}
+    refmap::RefMap
     last_line_length::Int
     inline_parser::InlineParser
     rules::Vector{Any}
@@ -70,7 +70,7 @@ mutable struct Parser <: AbstractParser
         parser.partially_consumed_tab = false
         parser.all_closed = true
         parser.last_matched_container = parser.doc
-        parser.refmap = Dict()
+        parser.refmap = RefMap()
         parser.last_line_length = 0
         parser.inline_parser = InlineParser()
         parser.rules = []
@@ -427,7 +427,7 @@ function parse(parser::Parser, my_input::IO; kws...)
     parser.doc = Node(Document(), ((1, 1), (0, 0)))
     isempty(kws) || (merge!(parser.doc.meta, Dict(string(k) => v for (k, v) in kws)))
     parser.tip = parser.doc
-    parser.refmap = Dict{String, Tuple{String, String}}()
+    empty!(parser.refmap.cache)
     parser.line_number = 0
     parser.last_line_length = 0
     parser.pos = 1

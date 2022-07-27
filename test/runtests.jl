@@ -20,6 +20,7 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
     include("spec.jl")
     include("ast.jl")
     include("parsing.jl")
+    include("parser_hooks.jl")
     include("writers.jl")
     include("extensions.jl")
     include("templates.jl")

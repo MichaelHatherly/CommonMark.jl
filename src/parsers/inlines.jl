@@ -41,6 +41,33 @@ mutable struct Bracket
     bracket_after::Bool
 end
 
+struct RefMap
+    cache::Dict{String, Tuple{String, String}}
+    callbacks::Vector{Any}
+
+    RefMap() = new(Dict(), [])
+end
+Base.haskey(refmap::RefMap, key) = haskey(refmap.cache, key)
+Base.setindex!(refmap::RefMap, value, key) = setindex!(refmap.cache, value, key)
+function Base.get(refmap::RefMap, key, default)
+    haskey(refmap.cache, key) && return refmap.cache[key]
+    isempty(refmap.callbacks) && return default
+    # If there are fallback callbacks, we go through them in order until we find
+    # a link, or return the default.
+    local fallback
+    for cb in refmap.callbacks
+        fallback = cb(key)
+        if fallback !== nothing
+            # We'll also store the fallback in the .cache, so that we don't call
+            # the callbacks again for this label, and would use consistent links
+            # for all of them.
+            refmap.cache[key] = fallback
+            return fallback
+        end
+    end
+    return default
+end
+
 mutable struct InlineParser <: AbstractParser
     # required
     buf::String
@@ -49,7 +76,7 @@ mutable struct InlineParser <: AbstractParser
     # extra
     brackets::Union{Nothing, Bracket}
     delimiters::Union{Nothing, Delimiter}
-    refmap::Dict{String, Any}
+    refmap::RefMap
     inline_parsers::Dict{Char, Vector{Function}}
     modifiers::Vector{Function}
 
@@ -60,7 +87,7 @@ mutable struct InlineParser <: AbstractParser
         parser.len = length(parser.buf)
         parser.brackets = nothing
         parser.delimiters = nothing
-        parser.refmap = Dict()
+        parser.refmap = RefMap()
         parser.inline_parsers = Dict()
         parser.modifiers = Function[]
         return parser
