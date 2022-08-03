@@ -4,14 +4,6 @@
 # from within the `@cm_str` macro otherwise the expressions won't have "time"
 # to actually evaluate.
 
-# Captures an expression and the future value associated with it after
-# macro expansion.
-struct JuliaValue <: AbstractInline
-    ex
-    ref
-    JuliaValue(ex, value = nothing) = new(ex, value)
-end
-
 # This rule should only be used from the exported `@cm_str` macro and not
 # `enabled!` directly by users on a `Parser` object.
 struct JuliaInterpolationRule

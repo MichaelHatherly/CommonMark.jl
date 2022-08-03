@@ -1,5 +1,3 @@
-struct ThematicBreak <: AbstractBlock end
-
 accepts_lines(::ThematicBreak) = false
 
 continue_(::ThematicBreak, ::Parser, ::Node) = 1

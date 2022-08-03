@@ -1,35 +1,13 @@
-abstract type TableComponent <: AbstractBlock end
-
 is_container(::TableComponent) = true
 accepts_lines(::TableComponent) = false
 finalize(table::TableComponent, parser::Parser, node::Node) = nothing
 can_contain(::TableComponent, ::Any) = false
 
-struct Table <: TableComponent
-    spec::Vector{Symbol}
-    Table(spec) = new(spec)
-end
-
 continue_(table::Table, parser::Parser, container::Node) = 0
-
-struct TableHeader <: TableComponent
-end
-
-struct TableBody <: TableComponent
-end
 
 continue_(table::TableBody, parser::Parser, container::Node) = 1
 
-struct TableRow <: TableComponent
-end
-
 contains_inlines(::TableRow) = true
-
-struct TableCell <: TableComponent
-    align::Symbol
-    header::Bool
-    column::Int
-end
 
 contains_inlines(::TableCell) = true
 

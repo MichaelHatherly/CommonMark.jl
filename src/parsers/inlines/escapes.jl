@@ -16,7 +16,5 @@ function parse_backslash(parser::InlineParser, block::Node)
     return true
 end
 
-struct Backslash <: AbstractInline end
-
 struct BackslashEscapeRule end
 inline_rule(::BackslashEscapeRule) = Rule(parse_backslash, 1, "\\")

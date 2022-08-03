@@ -22,10 +22,6 @@ inline_rule(fr::FootnoteRule) = Rule(0.5, "[") do p, node
     return true
 end
 
-struct FootnoteDefinition <: AbstractBlock
-    id::String
-end
-
 struct FootnoteLink <: AbstractInline
     id::String
     rule::FootnoteRule

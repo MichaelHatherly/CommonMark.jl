@@ -1,6 +1,3 @@
-struct SoftBreak <: AbstractInline end
-struct LineBreak <: AbstractInline end
-
 function parse_string(parser::InlineParser, block::Node)
     start = position(parser)
     while true

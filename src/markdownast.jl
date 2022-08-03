@@ -95,3 +95,51 @@ function Base.setproperty!(node::Node, name::Symbol, x)
         invoke(setproperty!, Tuple{MarkdownAST.Node, Symbol, Any}, node, name, x)
     end
 end
+
+# Import the elements from MarkdownAST. Some need to be renamed, and some can not be
+# included because the implementation in MarkdownAST has a different structure.
+using MarkdownAST:
+    Admonition,
+    FootnoteDefinition,
+    #DisplayMath, -- depends on .literal
+    BlockQuote,
+    ThematicBreak,
+    #List, -- list elements have a different structure on CM
+    #Item,
+    Paragraph,
+    Heading,
+    #CodeBlock, -- depends on .literal, and CM also has heaps of extra fields
+    Document,
+    Table,
+    TableComponent,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableCell
+#const HtmlBlock = MarkdownAST.HTMLBlock
+using MarkdownAST:
+    #Text, -- depends on .literal
+    JuliaValue,
+    #FootnoteLink, -- CM has .rule field not present in MDAST
+    Link,
+    Image,
+    Backslash,
+    SoftBreak,
+    LineBreak,
+    #Code, -- depends on .literal
+    Emph,
+    Strong
+#const Math = MarkdownAST.InlineMath -- depends on .literal
+#const HtmlInline = MarkdownAST.HTMLInline -- depends on .literal
+
+# Fallback constructors. MarkdownAST generally doesn't allow constructing elements that
+# do not make sense semantically, but CommonMark relies on the ability to create these
+# "null" instances of elements in some cases.
+function MarkdownAST.Heading()
+    # MarkdownAST doesn't allow .level == 0 headings officially
+    h = Heading(1)
+    h.level = 0
+    return h
+end
+MarkdownAST.Link() = Link("", "")
+MarkdownAST.Image() = Image("", "")
