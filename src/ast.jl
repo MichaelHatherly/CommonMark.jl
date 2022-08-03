@@ -1,47 +1,7 @@
-abstract type AbstractContainer end
-abstract type AbstractBlock <: AbstractContainer end
-abstract type AbstractInline <: AbstractContainer end
-
 is_container(::AbstractContainer) = false
 
-const SourcePos = NTuple{2, NTuple{2, Int}}
-
-mutable struct Node
-    t::AbstractContainer
-    parent::Node
-    first_child::Node
-    last_child::Node
-    prv::Node
-    nxt::Node
-    sourcepos::SourcePos
-    last_line_blank::Bool
-    last_line_checked::Bool
-    is_open::Bool
-    literal::String
-    meta::Dict{String,Any}
-
-    Node() = new()
-
-    function Node(t::AbstractContainer, sourcepos=((0, 0), (0, 0)))
-        node = new()
-        node.t = t
-        node.parent = NULL_NODE
-        node.first_child = NULL_NODE
-        node.last_child = NULL_NODE
-        node.prv = NULL_NODE
-        node.nxt = NULL_NODE
-        node.sourcepos = sourcepos
-        node.last_line_blank = false
-        node.last_line_checked = false
-        node.is_open = true
-        node.literal = ""
-        node.meta = Dict{String,Any}()
-        return node
-    end
-end
-
 function copy_tree(func::Function, root::Node)
-    lookup = Dict{Node,Node}()
+    lookup = IdDict{Node,Node}()
     for (old, enter) in root
         if enter
             lookup[old] = Node()
@@ -72,9 +32,6 @@ function copy_tree(func::Function, root::Node)
     return lookup[root]
 end
 copy_tree(root::Node) = copy_tree(identity, root)
-
-const NULL_NODE = Node()
-isnull(node::Node) = node === NULL_NODE
 
 is_container(node::Node) = is_container(node.t)::Bool
 
