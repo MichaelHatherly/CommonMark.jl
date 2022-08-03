@@ -344,7 +344,7 @@ end
 # Utilities.
 
 function calculate_columns_widths(width_func, table, node)
-    cells, widths = Dict{Node,Int}(), ones(Int, length(table.spec))
+    cells, widths = IdDict{Node,Int}(), ones(Int, length(table.spec))
     index = 0
     for (n, enter) in node
         if enter
