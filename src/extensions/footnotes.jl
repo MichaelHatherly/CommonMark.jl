@@ -1,7 +1,7 @@
-struct FootnoteRule
-    cache::Dict{String, Node}
-    FootnoteRule() = new(Dict())
-end
+# struct FootnoteRule
+#     cache::Dict{String, Node}
+#     FootnoteRule() = new(Dict())
+# end
 block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
     if !parser.indented
         ln = SubString(parser.buf, parser.next_nonspace)
@@ -20,11 +20,6 @@ inline_rule(fr::FootnoteRule) = Rule(0.5, "[") do p, node
     m === nothing && return false
     append_child(node, Node(FootnoteLink(m[1], fr)))
     return true
-end
-
-struct FootnoteLink <: AbstractInline
-    id::String
-    rule::FootnoteRule
 end
 
 is_container(::FootnoteDefinition) = true

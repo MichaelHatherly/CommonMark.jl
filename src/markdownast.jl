@@ -7,6 +7,51 @@ struct NullElement <: AbstractContainer end
 
 const SourcePos = NTuple{2, NTuple{2, Int}}
 
+# A few elements / containers have extra fields in CM, relative to MarkdownAST.
+# This here implements a workaround where node.meta.elementextra
+abstract type AbstractElementExtra end
+struct ElementWrapper{T <: MarkdownAST.AbstractElement, U <: AbstractElementExtra} <: MarkdownAST.AbstractElement
+    element::T
+    extra::U
+    ElementWrapper(element::T, extra::U) where {T, U} = new{T,U}(element, extra)
+end
+
+function Base.getproperty(ew::ElementWrapper{T,U}, name::Symbol) where {T, U}
+    if name in fieldnames(U)
+        getproperty(getfield(ew, :extra), name)
+    else
+        getproperty(getfield(ew, :element), name)
+    end
+end
+function Base.setproperty!(ew::ElementWrapper{T,U}, name::Symbol, x) where {T, U}
+    if name in fieldnames(U)
+        setproperty!(getfield(ew, :extra), name, x)
+    else
+        setproperty!(getfield(ew, :element), name, x)
+    end
+end
+
+mutable struct CodeBlockExtra <: AbstractElementExtra
+    is_fenced::Bool
+    fence_char::Char
+    fence_length::Int
+    fence_offset::Int
+    CodeBlockExtra() = new(false, '\0', 0, 0)
+end
+const CodeBlock = ElementWrapper{MarkdownAST.CodeBlock, CodeBlockExtra}
+CodeBlock() = ElementWrapper(MarkdownAST.CodeBlock("", ""), CodeBlockExtra())
+hasextrafields(::MarkdownAST.CodeBlock) = true
+
+mutable struct HtmlBlockExtra <: AbstractElementExtra
+    html_block_type::Int
+    HtmlBlockExtra() = new(0)
+end
+const HtmlBlock = ElementWrapper{MarkdownAST.HTMLBlock, HtmlBlockExtra}
+HtmlBlock() = ElementWrapper(MarkdownAST.HTMLBlock(""), HtmlBlockExtra())
+hasextrafields(::MarkdownAST.HTMLBlock) = true
+
+hasextrafields(::MarkdownAST.AbstractElement) = false # fallback
+
 mutable struct NodeMeta
     sourcepos::SourcePos
     last_line_blank::Bool
@@ -14,6 +59,8 @@ mutable struct NodeMeta
     is_open::Bool
     literal::String
     meta::Dict{String,Any}
+    # This field is for storing the extra fields of the current element
+    ew::ElementWrapper
 
     function NodeMeta(sourcepos=((0, 0), (0, 0)))
         m = new()
@@ -33,7 +80,9 @@ Node(t::AbstractContainer) = Node(reset_literal_element!(t), NodeMeta())
 Node() = Node(NullElement())
 
 function Base.getproperty(node::Node, name::Symbol)
-    if name === :parent
+    if name === :t
+        hasextrafields(getfield(node, :t)) ? getfield(node, :meta).ew : getfield(node, :t)
+    elseif name === :parent
         n = getfield(node, :parent)
         isnothing(n) ? NULL_NODE : n
     elseif name === :first_child
@@ -67,7 +116,12 @@ end
 
 function Base.setproperty!(node::Node, name::Symbol, x)
     if name === :t
-        setfield!(node, :t, reset_literal_element!(x, node.literal))
+        if x isa ElementWrapper
+            setfield!(node, :t, reset_literal_element!(getfield(x, :element), node.literal))
+            setfield!(getfield(node, :meta), :ew, x)
+        else
+            setfield!(node, :t, reset_literal_element!(x, node.literal))
+        end
     elseif name === :parent
         setfield!(node, :parent, (x === NULL_NODE) ? nothing : x)
     elseif name === :first_child
@@ -107,7 +161,7 @@ using MarkdownAST:
     #Item,
     Paragraph,
     Heading,
-    #CodeBlock, -- depends on .literal, and CM also has heaps of extra fields
+    #CodeBlock, -- handled via ElementWrapper
     Document,
     Table,
     TableComponent,
@@ -115,11 +169,11 @@ using MarkdownAST:
     TableBody,
     TableRow,
     TableCell
-#const HtmlBlock = MarkdownAST.HTMLBlock
+#const HtmlBlock = MarkdownAST.HTMLBlock -- handled via ElementWrapper
 using MarkdownAST:
     Text,
     JuliaValue,
-    #FootnoteLink, -- CM has .rule field not present in MDAST
+    #FootnoteLink, -- handled via ElementWrapper
     Link,
     Image,
     Backslash,
@@ -144,10 +198,8 @@ MarkdownAST.Link() = Link("", "")
 MarkdownAST.Image() = Image("", "")
 MarkdownAST.Text() = Text("")
 MarkdownAST.Code() = Code("")
-#MarkdownAST.CodeBlock(info) = CodeBlock(info, "")
 MarkdownAST.DisplayMath() = DisplayMath("")
 MarkdownAST.InlineMath() = MarkdownAST.InlineMath("")
-#MarkdownAST.HTMLBlock() = MarkdownAST.HTMLBlock("")
 MarkdownAST.HTMLInline() = MarkdownAST.HTMLInline("")
 
 # This is a workaround for elements / containers which in CM store their contents
@@ -155,11 +207,11 @@ MarkdownAST.HTMLInline() = MarkdownAST.HTMLInline("")
 # for the nodes that have such an element, we return the value from the .element instead.
 # When setting, we set both the .meta.literal and the element fields.
 literalfield(::Text) = :text
-literalfield(::Union{Code}) = :code
-#literalfield(::Union{CodeBlock,Code}) = :code
+#literalfield(::Union{Code}) = :code
+literalfield(::Union{CodeBlock,Code}) = :code
 literalfield(::Union{DisplayMath,MarkdownAST.InlineMath}) = :math
-literalfield(::Union{MarkdownAST.HTMLInline}) = :html
-#literalfield(::Union{MarkdownAST.HTMLBlock,MarkdownAST.HTMLInline}) = :html
+#literalfield(::Union{MarkdownAST.HTMLInline}) = :html
+literalfield(::Union{MarkdownAST.HTMLBlock,MarkdownAST.HTMLInline}) = :html
 literalfield(::Any) = nothing
 function getliteral(node::Node)
     field = literalfield(node.element)
@@ -167,7 +219,7 @@ function getliteral(node::Node)
         # Just in case, we check for a mismatch between the element and meta literal values.
         # This will happen in copy_free(), so we ignore that, but we shouldn't get it otherwise,
         # in which case we print a warning for now.
-        if getfield(node.element, field) != getfield(node, :meta).literal
+        if getproperty(node.element, field) != getfield(node, :meta).literal
             if !any(sf -> sf.func == :copy_tree, stacktrace())
                 st = sprint(show, "text/plain", stacktrace())
                 @warn "A literal mismatch: $(node.element)\n$(st)" getfield(node.element, field) getfield(node, :meta).literal
@@ -178,7 +230,7 @@ function getliteral(node::Node)
 end
 function setliteral!(node::Node, x)
     field = literalfield(node.element)
-    (field === nothing) || setfield!(node.element, field, convert(String, x))
+    (field === nothing) || setproperty!(node.element, field, convert(String, x))
     getfield(node, :meta).literal = x
     return x
 end
@@ -187,9 +239,21 @@ end
 # update the .t field of a node.
 function reset_literal_element!(element::AbstractContainer, literal = "")
     field = literalfield(element)
-    (field === nothing) || setfield!(element, field, literal)
+    (field === nothing) || setproperty!(element, field, literal)
     return element
 end
 
 const NULL_NODE = Node()
 isnull(node::Node) = (node.element isa NullElement)
+
+# FootnoteRule temporarily moved here so that definition would be available
+struct FootnoteRule
+    cache::Dict{String, Node}
+    FootnoteRule() = new(Dict())
+end
+struct FootnoteLinkExtra <: AbstractElementExtra
+    rule::FootnoteRule
+end
+const FootnoteLink = ElementWrapper{MarkdownAST.FootnoteLink, FootnoteLinkExtra}
+FootnoteLink(id, rule) = ElementWrapper(MarkdownAST.FootnoteLink(id), FootnoteLinkExtra(rule))
+hasextrafields(::MarkdownAST.FootnoteLink) = true
