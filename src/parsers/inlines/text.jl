@@ -97,8 +97,6 @@ function smart_dashes(chars::AbstractString)
     return '\u2014'^em_count * '\u2013'^en_count
 end
 
-struct Text <: AbstractInline end
-
 function text(s::AbstractString)
     node = Node(Text())
     node.literal = s

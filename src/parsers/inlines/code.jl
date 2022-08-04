@@ -1,5 +1,3 @@
-struct Code <: AbstractInline end
-
 function parse_backticks(parser::InlineParser, block::Node)
     # Any length sequence of backticks is a valid code opener.
     ticks = consume(parser, match(reTicksHere, parser))

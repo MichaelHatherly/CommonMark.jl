@@ -1,5 +1,3 @@
-struct HtmlInline <: AbstractInline end
-
 function parse_html_tag(parser::InlineParser, block::Node)
     m = consume(parser, match(reHtmlTag, parser))
     m === nothing && return false
