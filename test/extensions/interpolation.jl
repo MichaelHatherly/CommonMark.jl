@@ -57,6 +57,16 @@ end
     @test markdown(ast) == "\$(value) \$(value + 1) \$(value += 1) \$(value += 1)\n"
     @test term(ast) == " \e[33m1\e[39m \e[33m2\e[39m \e[33m2\e[39m \e[33m3\e[39m\n"
 
+    # A case that can fail if the @cm_str macro relies on evaluating the passed expressions in argument
+    # lists (like the constructor of a vector).
+    # https://github.com/JuliaLang/julia/issues/46251
+    let
+        global value_global
+        value_global = 1
+        ast = cm"$(value_global) $(value_global + 1) $(value_global += 1) $(value_global += 1)"
+        @test_broken latex(ast) == "1 2 2 3\\par\n"
+    end
+
     # Interpolated strings are not markdown-interpreted
     ast = cm"""*expressions* $("**test**")"""
     @test html(ast) == "<p><em>expressions</em> <span class=\"julia-value\">**test**</span></p>\n"
