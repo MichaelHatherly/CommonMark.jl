@@ -89,4 +89,15 @@ end
 
     worlds = Tuple(HTML("<div>world $i</div>") for i in 1:3)
     @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+
+    # Make sure that the evaluation of values happens at runtime.
+    f(x) = cm"if x = $(x), then x² = $(x^2)"
+    let ast = f(2)
+        @test markdown(ast) == "if x = \$(x), then x² = \$(x ^ 2)\n"
+        @test term(ast) == " if x = \e[33m2\e[39m, then x² = \e[33m4\e[39m\n"
+    end
+    let ast = f(-3)
+        @test markdown(ast) == "if x = \$(x), then x² = \$(x ^ 2)\n"
+        @test term(ast) == " if x = \e[33m-3\e[39m, then x² = \e[33m9\e[39m\n"
+    end
 end

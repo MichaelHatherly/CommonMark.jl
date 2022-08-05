@@ -107,7 +107,12 @@ macro cm_str(str, name = "jmd")
     parser = _init_parser(__module__, name)
     enable!(parser, ji)
     ast = parser(str)
-    return :(_interp!($ast, $(ji.captured), $(Expr(:vect, [esc(v.ex) for v in ji.captured]...))))
+    expr = Expr(:block, :(values = []))
+    for v in ji.captured
+        push!(expr.args, :(let x = $(esc(v.ex)); push!(values, x); end))
+    end
+    push!(expr.args, :(_interp!($ast, $(ji.captured), values)))
+    return expr
 end
 
 function _interp!(ast::Node, refs::Vector, values::Vector)
