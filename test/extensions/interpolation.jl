@@ -64,7 +64,7 @@ end
         global value_global
         value_global = 1
         ast = cm"$(value_global) $(value_global + 1) $(value_global += 1) $(value_global += 1)"
-        @test_broken latex(ast) == "1 2 2 3\\par\n"
+        @test latex(ast) == "1 2 2 3\\par\n"
     end
 
     # Interpolated strings are not markdown-interpreted
