@@ -107,7 +107,16 @@ macro cm_str(str, name = "jmd")
     parser = _init_parser(__module__, name)
     enable!(parser, ji)
     ast = parser(str)
-    return :(_interp!($ast, $(ji.captured), $(Expr(:vect, [esc(v.ex) for v in ji.captured]...))))
+    # We construct an expression that first, one-by-one and in order, evaluates each
+    # of the interpolated expressions that appeared in the string, adds them to a
+    # list, and finally calls _interp! on it to update the AST with the evaluated
+    # values.
+    expr = Expr(:block, :(values = []))
+    for v in ji.captured
+        push!(expr.args, :(let x = $(esc(v.ex)); push!(values, x); end))
+    end
+    push!(expr.args, :(_interp!($ast, $(ji.captured), values)))
+    return expr
 end
 
 function _interp!(ast::Node, refs::Vector, values::Vector)
