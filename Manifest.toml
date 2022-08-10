@@ -3,6 +3,11 @@
 julia_version = "1.7.3"
 manifest_format = "2.0"
 
+[[deps.AbstractTrees]]
+git-tree-sha1 = "5c0b629df8a5566a06f5fef5100b53ea56e465a0"
+uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
+version = "0.4.2"
+
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
@@ -26,8 +31,8 @@ deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[deps.MarkdownAST]]
-deps = ["Markdown"]
-git-tree-sha1 = "49f6558614881bf9eabbd79080f2efd56a62b0ce"
+deps = ["AbstractTrees", "Markdown"]
+git-tree-sha1 = "40b4057247286adb313e3d63acfe2fafc5b42487"
 repo-rev = "main"
 repo-url = "https://github.com/JuliaDocs/MarkdownAST.jl.git"
 uuid = "d0879d2d-cac2-40c8-9cee-1863dc0c7391"
