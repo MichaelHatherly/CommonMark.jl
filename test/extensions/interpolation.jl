@@ -100,4 +100,22 @@ end
         @test markdown(ast) == "if x = \$(x), then x² = \$(x ^ 2)\n"
         @test term(ast) == " if x = \e[33m-3\e[39m, then x² = \e[33m9\e[39m\n"
     end
+
+    # Make sure that a variable that evaluates to different values in different positions
+    # gets interpolated correctly.
+    let x = 1
+        function f!(); x += 1; 42; end # closure that updates the local `x` variable
+        ast = cm"$(x), $(f!()), $(x)"
+        @test markdown(ast) == "\$(x), \$(f!()), \$(x)\n"
+        @test term(ast) == " \e[33m1\e[39m, \e[33m42\e[39m, \e[33m2\e[39m\n"
+    end
+
+    # ASTs containing JuliaExpression elements
+    p = Parser()
+    enable!(p, CommonMark.JuliaInterpolationRule())
+    ast = p("foo: \$(foo), \$(x ^ 2), \$1234")
+    @test html(ast) == "<p>foo: <span class=\"julia-expr\">\$(foo)</span>, <span class=\"julia-expr\">\$(x ^ 2)</span>, <span class=\"julia-expr\">\$(1234)</span></p>\n"
+    @test latex(ast) == "foo: \\texttt{\\\$(foo)}, \\texttt{\\\$(x \\^{} 2)}, \\texttt{\\\$(1234)}\\par\n"
+    @test markdown(ast) == "foo: \$(foo), \$(x ^ 2), \$(1234)\n"
+    @test term(ast) == " foo: \e[33m\$(foo)\e[39m, \e[33m\$(x ^ 2)\e[39m, \e[33m\$(1234)\e[39m\n"
 end
