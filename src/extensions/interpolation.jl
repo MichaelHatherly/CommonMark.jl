@@ -4,11 +4,17 @@
 # from within the `@cm_str` macro otherwise the expressions won't have "time"
 # to actually evaluate.
 
+# Captures an interpolated Julia expression and its position in the string
+struct JuliaExpression <: AbstractInline
+    pos::Int
+    ex
+end
+
 # This rule should only be used from the exported `@cm_str` macro and not
 # `enabled!` directly by users on a `Parser` object.
 struct JuliaInterpolationRule
-    captured::Vector{JuliaValue}
-    JuliaInterpolationRule() = new(JuliaValue[])
+    captured::Vector{JuliaExpression}
+    JuliaInterpolationRule() = new(JuliaExpression[])
 end
 
 const reInterpHere = r"^\$"
@@ -27,7 +33,7 @@ inline_rule(ji::JuliaInterpolationRule) = Rule(1, "\$") do p, node
             return false
         else
             seek(p, after_expr - 1) # Offset Meta.parse end position.
-            ref = JuliaValue(ex)
+            ref = JuliaExpression(length(ji.captured) + 1, ex)
             push!(ji.captured, ref)
             append_child(node, Node(ref))
             return true
@@ -113,8 +119,7 @@ end
 
 function _interp!(ast::Node, refs::Vector, values::Vector)
     # Copy the parsed AST and replace any interpolations with their values.
-    lookup = Dict{JuliaValue,Any}(ref => value for (ref, value) in zip(refs, values))
-    replace(t::JuliaValue) = JuliaValue(t.ex, lookup[t])
+    replace(t::JuliaExpression) = JuliaValue(t.ex, values[t.pos])
     replace(@nospecialize(other)) = other
     return copy_tree(replace, ast)
 end
@@ -156,6 +161,29 @@ end
 # Writers
 #
 
+# JuliaExpression
+
+function write_html(jv::JuliaExpression, rend, node, enter)
+    tag(rend, "span", attributes(rend, node, ["class" => "julia-expr"]))
+    print(rend.buffer, sprint(print, '$', "($(jv.ex))"))
+    tag(rend, "/span")
+end
+
+function write_latex(jv::JuliaExpression, rend, node, enter)
+    print(rend.buffer, "\\texttt{", '\\', '$', '(')
+    latex_escape(rend, string(jv.ex))
+    print(rend.buffer, ")}")
+end
+
+function write_term(jv::JuliaExpression, rend, node, enter)
+    style = crayon"yellow"
+    push_inline!(rend, style)
+    print_literal(rend, style, sprint(print, '$', "($(jv.ex))"), inv(style))
+    pop_inline!(rend)
+end
+
+# JuliaValue
+
 function write_html(jv::JuliaValue, rend, node, enter)
     tag(rend, "span", attributes(rend, node, ["class" => "julia-value"]))
     print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref))
@@ -183,4 +211,4 @@ end
 
 # Markdown output should be roundtrip-able, so printout the interpolated
 # expression rather than it's value.
-write_markdown(jv::JuliaValue, rend, node, ent) = print(rend.buffer, '$', "($(jv.ex))")
+write_markdown(jv::Union{JuliaExpression,JuliaValue}, rend, node, ent) = print(rend.buffer, '$', "($(jv.ex))")
