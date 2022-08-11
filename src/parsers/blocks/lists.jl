@@ -1,24 +1,3 @@
-mutable struct ListData
-    type::Symbol
-    tight::Bool
-    bullet_char::Char
-    start::Int
-    delimiter::String
-    padding::Int
-    marker_offset::Int
-    ListData(indent=0) = new(:bullet, true, ' ', 1, "", 0, indent)
-end
-
-mutable struct Item <: AbstractBlock
-    list_data::ListData
-    Item() = new(ListData())
-end
-
-mutable struct List <: AbstractBlock
-    list_data::ListData
-    List() = new(ListData())
-end
-
 is_container(::List) = true
 is_container(::Item) = true
 

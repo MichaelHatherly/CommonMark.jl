@@ -50,6 +50,39 @@ const HtmlBlock = ElementWrapper{MarkdownAST.HTMLBlock, HtmlBlockExtra}
 HtmlBlock() = ElementWrapper(MarkdownAST.HTMLBlock(""), HtmlBlockExtra())
 hasextrafields(::MarkdownAST.HTMLBlock) = true
 
+mutable struct ListData
+    list::MarkdownAST.List
+    bullet_char::Char
+    start::Int
+    delimiter::String
+    padding::Int
+    marker_offset::Int
+    ListData(indent=0) = new(MarkdownAST.List(:bullet, true), ' ', 1, "", 0, indent)
+end
+Base.propertynames(::ListData) = (:type, :tight, fieldnames(ListData)...)
+function Base.getproperty(list_data::ListData, name::Symbol)
+    (name in [:type, :tight]) ? getproperty(list_data.list, name) : getfield(list_data, name)
+end
+function Base.setproperty!(list_data::ListData, name::Symbol, x)
+    if name in [:type, :tight]
+        setproperty!(list_data.list, name, x)
+    else
+        setfield!(list_data, name, convert(fieldtype(ListData, name), x))
+    end
+end
+mutable struct ListItemExtra <: AbstractElementExtra
+    list_data :: ListData
+end
+const List = ElementWrapper{MarkdownAST.List, ListItemExtra}
+function List()
+    list_data = ListData()
+    ElementWrapper(list_data.list, ListItemExtra(list_data))
+end
+hasextrafields(::MarkdownAST.List) = true
+const Item = ElementWrapper{MarkdownAST.Item, ListItemExtra}
+Item() = ElementWrapper(MarkdownAST.Item(), ListItemExtra(ListData()))
+hasextrafields(::MarkdownAST.Item) = true
+
 hasextrafields(::MarkdownAST.AbstractElement) = false # fallback
 
 mutable struct NodeMeta
