@@ -9,12 +9,6 @@ struct JuliaExpression <: AbstractInline
     pos::Int
     ex
 end
-# Captures an expression and the future value associated with it after
-# macro expansion.
-struct JuliaValue <: AbstractInline
-    ex
-    ref
-end
 
 # This rule should only be used from the exported `@cm_str` macro and not
 # `enabled!` directly by users on a `Parser` object.

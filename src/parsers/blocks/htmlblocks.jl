@@ -1,8 +1,3 @@
-mutable struct HtmlBlock <: AbstractBlock
-    html_block_type::Int
-    HtmlBlock() = new(0)
-end
-
 accepts_lines(::HtmlBlock) = true
 
 function continue_(::HtmlBlock, parser::Parser, container::Node)

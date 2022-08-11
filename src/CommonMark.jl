@@ -1,7 +1,9 @@
 module CommonMark
 
 import JSON, URIs
+import MarkdownAST
 
+include("markdownast.jl")
 include("utils.jl")
 include("ast.jl")
 include("parsers.jl")

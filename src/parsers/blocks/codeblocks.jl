@@ -1,12 +1,3 @@
-mutable struct CodeBlock <: AbstractBlock
-    info::String
-    is_fenced::Bool
-    fence_char::Char
-    fence_length::Int
-    fence_offset::Int
-    CodeBlock() = new("", false, '\0', 0, 0)
-end
-
 accepts_lines(::CodeBlock) = true
 
 function continue_(::CodeBlock, parser::Parser, container::Node)

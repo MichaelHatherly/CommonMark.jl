@@ -2,8 +2,6 @@
 # Inline math
 #
 
-struct Math <: AbstractInline end
-
 function parse_inline_math_backticks(p::InlineParser, node::Node)
     ticks = match(reTicksHere, p)
     if ticks === nothing || isodd(length(ticks.match))
@@ -32,8 +30,6 @@ end
 #
 # Display math
 #
-
-struct DisplayMath <: AbstractBlock end
 
 function handle_fenced_math_block(node::Node, info, source)
     node.t = DisplayMath()

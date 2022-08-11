@@ -1,5 +1,3 @@
-struct Paragraph <: AbstractBlock end
-
 is_container(::Paragraph) = true
 
 accepts_lines(::Paragraph) = true

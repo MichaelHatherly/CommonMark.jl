@@ -1,8 +1,3 @@
-struct Admonition <: AbstractBlock
-    category::String
-    title::String
-end
-
 is_container(::Admonition) = true
 accepts_lines(::Admonition) = false
 can_contain(::Admonition, t) = !(t isa Item)

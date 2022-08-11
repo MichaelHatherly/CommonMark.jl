@@ -6,6 +6,7 @@ version = "0.8.6"
 [deps]
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+MarkdownAST = "d0879d2d-cac2-40c8-9cee-1863dc0c7391"
 URIs = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
 
 [compat]
