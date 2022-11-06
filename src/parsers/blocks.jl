@@ -233,7 +233,8 @@ function advance_offset(parser::Parser, count::Integer, columns::Bool)
             parser.column += 1
             count -= 1
         end
-        c = get(buf, thisind(buf, parser.pos), '\0')
+        parser.pos = thisind(buf, parser.pos)
+        c = get(buf, parser.pos, '\0')
     end
 end
 
