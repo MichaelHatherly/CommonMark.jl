@@ -228,12 +228,11 @@ function advance_offset(parser::Parser, count::Integer, columns::Bool)
             end
         else
             parser.partially_consumed_tab = false
-            parser.pos += 1
+            parser.pos = nextind(buf, parser.pos)
             # Assume ASCII; block starts are ASCII.
             parser.column += 1
             count -= 1
         end
-        parser.pos = thisind(buf, parser.pos)
         c = get(buf, parser.pos, '\0')
     end
 end
