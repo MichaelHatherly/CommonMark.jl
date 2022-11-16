@@ -18,7 +18,7 @@ jobs:
   finalize:
     needs: [test]
     timeout-minutes: 5
-    runs-on: [linux, x64, inside-docker, self-hosted]
+    runs-on: ubuntu-latest
     if: always()
 
     steps:
