@@ -25,6 +25,8 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
     include("templates.jl")
     include("integration.jl")
 
+    include("unicodes.jl")
+
     # Basics: just make sure the parsing and rendering doesn't throw or hang.
     @testset "Samples" begin
         for (root, dirs, files) in walkdir(joinpath(@__DIR__, "samples"))
