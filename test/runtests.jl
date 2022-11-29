@@ -48,4 +48,6 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
             end
         end
     end
+
+    include("markdownast.jl")
 end
