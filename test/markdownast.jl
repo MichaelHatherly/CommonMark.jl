@@ -39,7 +39,7 @@ import MarkdownAST
     SAMPLES_DIR = joinpath(@__DIR__, "samples", "cmark")
     mdsamples = [
         joinpath(SAMPLES_DIR, filename)
-        for filename in filter(endswith(".md"), readdir(SAMPLES_DIR))
+        for filename in filter(s -> endswith(s, ".md"), readdir(SAMPLES_DIR))
     ]
     p = Parser()
     enable!(p, CommonMark.AdmonitionRule())
