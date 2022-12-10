@@ -48,4 +48,28 @@ export
     TableRule,
     TypographyRule
 
+function debug_node(node::Node, indent = 0)
+    if !isdefined(node, :t)
+        return
+    end
+    print("\t"^indent, String(typeof(node.t).name.name))
+    if !isdefined(node, :literal) || isempty(node.literal)
+        println()
+    else
+        println(" [ ", node.literal, " ]")
+    end
+    if !isdefined(node, :first_child)
+        return
+    end
+    ch = node.first_child
+    last = node.last_child
+    while true
+        debug_node(ch, indent+1)
+        if ch == last
+            break
+        end
+        ch = ch.nxt
+    end
+end
+
 end # module
