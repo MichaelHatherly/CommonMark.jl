@@ -58,8 +58,7 @@ function gfm_table(parser::Parser, container::Node)
                 advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
                 return 2
             end
-        end
-        if container.t isa Table
+        elseif container.t isa Table
             line = SubString(parser.buf, parser.next_nonspace)
             if valid_table_row(line)
                 row = Node(TableRow(), container.sourcepos)
