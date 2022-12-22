@@ -192,7 +192,7 @@ end
 
 function write_html(jv::JuliaValue, rend, node, enter)
     tag(rend, "span", attributes(rend, node, ["class" => "julia-value"]))
-    print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref))
+    print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref; context=rend.io))
     tag(rend, "/span")
 end
 
