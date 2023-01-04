@@ -1,9 +1,8 @@
 using SnoopPrecompile
 
-@precompile_all_calls begin
-    parser = Parser()
-    # Enable all non-default (i.e. extension) rules
-    for rule in [
+@precompile_setup begin
+    # All non-default rules
+    extension_rules = [
         AdmonitionRule,
         AttributeRule,
         AutoIdentifierRule,
@@ -16,10 +15,19 @@ using SnoopPrecompile
         TableRule,
         TypographyRule,
     ]
-        enable!(parser, rule())
-    end
-    ast = parser("Hello *world*")
-    for writer in [html, latex, term, markdown, notebook]
-        writer(ast)
+    dummyfile = joinpath(@__DIR__, "precompilation", "integration-test.md")
+    dummystr = read(dummyfile, String)
+    writers = [
+        html, latex, term, markdown, notebook
+    ]
+    @precompile_all_calls begin
+        parser = Parser()
+        for rule in extension_rules
+            enable!(parser, rule())
+        end
+        ast = parser(dummystr)
+        for writer in writers
+            writer(ast)
+        end
     end
 end
