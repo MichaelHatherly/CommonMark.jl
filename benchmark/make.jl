@@ -19,4 +19,9 @@ rm_newlines(md) =
     replace(md, "\n\n````\n" => "\n````\n")
 
 
+ENV["JULIA_DEBUG"] = "Literate"
+# ↪ Running `startup-time.jl` takes a while.
+#   We set the above flag to get feedback while running this `make.jl`
+#   (It makes the code block currently being executed get printed).
+
 gen_results()

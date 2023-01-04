@@ -45,7 +45,7 @@ Pkg.precompile("CommonMark")
 ````
 Precompiling project...
 [32m  ✓ [39mCommonMark
-  1 dependency successfully precompiled in 11 seconds. 5 already precompiled.
+  1 dependency successfully precompiled in 7 seconds. 5 already precompiled.
 ````
 
 ### Package load time
@@ -54,7 +54,7 @@ Precompiling project...
 @time using CommonMark
 ````
 ````
- 10.057345 seconds (736.15 k allocations: 43.317 MiB, 0.23% gc time, 0.41% compilation time)
+  7.387662 seconds (736.17 k allocations: 43.326 MiB, 0.26% gc time, 0.34% compilation time)
 ````
 
 ### First function call times
@@ -63,21 +63,21 @@ Precompiling project...
 @time parser = Parser();
 ````
 ````
-  1.043142 seconds (21.06 k allocations: 1.009 MiB, 99.94% compilation time)
+  0.753673 seconds (21.06 k allocations: 1.009 MiB, 99.93% compilation time)
 ````
 
 ````julia
 @time ast = parser(teststr);
 ````
 ````
-  1.682008 seconds (558.29 k allocations: 27.806 MiB, 1.13% gc time, 99.93% compilation time)
+  1.462268 seconds (558.29 k allocations: 27.821 MiB, 1.38% gc time, 99.93% compilation time)
 ````
 
 ````julia
 @time CommonMark.html(ast);
 ````
 ````
-  0.355713 seconds (94.01 k allocations: 4.818 MiB, 99.86% compilation time)
+  0.270778 seconds (94.01 k allocations: 4.818 MiB, 99.81% compilation time)
 ````
 
 ## Runtime environment
@@ -97,6 +97,7 @@ Platform Info:
   LLVM: libLLVM-13.0.1 (ORCJIT, skylake)
   Threads: 7 on 8 virtual cores
 Environment:
+  JULIA_DEBUG = Literate
   JULIA_EDITOR = code.cmd
   JULIA_NUM_THREADS = 7
 ````
