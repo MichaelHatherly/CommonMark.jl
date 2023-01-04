@@ -16,21 +16,24 @@ Pkg.activate(@__DIR__)
 @time Pkg.precompile("CommonMark")
 ````
 ````
-  1.332231 seconds (2.59 M allocations: 164.960 MiB, 10.58% gc time, 58.20% compilation time)
+Precompiling project...
+[32m  ✓ [39mCommonMark
+  1 dependency successfully precompiled in 7 seconds. 5 already precompiled.
+  7.949459 seconds (2.66 M allocations: 169.047 MiB, 1.79% gc time, 10.02% compilation time)
 ````
 
 ````julia
 @time using CommonMark
 ````
 ````
-  0.823340 seconds (781.39 k allocations: 47.084 MiB, 2.44% gc time, 0.96% compilation time)
+  7.320974 seconds (736.18 k allocations: 43.349 MiB, 0.26% gc time, 0.34% compilation time)
 ````
 
 ````julia
 @time parser = Parser();
 ````
 ````
-  0.784270 seconds (21.06 k allocations: 1.009 MiB, 99.92% compilation time)
+  0.723616 seconds (21.06 k allocations: 1.009 MiB, 99.92% compilation time)
 ````
 
 ````julia
@@ -48,14 +51,14 @@ teststr = read(testfile, String)
 @time ast = parser(teststr);
 ````
 ````
-  1.239548 seconds (163.25 k allocations: 8.134 MiB, 99.91% compilation time)
+  1.425825 seconds (558.29 k allocations: 27.806 MiB, 1.18% gc time, 99.93% compilation time)
 ````
 
 ````julia
 @time CommonMark.html(ast);
 ````
 ````
-  0.235873 seconds (31.45 k allocations: 1.572 MiB, 99.81% compilation time)
+  0.270362 seconds (94.01 k allocations: 4.821 MiB, 96.21% compilation time)
 ````
 
 ````julia

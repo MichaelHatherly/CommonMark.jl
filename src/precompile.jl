@@ -15,8 +15,6 @@ using SnoopPrecompile
         TableRule,
         TypographyRule,
     ]
-    dummyfile = joinpath(@__DIR__, "precompilation", "integration-test.md")
-    dummystr = read(dummyfile, String)
     writers = [
         html, latex, term, markdown, notebook
     ]
@@ -25,7 +23,7 @@ using SnoopPrecompile
         for rule in extension_rules
             enable!(parser, rule())
         end
-        ast = parser(dummystr)
+        ast = parser("Hello *world*")
         for writer in writers
             writer(ast)
         end
