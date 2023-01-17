@@ -109,6 +109,21 @@ end
         @test markdown(ast) == "\$(x), \$(f!()), \$(x)\n"
         @test term(ast) == " \e[33m1\e[39m, \e[33m42\e[39m, \e[33m2\e[39m\n"
     end
+    
+    # IOContext passthrough
+    struct MyInterpolatedType
+    end
+    
+    function Base.show(io::IO, m::MIME"text/html", x::MyInterpolatedType)
+        write(io, get(io, :secret, "not found"))
+    end
+    
+    value = MyInterpolatedType()
+    ast = cm"hello $(value)"
+    out1 = repr(MIME"text/html"(), ast)
+    out2 = repr(MIME"text/html"(), ast; context=(:secret => "🙊"))
+    @test out1 == "<p>hello <span class=\"julia-value\">not found</span></p>\n"
+    @test out2 == "<p>hello <span class=\"julia-value\">🙊</span></p>\n"
 
     # ASTs containing JuliaExpression elements
     p = Parser()
