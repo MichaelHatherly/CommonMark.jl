@@ -122,8 +122,8 @@ end
     ast = cm"hello $(value)"
     out1 = repr(MIME"text/html"(), ast)
     out2 = repr(MIME"text/html"(), ast; context=(:secret => "🙊"))
-    @test out1 == "hello not found"
-    @test out2 == "hello 🙊"
+    @test out1 == "<p>hello <span class=\"julia-value\">not found</span></p>\n"
+    @test out2 == "<p>hello <span class=\"julia-value\">🙊</span></p>\n"
 
     # ASTs containing JuliaExpression elements
     p = Parser()
