@@ -53,7 +53,7 @@ Base.findnext(f::Function, p::AbstractParser) = findnext(f, String(p), position(
 Base.findprev(f::Function, p::AbstractParser) = findprev(f, String(p), position(p))
 
 Base.startswith(p::AbstractParser, prefix) = startswith(rest(p), prefix)
-Base.occursin(pat, p::AbstractParser) = occursin(pat, rest(p))
+Base.occursin(pat::Regex, p::AbstractParser) = occursin(pat, rest(p))
 
 Base.match(re::Regex, p::AbstractParser) = match(re, rest(p))
 
