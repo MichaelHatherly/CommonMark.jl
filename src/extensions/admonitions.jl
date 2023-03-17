@@ -26,7 +26,7 @@ function parse_admonition(parser::Parser, container::Node)
             close_unmatched_blocks(parser)
             title = m[2] === nothing ? uppercasefirst(m[1]) : m[2]
             add_child(parser, Admonition(m[1], title), parser.next_nonspace)
-            advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+            advance_offset_to_end(parser, false)
             return 1
         end
     end

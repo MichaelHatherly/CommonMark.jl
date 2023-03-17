@@ -25,7 +25,7 @@ function atx_heading(parser::Parser, container::Node)
             container.t.level = length(strip(m.match))
             # remove trailing ###s
             container.literal = replace(replace(SubString(parser.buf, parser.pos), r"^[ \t]*#+[ \t]*$" => ""), r"[ \t]+#+[ \t]*$" => "")
-            advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+            advance_offset_to_end(parser, false)
             return 2
         end
     end
@@ -55,7 +55,7 @@ function setext_heading(parser::Parser, container::Node)
                 insert_after(container, heading)
                 unlink(container)
                 parser.tip = heading
-                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+                advance_offset_to_end(parser, false)
                 return 2
             else
                 return 0

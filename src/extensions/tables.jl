@@ -55,7 +55,7 @@ function gfm_table(parser::Parser, container::Node)
                 insert_after(container, table)
                 unlink(container)
                 parser.tip = table
-                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+                advance_offset_to_end(parser, false)
                 return 2
             end
         elseif container.t isa Table
@@ -64,7 +64,7 @@ function gfm_table(parser::Parser, container::Node)
                 row = Node(TableRow(), container.sourcepos)
                 append_child(container.last_child, row)
                 row.literal = line
-                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+                advance_offset_to_end(parser, false)
                 return 2
             end
         end
@@ -300,8 +300,7 @@ function write_markdown(table::Table, w::Writer, node, enter)
 end
 
 function write_markdown(::TableHeader, w, node, enter)
-    if enter
-    else
+    if !enter
         spec = node.parent.t.spec
         print_margin(w)
         literal(w, "|")

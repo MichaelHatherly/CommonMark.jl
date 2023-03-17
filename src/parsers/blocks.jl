@@ -211,7 +211,7 @@ end
 function advance_offset(parser::Parser, count::Integer, columns::Bool)
     buf = parser.buf
     c = get(buf, parser.pos, '\0')
-    while count > 0 && c !== '\0'
+    while count != 0 && c !== '\0'
         if c === '\t'
             chars_to_tab = 4 - (parser.column % 4)
             if columns
@@ -236,6 +236,7 @@ function advance_offset(parser::Parser, count::Integer, columns::Bool)
         c = get(buf, parser.pos, '\0')
     end
 end
+advance_offset_to_end(parser::Parser, columns::Bool) = advance_offset(parser, -1, columns)
 
 function incorporate_line(parser::Parser, ln::AbstractString)
     all_matched = true
@@ -381,7 +382,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
                     finalize(parser, container, parser.line_number)
                 end
             end
-        elseif parser.pos ≤ length(ln) && !parser.blank
+        elseif parser.pos ≤ thisind(ln, sizeof(ln)) && !parser.blank
             # Create a paragraph container for one line.
             container = add_child(parser, Paragraph(), parser.pos)
             advance_next_nonspace(parser)
