@@ -115,7 +115,7 @@ function parse_inlines(parser::InlineParser, block::Node)
     parser.buf = strip(block.literal)
     block.literal = ""
     parser.pos = 1
-    parser.len = length(parser.buf)
+    parser.len = ncodeunits(parser.buf)
     parser.delimiters = nothing
     parser.brackets = nothing
     while (parse_inline(parser, block))
