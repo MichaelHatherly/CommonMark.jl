@@ -120,4 +120,15 @@
     @test latex(ast) == "\\section{whitespace (\\#38)}\n\\begin{longtable}[]{@{}cllr@{}}\n\\hline\n1 & 2 & 3 & 4\\tabularnewline\n\\hline\n\\endfirsthead\none & two & three & four\\tabularnewline\n\\hline\n\\end{longtable}\n"
     @test term(ast) == " \e[34;1m#\e[39;22m whitespace (#38)\n \n ┏━━━━━┯━━━━━┯━━━━━━━┯━━━━━━┓\n ┃  1  │ 2   │ 3     │    4 ┃\n ┠─────┼─────┼───────┼──────┨\n ┃ one │ two │ three │ four ┃\n ┗━━━━━┷━━━━━┷━━━━━━━┷━━━━━━┛\n"
     @test markdown(ast) == "# whitespace (#38)\n\n| 1   | 2   | 3     | 4    |\n|:---:|:--- |:----- | ----:|\n| one | two | three | four |\n"
+
+
+    text =
+    """
+    | Tables   |      Are      |  Cool |
+    |----------|-------------|------|
+    | col 3 is | right-aligned δεδομέ |   1 |
+    """
+    ast = p(text)
+    @test html(ast)=="<table><thead><tr><th align=\"left\">Tables</th><th align=\"left\">Are</th><th align=\"left\">Cool</th></tr></thead><tbody><tr><td align=\"left\">col 3 is</td><td align=\"left\">right-aligned δεδομέ</td><td align=\"left\">1</td></tr></tbody></table>"
+
 end
