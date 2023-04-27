@@ -1,6 +1,6 @@
-using SnoopPrecompile
+using PrecompileTools
 
-@precompile_setup begin
+@setup_workload begin
     # All non-default rules
     extension_rules = [
         AdmonitionRule,
@@ -18,7 +18,7 @@ using SnoopPrecompile
     writers = [
         html, latex, term, markdown, notebook
     ]
-    @precompile_all_calls begin
+    @compile_workload begin
         parser = Parser()
         for rule in extension_rules
             enable!(parser, rule())
