@@ -1,4 +1,4 @@
-Copyright (c) 2020 Michael Hatherly
+Copyright (c) 2020-2024 Michael Hatherly
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@ SOFTWARE.
 
 Originally ported from the reference implementation with the following LICENSE:
 
-Copyright (c) 2014, John MacFarlane
+Copyright (c) 2014-2024, John MacFarlane
 
 All rights reserved.
 
@@ -80,7 +80,7 @@ bench/samples/*.md:
 With the exception of `bench/samples/README.md`, the samples in
 `bench/samples` are taken from https://github.com/markdown-it/markdown-it.
 
-Copyright (c) 2014 Vitaly Puzrin, Alex Kocharin.
+Copyright (c) 2014-2024 Vitaly Puzrin, Alex Kocharin.
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -107,7 +107,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 The CommonMark spec (spec.txt) in test/ is
 
-Copyright (C) 2014-15 John MacFarlane
+Copyright (C) 2014-2024 John MacFarlane
 
 Released under the Creative Commons CC-BY-SA 4.0 license:
 <http://creativecommons.org/licenses/by-sa/4.0/>.
