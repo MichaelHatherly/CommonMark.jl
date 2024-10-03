@@ -23,6 +23,7 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
     include("writers.jl")
     include("extensions.jl")
     include("templates.jl")
+    include("sourcepos.jl")
     include("integration.jl")
 
     include("unicodes.jl")

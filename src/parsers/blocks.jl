@@ -428,7 +428,7 @@ function parse(parser::Parser, my_input::IO; kws...)
     isempty(kws) || (merge!(parser.doc.meta, Dict(string(k) => v for (k, v) in kws)))
     parser.tip = parser.doc
     parser.refmap = Dict{String, Tuple{String, String}}()
-    parser.line_number = 0
+    parser.line_number = get(parser.doc.meta, "line", 1) - 1
     parser.last_line_length = 0
     parser.pos = 1
     parser.column = 0
@@ -450,4 +450,4 @@ end
 (p::Parser)(text::AbstractString; kws...) = p(IOBuffer(text); kws...)
 (p::Parser)(io::IO; kws...) = parse(p, io; kws...)
 
-Base.open(p::Parser, file::AbstractString; kws...) = open(io->p(io; :source=>file, kws...), file)
+Base.open(p::Parser, file::AbstractString; kws...) = open(io -> p(io; :source => file, kws...), file)

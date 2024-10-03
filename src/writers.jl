@@ -1,11 +1,15 @@
-function writer(mime, file::AbstractString, ast::Node, env=Dict{String,Any}())
+function writer(mime, file::AbstractString, ast::Node, env = Dict{String,Any}(); kws...)
     env = merge(env, Dict("outputfile" => file))
-    open(io -> writer(io, mime, ast, env), file, "w")
+    open(io -> writer(io, mime, ast, env; kws...), file, "w")
 end
-writer(mime, io::IO, ast::Node, env=nothing) = writer(io, mime, ast, env)
-writer(mime, ast::Node, env=nothing) = sprint(writer, mime, ast, env)
+writer(mime, io::IO, ast::Node, env = nothing; kws...) = writer(io, mime, ast, env; kws...)
+function writer(mime, ast::Node, env = nothing; kws...)
+    io = IOBuffer()
+    writer(mime, io, ast, env; kws...)
+    return String(take!(io))
+end
 
-function writer(io::IO, mime::MIME, ast::Node, env::Dict)
+function writer(io::IO, mime::MIME, ast::Node, env::Dict; kws...)
     # Merge all metadata provided, priority is right-to-left.
     env = recursive_merge(default_config(), env, frontmatter(ast), ast.meta)
     if haskey(env, "template-engine")
@@ -17,9 +21,9 @@ function writer(io::IO, mime::MIME, ast::Node, env::Dict)
             return nothing
         end
     end
-    show(io, mime, ast, env)
+    show(io, mime, ast, env; kws...)
 end
-writer(io::IO, mime::MIME, ast::Node, ::Nothing) = show(io, mime, ast)
+writer(io::IO, mime::MIME, ast::Node, ::Nothing; kws...) = show(io, mime, ast; kws...)
 
 default_config() = Dict{String,Any}(
     "authors" => [],

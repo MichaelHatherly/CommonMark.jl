@@ -110,7 +110,8 @@ macro cm_str(str, name = "jmd")
     ji = JuliaInterpolationRule()
     parser = _init_parser(__module__, name)
     enable!(parser, ji)
-    ast = parser(str)
+    multiline = occursin("\n", str)
+    ast = parser(str; source=String(__source__.file), line=__source__.line + Int(multiline))
     # We construct an expression that first, one-by-one and in order, evaluates each
     # of the interpolated expressions that appeared in the string, adds them to a
     # list, and finally calls _interp! on it to update the AST with the evaluated
