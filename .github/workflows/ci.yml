@@ -45,6 +45,11 @@ jobs:
           - macOS-latest
         arch:
           - x64
+        exclude:
+          - version: "1.6"
+            os: windows-latest
+          - version: "1.3"
+            os: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
