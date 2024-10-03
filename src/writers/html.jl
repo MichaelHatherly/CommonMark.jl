@@ -1,11 +1,11 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/html", ast::Node, env=Dict{String,Any}())
-    writer = Writer(HTML(), io, env)
+function Base.show(io::IO, ::MIME"text/html", ast::Node, env=Dict{String,Any}(); kws...)
+    writer = Writer(HTML(; kws...), io, env)
     write_html(writer, ast)
     return nothing
 end
-html(args...) = writer(MIME"text/html"(), args...)
+html(args...; kws...) = writer(MIME"text/html"(), args...; kws...)
 
 # Internals.
 
@@ -17,7 +17,7 @@ mutable struct HTML
     disable_tags::Int
     softbreak::String
     safe::Bool
-    sourcepos::Bool
+    sourcepos::Union{Bool,Function}
 
     function HTML(; softbreak="\n", safe=false, sourcepos=false)
         format = new()
@@ -222,10 +222,13 @@ function write_html(::HtmlBlock, r, n, ent)
 end
 
 function attributes(r, n, out=[])
-    if r.format.sourcepos
+    if _has_sourcepos(r.format.sourcepos)
         if n.sourcepos !== nothing
             p = n.sourcepos
-            push!(out, "data-sourcepos" => "$(p[1][1]):$(p[1][2])-$(p[2][1]):$(p[2][2])")
+            result = _process_sourcepos(r.format.sourcepos, p)
+            if isa(result, Pair)
+                push!(out, result)
+            end
         end
     end
     for (key, value) in n.meta
@@ -234,3 +237,11 @@ function attributes(r, n, out=[])
     end
     return out
 end
+
+_has_sourcepos(sourcepos::Any) = sourcepos === true
+_has_sourcepos(sourcepos::Function) = true
+
+
+_process_sourcepos(handler::Function, p) = handler(p)
+_process_sourcepos(::Bool, p) =
+    "data-sourcepos" => "$(p[1][1]):$(p[1][2])-$(p[2][1]):$(p[2][2])"
