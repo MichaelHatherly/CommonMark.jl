@@ -31,7 +31,12 @@ unescape_string(s) =
 
 @inline issafe(c::Char) =
     c in "?:/,-+@._()#=*&%" || (isascii(c) && (isletter(c) || isnumeric(c)))
-normalize_uri(s::AbstractString) = URIs.escapeuri(s, issafe)
+normalize_uri(s::AbstractString) = _escapeuri(s, issafe)
+
+# Copied over from URIs.jl.
+_escapeuri(c::Char) = string('%', uppercase(string(Int(c), base = 16, pad = 2)))
+_escapeuri(str::AbstractString, safe::Function = issafe) =
+    join(safe(Char(c)) ? Char(c) : _escapeuri(Char(c)) for c in codeunits(str))
 
 const UNSAFE_MAP = Dict("&" => "&amp;", "<" => "&lt;", ">" => "&gt;", "\"" => "&quot;")
 replace_unsafe_char(s::AbstractString) = get(UNSAFE_MAP, s, s)
