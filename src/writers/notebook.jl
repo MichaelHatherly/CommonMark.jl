@@ -1,6 +1,11 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"application/x-ipynb+json", ast::Node, env=Dict{String,Any}())
+function Base.show(
+    io::IO,
+    ::MIME"application/x-ipynb+json",
+    ast::Node,
+    env = Dict{String,Any}(),
+)
     json = Dict(
         "cells" => [],
         "metadata" => Dict(
@@ -32,8 +37,11 @@ notebook(args...) = writer(MIME"application/x-ipynb+json"(), args...)
 mime_to_str(::MIME"application/x-ipynb+json") = "notebook"
 
 function write_notebook(json, node, enter, env)
-    split_lines = str -> collect(eachline(IOBuffer(str); keep=true))
-    if !isnull(node) && node.t isa CodeBlock && node.parent.t isa Document && node.t.info == "julia"
+    split_lines = str -> collect(eachline(IOBuffer(str); keep = true))
+    if !isnull(node) &&
+       node.t isa CodeBlock &&
+       node.parent.t isa Document &&
+       node.t.info == "julia"
         # Toplevel Julia codeblocks become code cells.
         cell = Dict(
             "cell_type" => "code",

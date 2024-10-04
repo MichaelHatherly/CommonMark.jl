@@ -20,7 +20,7 @@ function parse_link_title(parser::InlineParser)
     title = consume(parser, match(reLinkTitle, parser))
     title === nothing && return nothing
     # Chop off quotes from title and unescape.
-    return unescape_string(chop(title.match; head=1, tail=1))
+    return unescape_string(chop(title.match; head = 1, tail = 1))
 end
 
 function parse_link_destination(parser::InlineParser)
@@ -63,7 +63,7 @@ function parse_link_destination(parser::InlineParser)
         return normalize_uri(unescape_string(res))
     else
         # Chop off surrounding <..>.
-        return normalize_uri(unescape_string(chop(res.match; head=1, tail=1)))
+        return normalize_uri(unescape_string(chop(res.match; head = 1, tail = 1)))
     end
 end
 
@@ -269,7 +269,8 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
 end
 
 struct LinkRule end
-inline_rule(::LinkRule) = (Rule(parse_open_bracket, 1, "["), Rule(parse_close_bracket, 1, "]"))
+inline_rule(::LinkRule) =
+    (Rule(parse_open_bracket, 1, "["), Rule(parse_close_bracket, 1, "]"))
 
 struct ImageRule end
 inline_rule(::ImageRule) = (Rule(parse_bang, 1, "!"), inline_rule(LinkRule())...)

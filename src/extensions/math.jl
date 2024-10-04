@@ -41,13 +41,14 @@ function handle_fenced_math_block(node::Node, info, source)
 end
 
 struct MathRule end
-block_modifier(::MathRule) = Rule(1.5) do parser, node
-    if node.t isa CodeBlock && node.t.info == "math"
-        node.t = DisplayMath()
-        node.literal = strip(node.literal, '\n')
+block_modifier(::MathRule) =
+    Rule(1.5) do parser, node
+        if node.t isa CodeBlock && node.t.info == "math"
+            node.t = DisplayMath()
+            node.literal = strip(node.literal, '\n')
+        end
+        return nothing
     end
-    return nothing
-end
 inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
 
 #
@@ -124,7 +125,7 @@ function write_term(::Math, rend, node, enter)
 end
 
 function write_markdown(::Math, w, node, ent)
-    num = foldl(eachmatch(r"`+", node.literal); init=0) do a, b
+    num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
         max(a, length(b.match))
     end
     literal(w, "`"^(num == 2 ? 4 : 2))

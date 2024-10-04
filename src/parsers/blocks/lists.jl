@@ -6,7 +6,7 @@ mutable struct ListData
     delimiter::String
     padding::Int
     marker_offset::Int
-    ListData(indent=0) = new(:bullet, true, ' ', 1, "", 0, indent)
+    ListData(indent = 0) = new(:bullet, true, ' ', 1, "", 0, indent)
 end
 
 mutable struct Item <: AbstractBlock
@@ -51,7 +51,8 @@ function parse_list_marker(parser::Parser, container::Node)
     end
 
     # If it interrupts paragraph make sure first line isn't blank.
-    if container.t isa Paragraph && !occursin(reNonSpace, SubString(parser.buf, parser.next_nonspace + length(m.match)))
+    if container.t isa Paragraph &&
+       !occursin(reNonSpace, SubString(parser.buf, parser.next_nonspace + length(m.match)))
         return nothing
     end
 
@@ -86,8 +87,8 @@ end
 
 function lists_match(list_data::ListData, item_data::ListData)
     return list_data.type == item_data.type &&
-        list_data.delimiter == item_data.delimiter &&
-        list_data.bullet_char == item_data.bullet_char
+           list_data.delimiter == item_data.delimiter &&
+           list_data.bullet_char == item_data.bullet_char
 end
 
 accepts_lines(::List) = false
@@ -128,8 +129,13 @@ function continue_(::Item, parser::Parser, container::Node)
         else
             advance_next_nonspace(parser)
         end
-    elseif parser.indent ≥ (container.t.list_data.marker_offset + container.t.list_data.padding)
-        advance_offset(parser, container.t.list_data.marker_offset + container.t.list_data.padding, true)
+    elseif parser.indent ≥
+           (container.t.list_data.marker_offset + container.t.list_data.padding)
+        advance_offset(
+            parser,
+            container.t.list_data.marker_offset + container.t.list_data.padding,
+            true,
+        )
     else
         return 1
     end
@@ -141,7 +147,7 @@ finalize(::Item, ::Parser, ::Node) = nothing
 can_contain(::Item, t) = !(t isa Item)
 
 function list_item(parser::Parser, container::Node)
-    if  (!parser.indented || container.t isa List)
+    if (!parser.indented || container.t isa List)
         data = parse_list_marker(parser, container)
         if data !== nothing
             close_unmatched_blocks(parser)

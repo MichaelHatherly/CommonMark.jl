@@ -2,8 +2,6 @@
 *.jl.cov
 *.jl.mem
 .DS_Store
-/Manifest.toml
-/test/Manifest.toml
-/benchmark/Manifest.toml
+Manifest.toml
 /dev/
 .vscode/settings.json

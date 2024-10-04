@@ -1,6 +1,9 @@
 @testset "Frontmatter" begin
     p = Parser()
-    enable!(p, FrontMatterRule(json=JSON.Parser.parse, toml=TOML.parse, yaml=YAML.load))
+    enable!(
+        p,
+        FrontMatterRule(json = JSON.Parser.parse, toml = TOML.parse, yaml = YAML.load),
+    )
 
     test = function (text, expected)
         ast = p(text)
@@ -18,7 +21,7 @@
         ;;;
         ;;;
         """,
-        "<p>;;;</p>\n"
+        "<p>;;;</p>\n",
     )
 
     # TOML
@@ -29,7 +32,7 @@
         +++
         +++
         """,
-        "<p>+++</p>\n"
+        "<p>+++</p>\n",
     )
 
     # YAML
@@ -40,16 +43,15 @@
         ---
         ---
         """,
-        "<hr />\n"
+        "<hr />\n",
     )
 
     # Unclosed frontmatter. Runs on until EOF.
-    text =
-    """
-    +++
-    one = 1
-    two = 2
-    """
+    text = """
+           +++
+           one = 1
+           two = 2
+           """
     ast = p(text)
     data = frontmatter(ast)
     @test data["one"] == 1
@@ -60,12 +62,11 @@
     ast = p(text)
     @test html(ast) == "<p>+++</p>\n"
 
-    text =
-    """
-    ---
-    field: data
-    ---
-    """
+    text = """
+           ---
+           field: data
+           ---
+           """
     ast = p(text)
     @test markdown(ast) == "---\nfield: data\n---\n"
     @test markdown(p(markdown(ast))) == markdown(ast)

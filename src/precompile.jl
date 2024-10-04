@@ -15,9 +15,7 @@ using PrecompileTools
         TableRule,
         TypographyRule,
     ]
-    writers = [
-        html, latex, term, markdown, notebook
-    ]
+    writers = [html, latex, term, markdown, notebook]
     @compile_workload begin
         parser = Parser()
         for rule in extension_rules

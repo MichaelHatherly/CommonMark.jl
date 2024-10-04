@@ -1,6 +1,6 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/html", ast::Node, env=Dict{String,Any}(); kws...)
+function Base.show(io::IO, ::MIME"text/html", ast::Node, env = Dict{String,Any}(); kws...)
     writer = Writer(HTML(; kws...), io, env)
     write_html(writer, ast)
     return nothing
@@ -19,7 +19,7 @@ mutable struct HTML
     safe::Bool
     sourcepos::Union{Bool,Function}
 
-    function HTML(; softbreak="\n", safe=false, sourcepos=false)
+    function HTML(; softbreak = "\n", safe = false, sourcepos = false)
         format = new()
         format.disable_tags = 0
         format.softbreak = softbreak # Set to "<br />" to for hardbreaks, " " for no wrapping.
@@ -38,9 +38,10 @@ end
 const reUnsafeProtocol = r"^javascript:|vbscript:|file:|data:"i
 const reSafeDataProtocol = r"^data:image\/(?:png|gif|jpeg|webp)"i
 
-potentially_unsafe(url) = occursin(reUnsafeProtocol, url) && !occursin(reSafeDataProtocol, url)
+potentially_unsafe(url) =
+    occursin(reUnsafeProtocol, url) && !occursin(reSafeDataProtocol, url)
 
-function tag(r::Writer, name, attributes=[], self_closing=false)
+function tag(r::Writer, name, attributes = [], self_closing = false)
     r.format.disable_tags > 0 && return nothing
     literal(r, '<', name)
     for (key, value) in attributes
@@ -105,7 +106,8 @@ end
 
 write_html(::Emph, r, n, ent) = tag(r, ent ? "em" : "/em", ent ? attributes(r, n) : [])
 
-write_html(::Strong, r, n, ent) = tag(r, ent ? "strong" : "/strong", ent ? attributes(r, n) : [])
+write_html(::Strong, r, n, ent) =
+    tag(r, ent ? "strong" : "/strong", ent ? attributes(r, n) : [])
 
 function write_html(::Paragraph, r, n, ent)
     grandparent = n.parent.parent
@@ -213,7 +215,8 @@ function write_html(::Item, r, n, ent)
     end
 end
 
-write_html(::HtmlInline, r, n, ent) = literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
+write_html(::HtmlInline, r, n, ent) =
+    literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
 
 function write_html(::HtmlBlock, r, n, ent)
     cr(r)
@@ -221,7 +224,7 @@ function write_html(::HtmlBlock, r, n, ent)
     cr(r)
 end
 
-function attributes(r, n, out=[])
+function attributes(r, n, out = [])
     # Maintain the order of the attributes, but merge duplicates.
     order = String[]
     dict = Dict{String,Any}()

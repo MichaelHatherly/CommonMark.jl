@@ -7,28 +7,23 @@ const reHtmlBlockOpen = [
     r"^<![A-Z]",
     r"^<!\[CDATA\[",
     r"^<[/]?(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[123456]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|[/]?[>]|$)"i,
-    Regex("^(?:$(OPENTAG)|$(CLOSETAG))\\s*\$", "i")
+    Regex("^(?:$(OPENTAG)|$(CLOSETAG))\\s*\$", "i"),
 ]
-const reHtmlBlockClose = [
-    r"<\/(?:script|pre|textarea|style)>"i,
-    r"-->",
-    r"\?>",
-    r">",
-    r"\]\]>"
-]
-const reThematicBreak     = r"^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$"
-const reNonSpace          = r"[^ \t\f\v\r\n]"
-const reBulletListMarker  = r"^[*+-]"
+const reHtmlBlockClose =
+    [r"<\/(?:script|pre|textarea|style)>"i, r"-->", r"\?>", r">", r"\]\]>"]
+const reThematicBreak = r"^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$"
+const reNonSpace = r"[^ \t\f\v\r\n]"
+const reBulletListMarker = r"^[*+-]"
 const reOrderedListMarker = r"^(\d{1,9})([.)])"
-const reATXHeadingMarker  = r"^#{1,6}(?:[ \t]+|$)"
-const reCodeFence         = r"^`{3,}(?!.*`)|^~{3,}"
-const reClosingCodeFence  = r"^(?:`{3,}|~{3,})(?= *$)"
+const reATXHeadingMarker = r"^#{1,6}(?:[ \t]+|$)"
+const reCodeFence = r"^`{3,}(?!.*`)|^~{3,}"
+const reClosingCodeFence = r"^(?:`{3,}|~{3,})(?= *$)"
 const reSetextHeadingLine = r"^(?:=+|-+)[ \t]*$"
-const reLineEnding        = r"\r\n|\n|\r"
+const reLineEnding = r"\r\n|\n|\r"
 
 mutable struct Parser <: AbstractParser
     doc::Node
-    block_starts::Dict{Char, Vector{Function}}
+    block_starts::Dict{Char,Vector{Function}}
     tip::Node
     oldtip::Node
     buf::String
@@ -44,12 +39,12 @@ mutable struct Parser <: AbstractParser
     partially_consumed_tab::Bool
     all_closed::Bool
     last_matched_container::Node
-    refmap::Dict{String, Tuple{String, String}}
+    refmap::Dict{String,Tuple{String,String}}
     last_line_length::Int
     inline_parser::InlineParser
     rules::Vector{Any}
     modifiers::Vector{Function}
-    priorities::IdDict{Function, Float64}
+    priorities::IdDict{Function,Float64}
 
     function Parser()
         parser = new()
@@ -149,7 +144,7 @@ function add_line(parser::Parser)
         parser.pos += 1
         # Add space characters.
         chars_to_tab = 4 - (parser.column % 4)
-        parser.tip.literal *= (' ' ^ chars_to_tab)
+        parser.tip.literal *= (' '^chars_to_tab)
     end
     parser.tip.literal *= (SubString(parser.buf, parser.pos) * '\n')
 end
@@ -358,11 +353,16 @@ function incorporate_line(parser::Parser, ln::AbstractString)
         # count blanks in fenced code for purposes of tight/loose lists or
         # breaking out of lists. We also don't set last_line_blank on an empty
         # list item, or if we just closed a fenced block.
-        last_line_blank = parser.blank &&
-            !(t isa BlockQuote ||
-              (t isa CodeBlock && container.t.is_fenced) ||
-              (t isa Item && isnull(container.first_child) &&
-               container.sourcepos[1][1] == parser.line_number))
+        last_line_blank =
+            parser.blank && !(
+                t isa BlockQuote ||
+                (t isa CodeBlock && container.t.is_fenced) ||
+                (
+                    t isa Item &&
+                    isnull(container.first_child) &&
+                    container.sourcepos[1][1] == parser.line_number
+                )
+            )
 
         # Propagate `last_line_blank` up through parents.
         cont = container
@@ -427,7 +427,7 @@ function parse(parser::Parser, my_input::IO; kws...)
     parser.doc = Node(Document(), ((1, 1), (0, 0)))
     isempty(kws) || (merge!(parser.doc.meta, Dict(string(k) => v for (k, v) in kws)))
     parser.tip = parser.doc
-    parser.refmap = Dict{String, Tuple{String, String}}()
+    parser.refmap = Dict{String,Tuple{String,String}}()
     parser.line_number = get(parser.doc.meta, "line", 1) - 1
     parser.last_line_length = 0
     parser.pos = 1
@@ -450,4 +450,5 @@ end
 (p::Parser)(text::AbstractString; kws...) = p(IOBuffer(text); kws...)
 (p::Parser)(io::IO; kws...) = parse(p, io; kws...)
 
-Base.open(p::Parser, file::AbstractString; kws...) = open(io -> p(io; :source => file, kws...), file)
+Base.open(p::Parser, file::AbstractString; kws...) =
+    open(io -> p(io; :source => file, kws...), file)

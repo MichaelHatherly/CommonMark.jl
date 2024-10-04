@@ -10,12 +10,10 @@ include("extensions.jl")
 include("precompile.jl")
 
 # Interface
-export Parser, enable!, disable!, html, latex, term, markdown, notebook,
-    frontmatter
+export Parser, enable!, disable!, html, latex, term, markdown, notebook, frontmatter
 
 # Core block rules
-export
-    AtxHeadingRule,
+export AtxHeadingRule,
     BlockQuoteRule,
     FencedCodeBlockRule,
     HtmlBlockRule,
@@ -25,8 +23,7 @@ export
     ThematicBreakRule
 
 # Core inline rules
-export
-    AsteriskEmphasisRule,
+export AsteriskEmphasisRule,
     AutolinkRule,
     HtmlEntityRule,
     HtmlInlineRule,
@@ -36,8 +33,7 @@ export
     UnderscoreEmphasisRule
 
 # Extension rules
-export
-    AdmonitionRule,
+export AdmonitionRule,
     AttributeRule,
     AutoIdentifierRule,
     CitationRule,

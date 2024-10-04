@@ -13,8 +13,10 @@ Base.seekstart(p::AbstractParser) = p.pos = 1
 Base.peek(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p)]
 Base.peek(p::AbstractParser, ::Type{Char}) = String(p.buf)[position(p)]
 
-trypeek(p::AbstractParser, ::Type{UInt8}, default=nothing) = get(p.buf, position(p), default)
-trypeek(p::AbstractParser, ::Type{Char}, default=nothing) = get(String(p.buf), thisind(p), default) # TODO thisind
+trypeek(p::AbstractParser, ::Type{UInt8}, default = nothing) =
+    get(p.buf, position(p), default)
+trypeek(p::AbstractParser, ::Type{Char}, default = nothing) =
+    get(String(p.buf), thisind(p), default) # TODO thisind
 
 function Base.read(p::AbstractParser, ::Type{T}) where {T<:Union{Char,UInt8}}
     obj = peek(p, T)
@@ -36,14 +38,18 @@ or(::Nothing, default) = default
 prev(p::AbstractParser, ::Type{Char}) = String(p.buf)[prevind(p)]
 next(p::AbstractParser, ::Type{Char}) = String(p.buf)[nextind(p)]
 
-prev(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p) - 1]
-next(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p) + 1]
+prev(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p)-1]
+next(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p)+1]
 
-tryprev(p::AbstractParser, ::Type{Char}, default=nothing) = get(String(p.buf), prevind(p), default)
-trynext(p::AbstractParser, ::Type{Char}, default=nothing) = get(String(p.buf), nextind(p), default)
+tryprev(p::AbstractParser, ::Type{Char}, default = nothing) =
+    get(String(p.buf), prevind(p), default)
+trynext(p::AbstractParser, ::Type{Char}, default = nothing) =
+    get(String(p.buf), nextind(p), default)
 
-tryprev(p::AbstractParser, ::Type{UInt8}, default=nothing) = get(p.buf, position(p) - 1, default)
-trynext(p::AbstractParser, ::Type{UInt8}, default=nothing) = get(p.buf, position(p) + 1, default)
+tryprev(p::AbstractParser, ::Type{UInt8}, default = nothing) =
+    get(p.buf, position(p) - 1, default)
+trynext(p::AbstractParser, ::Type{UInt8}, default = nothing) =
+    get(p.buf, position(p) + 1, default)
 
 Base.prevind(p::AbstractParser) = prevind(String(p), position(p))
 Base.thisind(p::AbstractParser) = thisind(String(p), position(p))

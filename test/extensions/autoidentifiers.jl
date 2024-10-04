@@ -2,11 +2,11 @@
     slugs = Dict(
         # Examples from pandoc documentation:
         "Heading identifiers in HTML" => "heading-identifiers-in-html",
-        "Maître d'hôtel"              => "maître-dhôtel",
-        "*Dogs*?--in *my* house?"     => "dogs--in-my-house",
-        "[HTML], [S5], or [RTF]?"     => "html-s5-or-rtf",
-        "3. Applications"             => "applications",
-        "33"                          => "section",
+        "Maître d'hôtel" => "maître-dhôtel",
+        "*Dogs*?--in *my* house?" => "dogs--in-my-house",
+        "[HTML], [S5], or [RTF]?" => "html-s5-or-rtf",
+        "3. Applications" => "applications",
+        "33" => "section",
     )
     for (k, v) in slugs
         @test CommonMark.slugify(k) == v

@@ -64,11 +64,11 @@ end
 
 function write_term(a::Admonition, rend, node, enter)
     styles = Dict(
-        "danger"  => crayon"red bold",
+        "danger" => crayon"red bold",
         "warning" => crayon"yellow bold",
-        "info"    => crayon"cyan bold",
-        "note"    => crayon"cyan bold",
-        "tip"     => crayon"green bold"
+        "info" => crayon"cyan bold",
+        "note" => crayon"cyan bold",
+        "tip" => crayon"green bold",
     )
     style = get(styles, a.category, crayon"default bold")
     if enter
@@ -81,7 +81,13 @@ function write_term(a::Admonition, rend, node, enter)
         pop_margin!(rend)
         pop_margin!(rend)
         print_margin(rend)
-        print_literal(rend, style, rpad("└", available_columns(rend), "─"), inv(style), "\n")
+        print_literal(
+            rend,
+            style,
+            rpad("└", available_columns(rend), "─"),
+            inv(style),
+            "\n",
+        )
         if !isnull(node.nxt)
             print_margin(rend)
             print_literal(rend, "\n")
