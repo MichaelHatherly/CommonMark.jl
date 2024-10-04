@@ -9,19 +9,7 @@ open(joinpath(@__DIR__, "src", "utils", "entities.jl"), "w") do io
         v = ENTITY_DATA[k]
         print(io, repr(k))
         print(io, "=>")
-
-        print(io, "Dict(")
-
-        print(io, repr("codepoints"))
-        print(io, "=>")
-        print(io, repr(identity.(v["codepoints"])))
-        print(io, ",")
-
-        print(io, repr("characters"))
-        print(io, "=>")
-        print(io, repr(v["characters"]))
-
-        print(io, "),")
+        print(io, repr(v["characters"]), ",")
     end
     print(io, ")")
 end
@@ -44,7 +32,6 @@ function HTMLunescape(s)
             return "\uFFFD"
         end
     else
-        haskey(ENTITY_DATA, s) || return s
-        return ENTITY_DATA[s]["characters"]
+        return get(ENTITY_DATA, s, s)
     end
 end
