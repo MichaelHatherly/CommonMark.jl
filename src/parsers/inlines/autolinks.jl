@@ -1,7 +1,7 @@
 function parse_autolink(parser::InlineParser, block::Node)
     m = consume(parser, match(reEmailAutolink, parser))
     if m !== nothing
-        dest = chop(m.match; head=1, tail=1)
+        dest = chop(m.match; head = 1, tail = 1)
         node = Node(Link())
         node.t.destination = normalize_uri("mailto:$(dest)")
         node.t.title = ""
@@ -11,7 +11,7 @@ function parse_autolink(parser::InlineParser, block::Node)
     else
         m = consume(parser, match(reAutolink, parser))
         if m !== nothing
-            dest = chop(m.match; head=1, tail=1)
+            dest = chop(m.match; head = 1, tail = 1)
             node = Node(Link())
             node.t.destination = normalize_uri(dest)
             node.t.title = ""

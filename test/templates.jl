@@ -21,25 +21,26 @@
 
     # Global Configuration.
 
-    env = merge(dict, Dict(
-        "date" => "DATE",
-        "authors" => ["ONE", "TWO"],
-        "title" => "TITLE",
-        "subtitle" => "SUBTITLE",
-        "abstract" => "ABSTRACT",
-        "keywords" => ["1", "2"],
-        "lang" => "fr",
-        "html" => Dict(
-            "css" => ["one.css", "two.css"],
-            "js" => ["one.js", "two.js"],
-            "header" => "<script></script>",
-            "footer" => "<footer></footer>",
+    env = merge(
+        dict,
+        Dict(
+            "date" => "DATE",
+            "authors" => ["ONE", "TWO"],
+            "title" => "TITLE",
+            "subtitle" => "SUBTITLE",
+            "abstract" => "ABSTRACT",
+            "keywords" => ["1", "2"],
+            "lang" => "fr",
+            "html" => Dict(
+                "css" => ["one.css", "two.css"],
+                "js" => ["one.js", "two.js"],
+                "header" => "<script></script>",
+                "footer" => "<footer></footer>",
+            ),
+            "latex" =>
+                Dict("documentclass" => "book", "preamble" => "\\usepackage{custom}"),
         ),
-        "latex" => Dict(
-            "documentclass" => "book",
-            "preamble" => "\\usepackage{custom}",
-        )
-    ))
+    )
 
     test(html(ast, env), read("templates/env.html", String))
     test(latex(ast, env), read("templates/env.tex", String))
@@ -51,18 +52,17 @@
 
     # Front Matter Configuration.
 
-    p = enable!(Parser(), FrontMatterRule(toml=TOML.parse))
-    text =
-    """
-    +++
-    authors = ["THREE", "FOUR"]
-    title = "NEW TITLE"
-    abstract = "NEW ABSTRACT"
-    keywords = ["3", "4"]
-    +++
+    p = enable!(Parser(), FrontMatterRule(toml = TOML.parse))
+    text = """
+           +++
+           authors = ["THREE", "FOUR"]
+           title = "NEW TITLE"
+           abstract = "NEW ABSTRACT"
+           keywords = ["3", "4"]
+           +++
 
-    *word*
-    """
+           *word*
+           """
     ast = p(text)
 
     test(html(ast, dict), read("templates/frontmatter.html", String))
@@ -85,28 +85,29 @@
 
     # File and string templates.
 
-    text =
-    """
-    +++
-    [html.template]
-    file = "templates/custom-template.html.mustache"
-    [latex.template]
-    file = "templates/custom-template.latex.mustache"
-    +++
+    text = """
+           +++
+           [html.template]
+           file = "templates/custom-template.html.mustache"
+           [latex.template]
+           file = "templates/custom-template.latex.mustache"
+           +++
 
-    *word*
-    """
+           *word*
+           """
     ast = p(text)
     test(html(ast, env), "<section>\n<p><em>word</em></p>\n\n</section>\n")
-    test(latex(ast, env), "\\documentclass{memoir}\n\\begin{document}\n\\textit{word}\\par\n\n\\end{document}\n")
+    test(
+        latex(ast, env),
+        "\\documentclass{memoir}\n\\begin{document}\n\\textit{word}\\par\n\n\\end{document}\n",
+    )
 
-    config =
-    """
-    [html.template]
-    string = "<body>\\n\${{body}}</body>"
-    [latex.template]
-    string = "\\\\begin{document}\\n\${{body}}\\\\end{document}"
-    """
+    config = """
+             [html.template]
+             string = "<body>\\n\${{body}}</body>"
+             [latex.template]
+             string = "\\\\begin{document}\\n\${{body}}\\\\end{document}"
+             """
     env = merge(dict, TOML.parse(config))
 
     test(html(ast, env), "<body>\n<p><em>word</em></p>\n</body>")

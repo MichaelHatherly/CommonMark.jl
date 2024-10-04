@@ -10,62 +10,65 @@ struct CitationRule
     CitationRule() = new([])
 end
 
-inline_rule(rule::CitationRule) = Rule(1, "@") do parser, block
-    m = consume(parser, match(r"@[_\w\d][_\w\d:#$%&\-\+\?\<\>~/]*", parser))
-    m === nothing && return false
-    bs = parser.brackets
-    opener = bs !== nothing && is_bracket(bs.node, "[")
-    citation = Node(Citation(chop(m.match; head=1, tail=0), opener))
-    citation.literal = m.match
-    append_child(block, citation)
-    push!(rule.cites, citation)
-    return true
-end
+inline_rule(rule::CitationRule) =
+    Rule(1, "@") do parser, block
+        m = consume(parser, match(r"@[_\w\d][_\w\d:#$%&\-\+\?\<\>~/]*", parser))
+        m === nothing && return false
+        bs = parser.brackets
+        opener = bs !== nothing && is_bracket(bs.node, "[")
+        citation = Node(Citation(chop(m.match; head = 1, tail = 0), opener))
+        citation.literal = m.match
+        append_child(block, citation)
+        push!(rule.cites, citation)
+        return true
+    end
 
 is_bracket(n::Node, c) = n.literal == c && n.t isa Text
 
-inline_modifier(rule::CitationRule) = Rule(1) do parser, block
-    openers = Set{Node}()
-    closers = Set{Node}()
-    while !isempty(rule.cites)
-        cite = pop!(rule.cites)
-        if cite.t.brackets
-            opener = closer = cite
-            while !isnull(opener.prv)
-                opener = opener.prv
-                opener in openers && @goto SKIP
-                opener.t isa Citation && break
-                if is_bracket(opener, "[")
-                    opener.t = CitationBracket()
-                    push!(openers, opener)
-                    break
+inline_modifier(rule::CitationRule) =
+    Rule(1) do parser, block
+        openers = Set{Node}()
+        closers = Set{Node}()
+        while !isempty(rule.cites)
+            cite = pop!(rule.cites)
+            if cite.t.brackets
+                opener = closer = cite
+                while !isnull(opener.prv)
+                    opener = opener.prv
+                    opener in openers && @goto SKIP
+                    opener.t isa Citation && break
+                    if is_bracket(opener, "[")
+                        opener.t = CitationBracket()
+                        push!(openers, opener)
+                        break
+                    end
                 end
-            end
-            while !isnull(closer.nxt)
-                closer = closer.nxt
-                closer in closers && @goto SKIP
-                closer.t isa Citation && break
-                if is_bracket(closer, "]")
-                    closer.t = CitationBracket()
-                    push!(closers, closer)
-                    break
+                while !isnull(closer.nxt)
+                    closer = closer.nxt
+                    closer in closers && @goto SKIP
+                    closer.t isa Citation && break
+                    if is_bracket(closer, "]")
+                        closer.t = CitationBracket()
+                        push!(closers, closer)
+                        break
+                    end
                 end
+                @label SKIP
             end
-            @label SKIP
         end
     end
-end
 
 struct References <: AbstractBlock end
 
-block_modifier(::CitationRule) = Rule(10) do parser, b
-    if !isnull(b.parent) && b.parent.t isa Document
-        if haskey(b.meta, "id") && b.meta["id"] == "refs"
-            insert_after(b, Node(References()))
+block_modifier(::CitationRule) =
+    Rule(10) do parser, b
+        if !isnull(b.parent) && b.parent.t isa Document
+            if haskey(b.meta, "id") && b.meta["id"] == "refs"
+                insert_after(b, Node(References()))
+            end
         end
+        return nothing
     end
-    return nothing
-end
 
 # Writers. TODO: implement real CSL for citation styling.
 
@@ -120,8 +123,7 @@ function write_references(f, writer)
     f(writer, ast)
 end
 
-struct ReferenceList <: AbstractBlock
-end
+struct ReferenceList <: AbstractBlock end
 
 is_container(::ReferenceList) = true
 
@@ -132,7 +134,7 @@ write_term(::ReferenceList, w, n, ent) = nothing
 
 function build_references(items::AbstractVector)
     block = Node(ReferenceList())
-    for item in sort!(items; by=CSL.authors_long)
+    for item in sort!(items; by = CSL.authors_long)
         append_child(block, build_reference(item))
     end
     return block
@@ -181,7 +183,8 @@ contains(v::AbstractVector, index) = index in keys(v)
 contains(others...) = false
 
 year(item) = rget(() -> nothing, item, "issued", "date-parts", 1, 1)
-authors(item) = filter(d -> d isa Dict && haskey(d, "family"), rget(() -> [], item, "author"))
+authors(item) =
+    filter(d -> d isa Dict && haskey(d, "family"), rget(() -> [], item, "author"))
 title(item) = rget(() -> nothing, item, "title")
 
 function year(env::AbstractDict, id::AbstractString)
@@ -192,11 +195,11 @@ end
 author_short(item) = get(() -> get(item, "given", ""), item, "family")
 
 function authors_short(item)
-    names = sort(authors(item); by=author_short)
+    names = sort(authors(item); by = author_short)
     n = length(names)
-    n === 0   && return "Unknown"
+    n === 0 && return "Unknown"
     1 ≤ n ≤ 2 && return join(author_short.(names), " and ")
-    n === 3   && return join(author_short.(names), ", ", ", and ")
+    n === 3 && return join(author_short.(names), ", ", ", and ")
     return author_short(names[1]) * " et al."
 end
 
@@ -209,11 +212,12 @@ function author_long(item, first)
 end
 
 function authors_long(item)
-    names = sort(authors(item); by=author_short)
-    return join((author_long(a, n==1) for (n, a) in enumerate(names)), ", ", ", and ")
+    names = sort(authors(item); by = author_short)
+    return join((author_long(a, n == 1) for (n, a) in enumerate(names)), ", ", ", and ")
 end
 
-mapbib(items::AbstractVector) = Dict{String,Dict}(item["id"] => item for item in items if haskey(item, "id"))
+mapbib(items::AbstractVector) =
+    Dict{String,Dict}(item["id"] => item for item in items if haskey(item, "id"))
 
 function get_item(env, id)
     if haskey(env, "references")

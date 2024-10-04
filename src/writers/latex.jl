@@ -1,6 +1,6 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/latex", ast::Node, env=Dict{String,Any}())
+function Base.show(io::IO, ::MIME"text/latex", ast::Node, env = Dict{String,Any}())
     writer = Writer(LaTeX(), io, env)
     write_latex(writer, ast)
     return nothing
@@ -87,7 +87,7 @@ function write_latex(::Heading, w, node, ent)
     if ent
         cr(w)
         n = node.t.level
-        name = n ≤ 3 ? "sub"^(n-1) * "section" : "sub"^(n-4) * "paragraph"
+        name = n ≤ 3 ? "sub"^(n - 1) * "section" : "sub"^(n - 4) * "paragraph"
         literal(w, "\\$name{")
     else
         literal(w, "}")
@@ -144,11 +144,7 @@ end
 
 write_latex(::HtmlBlock, w, node, ent) = nothing
 
-let chars = Dict(
-        '^'  => "\\^{}",
-        '\\' => "{\\textbackslash}",
-        '~'  => "{\\textasciitilde}",
-    )
+let chars = Dict('^' => "\\^{}", '\\' => "{\\textbackslash}", '~' => "{\\textasciitilde}")
     for c in "&%\$#_{}"
         chars[c] = "\\$c"
     end

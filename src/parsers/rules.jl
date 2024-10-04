@@ -8,7 +8,7 @@ struct Rule
     priority::Float64
     triggers::String
 
-    Rule(fn, priority, triggers="") = new(fn, priority, triggers)
+    Rule(fn, priority, triggers = "") = new(fn, priority, triggers)
 end
 
 # Two parsing rules are generally considered the same (for the purposes of enabling and
@@ -29,13 +29,14 @@ function enable!(p::AbstractParser, fn, rule::Rule)
         λs = get_funcs(p, fn, trigger)
         if rule.fn ∉ λs
             push!(λs, rule.fn)
-            sort!(λs; by=λ->p.priorities[λ])
+            sort!(λs; by = λ -> p.priorities[λ])
         end
     end
     return p
 end
 enable!(p::AbstractParser, fn, ::Nothing) = p
-enable!(p::AbstractParser, fn, rules::Union{Tuple,Vector}) = (foreach(r -> enable!(p, fn, r), rules); p)
+enable!(p::AbstractParser, fn, rules::Union{Tuple,Vector}) =
+    (foreach(r -> enable!(p, fn, r), rules); p)
 enable!(p::AbstractParser, fn, rule) = enable!(p, fn, fn(rule))
 
 function enable!(p::AbstractParser, rule)
@@ -50,15 +51,17 @@ function enable!(p::AbstractParser, rule)
     return p
 end
 
-enable!(p::AbstractParser, rules::Union{Tuple, Vector}) = (foreach(r -> enable!(p, r), rules); p)
+enable!(p::AbstractParser, rules::Union{Tuple,Vector}) =
+    (foreach(r -> enable!(p, r), rules); p)
 
-get_funcs(p, ::typeof(block_rule), c)  = get!(() -> Function[], p.block_starts, c)
-get_funcs(p, ::typeof(inline_rule), c) = get!(() -> Function[], p.inline_parser.inline_parsers, c)
+get_funcs(p, ::typeof(block_rule), c) = get!(() -> Function[], p.block_starts, c)
+get_funcs(p, ::typeof(inline_rule), c) =
+    get!(() -> Function[], p.inline_parser.inline_parsers, c)
 
-get_funcs(p, ::typeof(block_modifier), _)  = p.modifiers
+get_funcs(p, ::typeof(block_modifier), _) = p.modifiers
 get_funcs(p, ::typeof(inline_modifier), _) = p.inline_parser.modifiers
 
-function disable!(p::AbstractParser, rules::Union{Tuple, Vector})
+function disable!(p::AbstractParser, rules::Union{Tuple,Vector})
     rules_kept = filter(!ruleoccursin(rules), p.rules)
     empty!(p.priorities)
     empty!(p.block_starts)

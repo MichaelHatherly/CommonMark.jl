@@ -18,7 +18,8 @@
 
     ast = p("![link](url.img)")
     @test html(ast, env) == "<p><img src=\"url.img\" alt=\"link\" /></p>\n"
-    @test latex(ast, env) == "\\begin{figure}\n\\centering\n\\includegraphics[max width=\\linewidth]{url.img}\n\\caption{link}\n\\end{figure}\n\\par\n"
+    @test latex(ast, env) ==
+          "\\begin{figure}\n\\centering\n\\includegraphics[max width=\\linewidth]{url.img}\n\\caption{link}\n\\end{figure}\n\\par\n"
     @test term(ast, env) == " \e[32mlink\e[39m\n"
     @test markdown(ast, env) == "![link](url.img)\n"
 end

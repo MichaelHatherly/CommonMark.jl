@@ -1,7 +1,7 @@
 @testset "Parsing" begin
     # AST metadata via keywords.
     p = Parser()
-    ast = p(""; empty=true)
+    ast = p(""; empty = true)
     @test ast.meta["empty"] == true
 
     # Parsing file contents.
@@ -50,16 +50,16 @@
     end
     let p = enable!(Parser(), TableRule())
         @test CommonMark.ruleoccursin(LinkRule(), p.rules)
-        @test CommonMark.ruleoccursin(ImageRule(),  p.rules)
-        @test CommonMark.ruleoccursin(TableRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(FootnoteRule(),  p.rules)
+        @test CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test !CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
     let p = enable!(Parser(), [TableRule(), FootnoteRule()])
         @test CommonMark.ruleoccursin(LinkRule(), p.rules)
-        @test CommonMark.ruleoccursin(ImageRule(),  p.rules)
-        @test CommonMark.ruleoccursin(TableRule(),  p.rules)
-        @test CommonMark.ruleoccursin(FootnoteRule(),  p.rules)
+        @test CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
     @test_throws ErrorException enable!(Parser(), LinkRule())
@@ -67,37 +67,37 @@
     @test_throws ErrorException enable!(Parser(), [LinkRule(), FootnoteRule()])
     let p = disable!(Parser(), LinkRule())
         @test !CommonMark.ruleoccursin(LinkRule(), p.rules)
-        @test CommonMark.ruleoccursin(ImageRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(TableRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(FootnoteRule(),  p.rules)
+        @test CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test !CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test !CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
     let p = disable!(Parser(), [LinkRule(), ImageRule()])
         @test !CommonMark.ruleoccursin(LinkRule(), p.rules)
-        @test !CommonMark.ruleoccursin(ImageRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(TableRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(FootnoteRule(),  p.rules)
+        @test !CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test !CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test !CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
     let p = disable!(Parser(), TableRule())
         @test CommonMark.ruleoccursin(LinkRule(), p.rules)
-        @test CommonMark.ruleoccursin(ImageRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(TableRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(FootnoteRule(),  p.rules)
+        @test CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test !CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test !CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
     let p = disable!(Parser(), [TableRule(), FootnoteRule()])
         @test CommonMark.ruleoccursin(LinkRule(), p.rules)
-        @test CommonMark.ruleoccursin(ImageRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(TableRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(FootnoteRule(),  p.rules)
+        @test CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test !CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test !CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
     let p = disable!(Parser(), [LinkRule(), FootnoteRule()])
         @test !CommonMark.ruleoccursin(LinkRule(), p.rules)
-        @test CommonMark.ruleoccursin(ImageRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(TableRule(),  p.rules)
-        @test !CommonMark.ruleoccursin(FootnoteRule(),  p.rules)
+        @test CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test !CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test !CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
 end

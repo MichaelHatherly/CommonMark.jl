@@ -5,7 +5,7 @@
         AutoIdentifierRule(),
         CitationRule(),
         FootnoteRule(),
-        FrontMatterRule(yaml=YAML.load),
+        FrontMatterRule(yaml = YAML.load),
         MathRule(),
         RawContentRule(),
         TableRule(),
@@ -16,5 +16,6 @@
     @test !isempty(html(ast))
     @test !isempty(latex(ast))
     @test !isempty(term(ast))
-    @test markdown(ast) == replace(read(joinpath(@__DIR__, "integration_output.md"), String), "\r" => "")
+    @test markdown(ast) ==
+          replace(read(joinpath(@__DIR__, "integration_output.md"), String), "\r" => "")
 end

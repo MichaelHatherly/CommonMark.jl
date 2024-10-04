@@ -15,8 +15,7 @@ gen_results() =
     end
 
 "Remove the extraneous newlines at the end of output cells"
-rm_newlines(md) =
-    replace(md, "\n\n````\n" => "\n````\n")
+rm_newlines(md) = replace(md, "\n\n````\n" => "\n````\n")
 
 
 ENV["JULIA_DEBUG"] = "Literate"

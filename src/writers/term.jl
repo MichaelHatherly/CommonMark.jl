@@ -1,6 +1,6 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/plain", ast::Node, env=Dict{String,Any}())
+function Base.show(io::IO, ::MIME"text/plain", ast::Node, env = Dict{String,Any}())
     writer = Writer(Term(), io, env)
     write_term(writer, ast)
     # Writing is done to an intermediate buffer and then written to the
@@ -77,7 +77,7 @@ end
 Adds a new segment to the margin buffer. This segment is persistent and thus
 will print on every margin print.
 """
-function push_margin!(r::Writer, text::AbstractString, style=crayon"")
+function push_margin!(r::Writer, text::AbstractString, style = crayon"")
     return push_margin!(r, -1, text, style)
 end
 
@@ -85,7 +85,12 @@ end
 Adds new segmant to the margin buffer. `count` determines how many time
 `initial` is printed. After that, the width of `rest` is printed instead.
 """
-function push_margin!(r::Writer, count::Integer, initial::AbstractString, rest::AbstractString)
+function push_margin!(
+    r::Writer,
+    count::Integer,
+    initial::AbstractString,
+    rest::AbstractString,
+)
     width = Base.Unicode.textwidth(rest)
     r.format.indent += width
     seg = MarginSegment(initial, width, count)
@@ -98,7 +103,7 @@ Adds a new segment to the margin buffer, but will only print out for the given
 number of `count` calls to `print_margin`. After `count` calls it will instead
 print out spaces equal to the width of `text`.
 """
-function push_margin!(r::Writer, count::Integer, text::AbstractString, style=crayon"")
+function push_margin!(r::Writer, count::Integer, text::AbstractString, style = crayon"")
     width = Base.Unicode.textwidth(text)
     text = string(style, text, inv(style))
     r.format.indent += width
@@ -180,7 +185,7 @@ function print_literal(r::Writer{Term}, parts...)
     end
 end
 
-function print_literal_part(r::Writer{Term}, lit::AbstractString, rec=0)
+function print_literal_part(r::Writer{Term}, lit::AbstractString, rec = 0)
     width = Base.Unicode.textwidth(lit)
     space = (available_columns(r) - r.format.wrap) + ispunct(get(lit, 1, '\0'))
     if width < space
@@ -197,7 +202,7 @@ function print_literal_part(r::Writer{Term}, lit::AbstractString, rec=0)
         print_margin(r)
         r.format.wrap = 0
 
-        print_literal_part(r, lstrip(tail), rec+1)
+        print_literal_part(r, lstrip(tail), rec + 1)
     end
 end
 print_literal_part(r::Writer{Term}, c::Crayon) = print(r.format.buffer, c)

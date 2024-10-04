@@ -24,7 +24,10 @@ function atx_heading(parser::Parser, container::Node)
             # number of #s
             container.t.level = length(strip(m.match))
             # remove trailing ###s
-            container.literal = replace(replace(SubString(parser.buf, parser.pos), r"^[ \t]*#+[ \t]*$" => ""), r"[ \t]+#+[ \t]*$" => "")
+            container.literal = replace(
+                replace(SubString(parser.buf, parser.pos), r"^[ \t]*#+[ \t]*$" => ""),
+                r"[ \t]+#+[ \t]*$" => "",
+            )
             advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
             return 2
         end
@@ -42,7 +45,8 @@ function setext_heading(parser::Parser, container::Node)
             close_unmatched_blocks(parser)
             # resolve reference link definitiosn
             while get(container.literal, 1, nothing) == '['
-                pos = parse_reference(parser.inline_parser, container.literal, parser.refmap)
+                pos =
+                    parse_reference(parser.inline_parser, container.literal, parser.refmap)
                 if pos == 0
                     break
                 end

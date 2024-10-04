@@ -22,11 +22,25 @@
     test("{:element}", Dict{String,Any}("element" => "element"))
     test("{:element empty}", Dict{String,Any}("element" => "element", "empty" => ""))
     test("{one=two}", Dict{String,Any}("one" => "two"))
-    test("{empty one=two other}", Dict{String,Any}("one" => "two", "empty" => "", "other" => ""))
+    test(
+        "{empty one=two other}",
+        Dict{String,Any}("one" => "two", "empty" => "", "other" => ""),
+    )
     test("{one=two three='four'}", Dict{String,Any}("one" => "two", "three" => "four"))
-    test("{one=two empty three='four'}", Dict{String,Any}("one" => "two", "three" => "four", "empty" => ""))
+    test(
+        "{one=two empty three='four'}",
+        Dict{String,Any}("one" => "two", "three" => "four", "empty" => ""),
+    )
     test("{one=2 three=4}", Dict{String,Any}("one" => "2", "three" => "4"))
-    test("{#id .class one=two three='four'}", Dict{String,Any}("id" => "id", "class" => ["class"], "one" => "two", "three" => "four"))
+    test(
+        "{#id .class one=two three='four'}",
+        Dict{String,Any}(
+            "id" => "id",
+            "class" => ["class"],
+            "one" => "two",
+            "three" => "four",
+        ),
+    )
 
     # Block metadata attachment.
 
@@ -45,7 +59,7 @@
         # H1
         """,
         CommonMark.Heading,
-        dict
+        dict,
     )
     test(
         """
@@ -53,7 +67,7 @@
         > blockquote
         """,
         CommonMark.BlockQuote,
-        dict
+        dict,
     )
     test(
         """
@@ -63,7 +77,7 @@
         ```
         """,
         CommonMark.CodeBlock,
-        dict
+        dict,
     )
     test(
         """
@@ -73,7 +87,7 @@
           - three
         """,
         CommonMark.List,
-        dict
+        dict,
     )
     test(
         """
@@ -81,7 +95,7 @@
         paragraph
         """,
         CommonMark.Paragraph,
-        dict
+        dict,
     )
     test(
         """
@@ -89,7 +103,7 @@
         * * *
         """,
         CommonMark.ThematicBreak,
-        dict
+        dict,
     )
     test(
         """
@@ -97,12 +111,12 @@
           - list
         """,
         CommonMark.List,
-        Dict{String,Any}("class" => ["hidden"])
+        Dict{String,Any}("class" => ["hidden"]),
     )
 
     # Inline metadata attachment.
 
-    test = function (text, T, dict, md=text)
+    test = function (text, T, dict, md = text)
         ast = p(text)
         @test ast.first_child.first_child.t isa T
         @test ast.first_child.first_child.nxt.t isa CommonMark.Attributes
@@ -115,14 +129,23 @@
     test("![word](url){#id}", CommonMark.Image, dict)
     test("**word**{#id}", CommonMark.Strong, dict)
     test("`word`{#id}", CommonMark.Code, dict)
-    test("<http://www.website.com>{#id}", CommonMark.Link, dict, "[http://www.website.com](http://www.website.com){#id}")
+    test(
+        "<http://www.website.com>{#id}",
+        CommonMark.Link,
+        dict,
+        "[http://www.website.com](http://www.website.com){#id}",
+    )
 
     test = function (input, f, output)
         ast = p(input)
         @test f(ast) == output
     end
 
-    test("{#id}\n# H1", html, "<h1 id=\"id\"><a href=\"#id\" class=\"anchor\"></a>H1</h1>\n")
+    test(
+        "{#id}\n# H1",
+        html,
+        "<h1 id=\"id\"><a href=\"#id\" class=\"anchor\"></a>H1</h1>\n",
+    )
     test("{.one.two}\n# H1", html, "<h1 class=\"one two\">H1</h1>\n")
     test("{#id}\n# H1", latex, "\\protect\\hypertarget{id}{}\n\\section{H1}\n")
 
