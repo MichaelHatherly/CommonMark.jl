@@ -222,20 +222,32 @@ function write_html(::HtmlBlock, r, n, ent)
 end
 
 function attributes(r, n, out=[])
+    # Maintain the order of the attributes, but merge duplicates.
+    order = String[]
+    dict = Dict{String,Any}()
     if _has_sourcepos(r.format.sourcepos)
         if n.sourcepos !== nothing
             p = n.sourcepos
             result = _process_sourcepos(r.format.sourcepos, p)
             if isa(result, Pair)
-                push!(out, result)
+                k, v = result
+                push!(order, k)
+                dict[k] = v
             end
         end
     end
-    for (key, value) in n.meta
-        value = key == "class" ? join(value, " ") : value
-        push!(out, key => value)
+    for each in (out, n.meta)
+        for (key, value) in each
+            value = isa(value, AbstractString) ? value : join(value, " ")
+            if haskey(dict, key)
+                dict[key] = "$(dict[key]) $value"
+            else
+                dict[key] = value
+                push!(order, key)
+            end
+        end
     end
-    return out
+    return [k => dict[k] for k in order]
 end
 
 _has_sourcepos(sourcepos::Any) = sourcepos === true
