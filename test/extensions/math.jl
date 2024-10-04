@@ -41,6 +41,28 @@
     @test html(ast) == "<div class=\"display-math tex\" id=\"id\">\\[math\\]</div>"
     @test latex(ast) == "\\protect\\hypertarget{id}{}\\begin{equation*}\nmath\n\\end{equation*}\n"
 
+    text =
+    """
+    {.red}
+    ```math
+    E=mc^2
+    ```
+    """
+    ast = p(text)
+
+    @test html(ast) == "<div class=\"display-math tex red\">\\[E=mc^2\\]</div>"
+
+    text =
+    """
+    {#id .red}
+    ```math
+    E=mc^2
+    ```
+    """
+    ast = p(text)
+
+    @test html(ast) == "<div class=\"display-math tex red\" id=\"id\">\\[E=mc^2\\]</div>"
+
     # Dollar math
     p = enable!(Parser(), DollarMathRule())
 
