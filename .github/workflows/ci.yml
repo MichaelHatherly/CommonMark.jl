@@ -16,18 +16,30 @@ concurrency:
 
 jobs:
   finalize:
-    needs: [test]
+    needs: [format, test]
     timeout-minutes: 5
     runs-on: ubuntu-latest
     if: always()
 
     steps:
       - run: |
+          echo format: ${{ needs.format.result }}
           echo test: ${{ needs.test.result }}
 
       - run: exit 1
         if: |
+          (needs.format.result != 'success') ||
           (needs.test.result != 'success')
+
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+      - run: julia --project=.format .format/format.jl
+      - run: git diff --color --exit-code
 
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
