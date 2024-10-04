@@ -1,7 +1,5 @@
 module CommonMark
 
-import JSON
-
 include("utils.jl")
 include("ast.jl")
 include("parsers.jl")

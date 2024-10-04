@@ -1,4 +1,32 @@
-const ENTITY_DATA = JSON.Parser.parsefile(joinpath(@__DIR__, "entities.json"))
+#=
+# Generated data:
+
+import JSON
+ENTITY_DATA = JSON.Parser.parsefile(joinpath(@__DIR__, "src", "utils", "entities.json"))
+open(joinpath(@__DIR__, "src", "utils", "entities.jl"), "w") do io
+    print(io, "const ENTITY_DATA = Dict(")
+    for k in sort(collect(keys(ENTITY_DATA)))
+        v = ENTITY_DATA[k]
+        print(io, repr(k))
+        print(io, "=>")
+
+        print(io, "Dict(")
+
+        print(io, repr("codepoints"))
+        print(io, "=>")
+        print(io, repr(identity.(v["codepoints"])))
+        print(io, ",")
+
+        print(io, repr("characters"))
+        print(io, "=>")
+        print(io, repr(v["characters"]))
+
+        print(io, "),")
+    end
+    print(io, ")")
+end
+=#
+include("entities.jl")
 
 function HTMLunescape(s)
     @assert startswith(s, '&')
