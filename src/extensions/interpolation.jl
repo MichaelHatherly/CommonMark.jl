@@ -194,6 +194,10 @@ function write_latex(jv::JuliaExpression, rend, node, enter)
     print(rend.buffer, ")}")
 end
 
+function write_typst(jv::JuliaExpression, rend, node, enter)
+    print(rend.buffer, string(jv.ex))
+end
+
 function write_term(jv::JuliaExpression, rend, node, enter)
     style = crayon"yellow"
     push_inline!(rend, style)
@@ -226,6 +230,10 @@ function write_term(jv::JuliaValue, rend, node, enter)
     push_inline!(rend, style)
     print_literal(rend, style, sprint(print, jv.ref), inv(style))
     pop_inline!(rend)
+end
+
+function write_typst(jv::JuliaValue, rend, node, enter)
+    literal(rend, sprint(print, jv.ref))
 end
 
 # Markdown output should be roundtrip-able, so printout the interpolated

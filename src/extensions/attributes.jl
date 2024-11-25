@@ -157,6 +157,7 @@ inline_modifier(rule::AttributeRule) =
 
 write_html(::Attributes, w, n, ent) = nothing
 write_latex(::Attributes, w, n, ent) = nothing
+write_typst(::Attributes, w, n, ent) = nothing
 write_term(::Attributes, w, n, ent) = nothing
 
 function write_markdown(at::Attributes, w, n, ent)

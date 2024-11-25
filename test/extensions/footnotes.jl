@@ -8,6 +8,7 @@
 
     @test html(ast) == "<p>text<a href=\"#footnote-1\" class=\"footnote\">1</a></p>\n"
     @test latex(ast) == "text\\par\n" # No definition so not displayed in LaTeX.
+    @test typst(ast) == "text\n" # No definition so not displayed in Typst.
     @test term(ast) == " text\e[31m[^1]\e[39m\n"
     @test markdown(ast) == "text[^1]\n"
 
@@ -18,6 +19,7 @@
     @test html(ast) ==
           "<div class=\"footnote\" id=\"footnote-1\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
     @test latex(ast) == "" # Definitions vanish in LaTeX since they are inlined.
+    @test typst(ast) == "" # Definitions vanish in Typst since they are inlined.
     @test term(ast) ==
           " \e[31m┌ [^1] ───────────────────────────────────────────────────────────────────────\e[39m\n \e[31m│\e[39m text\n \e[31m└─────────────────────────────────────────────────────────────────────────────\e[39m\n"
     @test markdown(ast) == "[^1]: text\n"
@@ -25,6 +27,7 @@
     text = "text[^1].\n\n[^1]: text"
     ast = p(text)
     @test latex(ast) == "text\\footnote{text\\par\n\\label{fn:1}}.\\par\n"
+    @test typst(ast) == "text#footnote[text\n] <fn-1>.\n\n"
     @test markdown(ast) == "text[^1].\n\n[^1]: text\n"
 
     p = enable!(Parser(), [FootnoteRule(), AttributeRule()])
@@ -55,6 +58,7 @@
           "<p>text<a href=\"#footnote-1\" class=\"footnote\" id=\"id\">1</a>.</p>\n<div class=\"footnote\" id=\"footnote-1\" key=\"value\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
     @test latex(ast) ==
           "text\\protect\\hypertarget{id}{}\\footnote{text\\par\n\\label{fn:1}}.\\par\n"
+    @test typst(ast) == "text#footnote[text\n] <fn-1>.\n\n"
 
     text = "[^1]:\n\n    text"
     ast = p(text)
@@ -65,6 +69,7 @@
     @test term(ast) ==
           " \e[31m┌ [^1] ───────────────────────────────────────────────────────────────────────\e[39m\n \e[31m│\e[39m text\n \e[31m└─────────────────────────────────────────────────────────────────────────────\e[39m\n"
     @test markdown(ast) == "[^1]: text\n"
+    @test typst(ast) == "" # Definitions vanish in Typst since they are inlined.
 
     text = "[^1]:\n\n\ttext"
     ast = p(text)
@@ -72,6 +77,7 @@
     @test html(ast) ==
           "<div class=\"footnote\" id=\"footnote-1\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
     @test latex(ast) == "" # Definitions vanish in LaTeX since they are inlined.
+    @test typst(ast) == "" # Definitions vanish in Typst since they are inlined.
     @test term(ast) ==
           " \e[31m┌ [^1] ───────────────────────────────────────────────────────────────────────\e[39m\n \e[31m│\e[39m text\n \e[31m└─────────────────────────────────────────────────────────────────────────────\e[39m\n"
     @test markdown(ast) == "[^1]: text\n"

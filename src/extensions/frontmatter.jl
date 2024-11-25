@@ -79,6 +79,7 @@ block_modifier(f::FrontMatterRule) =
 write_html(::FrontMatter, rend, node, enter) = nothing
 write_latex(::FrontMatter, rend, node, enter) = nothing
 write_term(::FrontMatter, rend, node, enter) = nothing
+write_typst(::FrontMatter, rend, node, enter) = nothing
 
 function write_markdown(f::FrontMatter, w, node, ent)
     literal(w, f.fence, "\n")
