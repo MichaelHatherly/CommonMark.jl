@@ -210,6 +210,44 @@ function write_latex(::TableCell, rend, node, enter)
     end
 end
 
+# Typst
+
+function write_typst(table::Table, rend, node, enter)
+    if enter
+        align = "align: (" * join(table.spec, ", ") * ")"
+        columns = "columns: $(length(table.spec))"
+        fill = "fill: (x, y) => if y == 0 { rgb(\"#e5e7eb\") }"
+        println(rend.buffer, "#table($align, $columns, $fill,")
+    else
+        println(rend.buffer, ")")
+    end
+end
+
+function write_typst(::TableHeader, rend, node, enter)
+    if enter
+        println(rend.buffer, "table.header(")
+    else
+        println(rend.buffer, "),")
+    end
+end
+
+write_typst(::TableBody, rend, node, enter) = nothing
+
+function write_typst(::TableRow, rend, node, enter)
+    if enter
+    else
+        println(rend.buffer)
+    end
+end
+
+function write_typst(::TableCell, rend, node, enter)
+    if enter
+        print(rend.buffer, "[")
+    else
+        print(rend.buffer, "],")
+    end
+end
+
 # Term
 
 function write_term(table::Table, rend, node, enter)

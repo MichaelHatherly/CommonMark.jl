@@ -62,6 +62,31 @@ function write_latex(a::Admonition, w, node, enter)
     end
 end
 
+function write_typst(a::Admonition, w, node, enter)
+    if enter
+        styles = Dict(
+            "danger" => "#dc2626",
+            "warning" => "#facc15",
+            "info" => "#0ea5e9",
+            "note" => "#9333ea",
+            "tip" => "#16a34a",
+        )
+        style = get(styles, a.category, "#525252")
+        fill = "fill: rgb(\"#e5e5e5\")"
+        inset = "inset: 8pt"
+        stroke = "stroke: (left: 2pt + rgb(\"$style\"), rest: none)"
+        width = "width: 100%"
+        cr(w)
+        literal(w, "#block($fill, $inset, $stroke, $width)[")
+        literal(w, "#strong[", a.title, "] \\")
+        cr(w)
+        linebreak(w, node)
+    else
+        literal(w, "]")
+        cr(w)
+    end
+end
+
 function write_term(a::Admonition, rend, node, enter)
     styles = Dict(
         "danger" => crayon"red bold",

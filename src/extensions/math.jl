@@ -117,6 +117,10 @@ function write_latex(::Math, rend, node, enter)
     print(rend.buffer, "\\(", node.literal, "\\)")
 end
 
+function write_typst(::Math, rend, node, enter)
+    print(rend.buffer, "\$", strip(node.literal), "\$")
+end
+
 function write_term(::Math, rend, node, enter)
     style = crayon"magenta"
     push_inline!(rend, style)
@@ -143,6 +147,12 @@ function write_latex(::DisplayMath, rend, node, enter)
     println(rend.buffer, "\\begin{equation*}")
     println(rend.buffer, node.literal)
     println(rend.buffer, "\\end{equation*}")
+end
+
+function write_typst(::DisplayMath, rend, node, enter)
+    print(rend.buffer, "\$ ")
+    print(rend.buffer, strip(node.literal))
+    println(rend.buffer, " \$")
 end
 
 function write_term(::DisplayMath, rend, node, enter)

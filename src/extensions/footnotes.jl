@@ -75,6 +75,11 @@ function write_latex(f::FootnoteDefinition, w, node, enter)
     return nothing
 end
 
+function write_typst(f::FootnoteDefinition, w, node, enter)
+    get(w.buffer, :footnote, false) || (w.enabled = !enter)
+    return nothing
+end
+
 function write_term(f::FootnoteDefinition, rend, node, enter)
     style = crayon"red"
     if enter
@@ -132,6 +137,21 @@ function write_latex(f::FootnoteLink, w, node, enter)
             literal(w, "\\footnote{")
             latex(IOContext(w.buffer, :footnote => true), f.rule.cache[f.id])
             literal(w, "\\label{fn:$(f.id)}}")
+        end
+    end
+    return nothing
+end
+
+function write_typst(f::FootnoteLink, w, node, enter)
+    if haskey(f.rule.cache, f.id)
+        seen = get!(() -> Set{String}(), w, :footnotes)
+        if f.id in seen
+            literal(w, "#footnote(<fn-$(f.id)>)")
+        else
+            push!(seen, f.id)
+            literal(w, "#footnote[")
+            typst(IOContext(w.buffer, :footnote => true), f.rule.cache[f.id])
+            literal(w, "] <fn-$(f.id)>")
         end
     end
     return nothing

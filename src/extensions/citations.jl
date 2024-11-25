@@ -98,6 +98,7 @@ function write_latex(c::Citation, w, n, ent)
 end
 
 write_markdown(c::Citation, w, n, ent) = literal(w, "@", c.id)
+write_typst(c::Citation, w, n, ent) = literal(w, "@", c.id)
 
 function write_term(c::Citation, w, n, ent)
     style = crayon"red"
@@ -111,12 +112,14 @@ end
 write_html(::CitationBracket, w, n, ent) = literal(w, n.literal == "[" ? "(" : ")")
 write_latex(::CitationBracket, w, n, ent) = literal(w, n.literal == "[" ? "(" : ")")
 write_markdown(::CitationBracket, w, n, ent) = literal(w, n.literal)
+write_typst(::CitationBracket, w, n, ent) = literal(w, n.literal)
 write_term(::CitationBracket, w, n, ent) = print_literal(w, n.literal == "[" ? "(" : ")")
 
 write_markdown(::References, w, n, ent) = nothing
 write_html(::References, w, n, ent) = write_references(write_html, w)
 write_latex(::References, w, n, ent) = write_references(write_latex, w)
 write_term(::References, w, n, ent) = write_references(write_term, w)
+write_typst(::References, w, n, ent) = nothing # unsupported
 
 function write_references(f, writer)
     ast = build_references(get(writer.env, "references", nothing))
