@@ -28,10 +28,13 @@ struct UnsupportedContainerError <: Exception
     container_type::Type{<:AbstractContainer}
 end
 function Base.showerror(io::IO, e::UnsupportedContainerError)
-    print(io, "UnsupportedContainerError: container of type '$(e.container_type)' is not supported in MarkdownAST")
+    print(
+        io,
+        "UnsupportedContainerError: container of type '$(e.container_type)' is not supported in MarkdownAST",
+    )
 end
 
-function _mdast_node(::Node, ::T) where {T <: AbstractContainer}
+function _mdast_node(::Node, ::T) where {T<:AbstractContainer}
     throw(UnsupportedContainerError(T))
 end
 
@@ -80,13 +83,18 @@ end
 _mdast_node(n::Node, c::Heading) = MarkdownAST.Node(MarkdownAST.Heading(c.level))
 _mdast_node(n::Node, c::Link) = MarkdownAST.Node(MarkdownAST.Link(c.destination, c.title))
 _mdast_node(n::Node, c::Image) = MarkdownAST.Node(MarkdownAST.Image(c.destination, c.title))
-_mdast_node(n::Node, c::List) = MarkdownAST.Node(MarkdownAST.List(c.list_data.type, c.list_data.tight))
-_mdast_node(n::Node, c::CodeBlock) = MarkdownAST.Node(MarkdownAST.CodeBlock(c.info, n.literal))
-_mdast_node(n::Node, c::Admonition) = MarkdownAST.Node(MarkdownAST.Admonition(c.category, c.title))
-_mdast_node(n::Node, c::FootnoteDefinition) = MarkdownAST.Node(MarkdownAST.FootnoteDefinition(c.id))
+_mdast_node(n::Node, c::List) =
+    MarkdownAST.Node(MarkdownAST.List(c.list_data.type, c.list_data.tight))
+_mdast_node(n::Node, c::CodeBlock) =
+    MarkdownAST.Node(MarkdownAST.CodeBlock(c.info, n.literal))
+_mdast_node(n::Node, c::Admonition) =
+    MarkdownAST.Node(MarkdownAST.Admonition(c.category, c.title))
+_mdast_node(n::Node, c::FootnoteDefinition) =
+    MarkdownAST.Node(MarkdownAST.FootnoteDefinition(c.id))
 _mdast_node(n::Node, c::FootnoteLink) = MarkdownAST.Node(MarkdownAST.FootnoteLink(c.id))
 _mdast_node(n::Node, c::Table) = MarkdownAST.Node(MarkdownAST.Table(c.spec))
-_mdast_node(n::Node, c::TableCell) = MarkdownAST.Node(MarkdownAST.TableCell(c.align, c.header, c.column))
+_mdast_node(n::Node, c::TableCell) =
+    MarkdownAST.Node(MarkdownAST.TableCell(c.align, c.header, c.column))
 _mdast_node(n::Node, c::JuliaValue) = MarkdownAST.Node(MarkdownAST.JuliaValue(c.ex, c.ref))
 
 # Unsupported containers (no MarkdownAST equivalent currently):

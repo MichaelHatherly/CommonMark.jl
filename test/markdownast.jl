@@ -63,10 +63,7 @@ const MARKDOWNAST_DEFAULT_RULES = [
     CommonMark.TableRule(),
 ]
 
-function convert_to_markdownast(
-    markdown::AbstractString;
-    rules = MARKDOWNAST_DEFAULT_RULES,
-)
+function convert_to_markdownast(markdown::AbstractString; rules = MARKDOWNAST_DEFAULT_RULES)
     p = Parser()
     for rule in rules
         enable!(p, rule)
@@ -91,14 +88,11 @@ end
 @testset "MarkdownAST conversions" begin
     @testset "CommonMark.{Document,Paragraph,Text}" begin
         convert_to_markdownast_and_compare("", MarkdownAST.@ast MarkdownAST.Document())
-        convert_to_markdownast_and_compare(
-            "foo",
-            MarkdownAST.@ast MarkdownAST.Document() do
-                MarkdownAST.Paragraph() do
-                    MarkdownAST.Text("foo")
-                end
+        convert_to_markdownast_and_compare("foo", MarkdownAST.@ast MarkdownAST.Document() do
+            MarkdownAST.Paragraph() do
+                MarkdownAST.Text("foo")
             end
-        )
+        end)
     end
 
     @testset "CommonMark.Admonition" begin
@@ -162,8 +156,7 @@ end
             ```julia
             code
             ```
-            """
-            ,
+            """,
             MarkdownAST.@ast MarkdownAST.Document() do
                 MarkdownAST.CodeBlock("julia", "code\n")
             end
@@ -514,7 +507,7 @@ end
             """
             # Heading {.class #id}
             """;
-            rules = [CommonMark.AttributeRule()]
+            rules = [CommonMark.AttributeRule()],
         )
     end
 
@@ -523,13 +516,13 @@ end
             """
             @foo
             """;
-            rules = [CommonMark.CitationRule()]
+            rules = [CommonMark.CitationRule()],
         )
         @test_throws CommonMark.UnsupportedContainerError(CommonMark.CitationBracket) convert_to_markdownast(
             """
             [@foo, @bar]
             """;
-            rules = [CommonMark.CitationRule()]
+            rules = [CommonMark.CitationRule()],
         )
 
         # TODO:
@@ -546,7 +539,7 @@ end
             ---
             Content.
             """;
-            rules = [CommonMark.FrontMatterRule()]
+            rules = [CommonMark.FrontMatterRule()],
         )
     end
 
