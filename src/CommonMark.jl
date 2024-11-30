@@ -5,6 +5,7 @@ include("ast.jl")
 include("parsers.jl")
 include("writers.jl")
 include("extensions.jl")
+include("markdownast.jl")
 include("precompile.jl")
 
 # Interface
