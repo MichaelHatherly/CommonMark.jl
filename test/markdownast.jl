@@ -83,7 +83,7 @@ function convert_to_markdownast_and_compare(
     reference::MarkdownAST.Node;
     rules = MARKDOWNAST_DEFAULT_RULES,
 )
-    mdast = convert_to_markdownast(markdown; rules)
+    mdast = convert_to_markdownast(markdown; rules = rules)
     @test mdast == reference
     return
 end
