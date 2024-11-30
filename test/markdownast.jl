@@ -55,29 +55,94 @@ import MarkdownAST
     end
 end
 
-function convert_to_markdownast_and_compare(
-    markdown::AbstractString,
-    reference::MarkdownAST.Node,
+const MARKDOWNAST_DEFAULT_RULES = [
+    CommonMark.AdmonitionRule(),
+    CommonMark.FootnoteRule(),
+    CommonMark.TableRule(),
+]
+
+function convert_to_markdownast(
+    markdown::AbstractString;
+    rules = MARKDOWNAST_DEFAULT_RULES,
 )
     p = Parser()
-    enable!(p, CommonMark.AdmonitionRule())
-    enable!(p, CommonMark.FootnoteRule())
-    enable!(p, CommonMark.TableRule())
+    for rule in rules
+        enable!(p, rule)
+    end
     cmnodes = p(markdown)
     mdast = convert(MarkdownAST.Node, cmnodes)
     @test isa(mdast, MarkdownAST.Node)
     show(stdout, mdast)
+    return mdast
+end
+
+function convert_to_markdownast_and_compare(
+    markdown::AbstractString,
+    reference::MarkdownAST.Node;
+    rules = MARKDOWNAST_DEFAULT_RULES,
+)
+    mdast = convert_to_markdownast(markdown; rules)
     @test mdast == reference
     return
 end
 
 @testset "MarkdownAST conversions" begin
     # Testset for CommonMark.Admonition
+    @testset "CommonMark.Admonition" begin
+        convert_to_markdownast_and_compare(
+            """
+            !!! note "Note"
+                This is a note.
+            !!! warning
+                This is a warning.
+            !!! foobar
+                This is a foobar.
+            !!! info "Nested"
+                !!! note
+                    This is a nested note.
+            """,
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.Admonition("note", "Note") do
+                    MarkdownAST.Paragraph() do
+                        "This is a note."
+                    end
+                end
+                MarkdownAST.Admonition("warning", "Warning") do
+                    MarkdownAST.Paragraph() do
+                        "This is a warning."
+                    end
+                end
+                MarkdownAST.Admonition("foobar", "Foobar") do
+                    MarkdownAST.Paragraph() do
+                        "This is a foobar."
+                    end
+                end
+                MarkdownAST.Admonition("info", "Nested") do
+                    MarkdownAST.Admonition("note", "Note") do
+                        MarkdownAST.Paragraph() do
+                            "This is a nested note."
+                        end
+                    end
+                end
+            end
+        )
+    end
 
-    # CommonMark.Attributes
-    # CommonMark.BlockQuote
-    # CommonMark.Citation
-    # CommonMark.CitationBracket
+    @testset "CommonMark.BlockQuote" begin
+        convert_to_markdownast_and_compare(
+            """
+            > Blockquote
+            """,
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.BlockQuote() do
+                    MarkdownAST.Paragraph() do
+                        "Blockquote"
+                    end
+                end
+            end
+        )
+    end
+
     # CommonMark.CodeBlock
     # CommonMark.DisplayMath
     # CommonMark.Document
@@ -155,4 +220,39 @@ end
     # CommonMark.TablePipe
     # CommonMark.Text
     # CommonMark.TypstInline
+end
+
+@testset "MarkdownAST conversions: unsupported" begin
+    # The CommonMark nodes are currently unsupported by the MarkdownAST conversion
+    # since MarkdownAST does not have a corresponding representation.
+    # These should be just the nodes that are not necessary to represent neither
+    # CommonMark nor the Julia Flavored Markdown.
+    @testset "CommonMark.Attributes" begin
+        @test_throws CommonMark.UnsupportedContainerError(CommonMark.Attributes) convert_to_markdownast(
+            """
+            # Heading {.class #id}
+            """;
+            rules = [CommonMark.AttributeRule()]
+        )
+    end
+
+    # CommonMark.Citation
+    @testset "CommonMark.Citation" begin
+        @test_throws CommonMark.UnsupportedContainerError(CommonMark.Citation) convert_to_markdownast(
+            """
+            [foo][bar]
+            """;
+            rules = [CommonMark.CitationRule()]
+        )
+    end
+
+    # CommonMark.CitationBracket
+    @testset "CommonMark.CitationBracket" begin
+        @test_throws CommonMark.UnsupportedContainerError(CommonMark.CitationBracket) convert_to_markdownast(
+            """
+            [foo]
+            """;
+            rules = [CommonMark.CitationRule()]
+        )
+    end
 end

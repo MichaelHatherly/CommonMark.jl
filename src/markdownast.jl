@@ -24,7 +24,16 @@ end
 _mdast_node(node::Node) = _mdast_node(node, node.t)
 
 # Fallback convert function
-_mdast_node(node::Node, ::T) where {T <: AbstractContainer} = error("'$T' container not supported in MarkdownAST")
+struct UnsupportedContainerError <: Exception
+    container_type::Type{<:AbstractContainer}
+end
+function Base.showerror(io::IO, e::UnsupportedContainerError)
+    print(io, "UnsupportedContainerError: container of type '$(e.container_type)' is not supported in MarkdownAST")
+end
+
+function _mdast_node(::Node, ::T) where {T <: AbstractContainer}
+    throw(UnsupportedContainerError(T))
+end
 
 # For all singleton containers that map trivially (i.e. they have no attributes),
 # we can have a single implementation.
