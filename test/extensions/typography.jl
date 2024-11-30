@@ -9,4 +9,5 @@
     @test latex(ast) == "“Double quotes”, ‘single quotes’, ellipses…., and– dashes—\\par\n"
     @test term(ast) == " “Double quotes”, ‘single quotes’, ellipses…., and– dashes—\n"
     @test markdown(ast) == "“Double quotes”, ‘single quotes’, ellipses…., and– dashes—\n"
+    @test typst(ast) == "“Double quotes”, ‘single quotes’, ellipses…., and– dashes—\n"
 end

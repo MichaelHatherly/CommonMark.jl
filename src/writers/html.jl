@@ -1,11 +1,11 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/html", ast::Node, env=Dict{String,Any}())
-    writer = Writer(HTML(), io, env)
+function Base.show(io::IO, ::MIME"text/html", ast::Node, env = Dict{String,Any}(); kws...)
+    writer = Writer(HTML(; kws...), io, env)
     write_html(writer, ast)
     return nothing
 end
-html(args...) = writer(MIME"text/html"(), args...)
+html(args...; kws...) = writer(MIME"text/html"(), args...; kws...)
 
 # Internals.
 
@@ -17,9 +17,9 @@ mutable struct HTML
     disable_tags::Int
     softbreak::String
     safe::Bool
-    sourcepos::Bool
+    sourcepos::Union{Bool,Function}
 
-    function HTML(; softbreak="\n", safe=false, sourcepos=false)
+    function HTML(; softbreak = "\n", safe = false, sourcepos = false)
         format = new()
         format.disable_tags = 0
         format.softbreak = softbreak # Set to "<br />" to for hardbreaks, " " for no wrapping.
@@ -38,9 +38,10 @@ end
 const reUnsafeProtocol = r"^javascript:|vbscript:|file:|data:"i
 const reSafeDataProtocol = r"^data:image\/(?:png|gif|jpeg|webp)"i
 
-potentially_unsafe(url) = occursin(reUnsafeProtocol, url) && !occursin(reSafeDataProtocol, url)
+potentially_unsafe(url) =
+    occursin(reUnsafeProtocol, url) && !occursin(reSafeDataProtocol, url)
 
-function tag(r::Writer, name, attributes=[], self_closing=false)
+function tag(r::Writer, name, attributes = [], self_closing = false)
     r.format.disable_tags > 0 && return nothing
     literal(r, '<', name)
     for (key, value) in attributes
@@ -105,7 +106,8 @@ end
 
 write_html(::Emph, r, n, ent) = tag(r, ent ? "em" : "/em", ent ? attributes(r, n) : [])
 
-write_html(::Strong, r, n, ent) = tag(r, ent ? "strong" : "/strong", ent ? attributes(r, n) : [])
+write_html(::Strong, r, n, ent) =
+    tag(r, ent ? "strong" : "/strong", ent ? attributes(r, n) : [])
 
 function write_html(::Paragraph, r, n, ent)
     grandparent = n.parent.parent
@@ -213,7 +215,8 @@ function write_html(::Item, r, n, ent)
     end
 end
 
-write_html(::HtmlInline, r, n, ent) = literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
+write_html(::HtmlInline, r, n, ent) =
+    literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
 
 function write_html(::HtmlBlock, r, n, ent)
     cr(r)
@@ -221,16 +224,39 @@ function write_html(::HtmlBlock, r, n, ent)
     cr(r)
 end
 
-function attributes(r, n, out=[])
-    if r.format.sourcepos
+function attributes(r, n, out = [])
+    # Maintain the order of the attributes, but merge duplicates.
+    order = String[]
+    dict = Dict{String,Any}()
+    if _has_sourcepos(r.format.sourcepos)
         if n.sourcepos !== nothing
             p = n.sourcepos
-            push!(out, "data-sourcepos" => "$(p[1][1]):$(p[1][2])-$(p[2][1]):$(p[2][2])")
+            result = _process_sourcepos(r.format.sourcepos, p)
+            if isa(result, Pair)
+                k, v = result
+                push!(order, k)
+                dict[k] = v
+            end
         end
     end
-    for (key, value) in n.meta
-        value = key == "class" ? join(value, " ") : value
-        push!(out, key => value)
+    for each in (out, n.meta)
+        for (key, value) in each
+            value = isa(value, AbstractString) ? value : join(value, " ")
+            if haskey(dict, key)
+                dict[key] = "$(dict[key]) $value"
+            else
+                dict[key] = value
+                push!(order, key)
+            end
+        end
     end
-    return out
+    return [k => dict[k] for k in order]
 end
+
+_has_sourcepos(sourcepos::Any) = sourcepos === true
+_has_sourcepos(sourcepos::Function) = true
+
+
+_process_sourcepos(handler::Function, p) = handler(p)
+_process_sourcepos(::Bool, p) =
+    "data-sourcepos" => "$(p[1][1]):$(p[1][2])-$(p[2][1]):$(p[2][2])"

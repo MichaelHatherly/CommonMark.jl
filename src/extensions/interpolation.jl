@@ -7,13 +7,13 @@
 # Captures an interpolated Julia expression and its position in the string
 struct JuliaExpression <: AbstractInline
     pos::Int
-    ex
+    ex::Any
 end
 # Captures an expression and the future value associated with it after
 # macro expansion.
 struct JuliaValue <: AbstractInline
-    ex
-    ref
+    ex::Any
+    ref::Any
 end
 
 # This rule should only be used from the exported `@cm_str` macro and not
@@ -25,27 +25,28 @@ end
 
 const reInterpHere = r"^\$"
 
-inline_rule(ji::JuliaInterpolationRule) = Rule(1, "\$") do p, node
-    dollar = match(reInterpHere, p)
-    if dollar === nothing || length(dollar.match) > 1
-        return false
-    else
-        consume(p, dollar)
-        after_opener, count = position(p), length(dollar.match)
-        ex, after_expr = Meta.parse(rest(p), 1; greedy = false, raise = false)
-        after_expr += after_opener
-        if Meta.isexpr(ex, [:error, :incomplete])
-            # Bails out on Julia parse errors, do we rather want to propagate them?
+inline_rule(ji::JuliaInterpolationRule) =
+    Rule(1, "\$") do p, node
+        dollar = match(reInterpHere, p)
+        if dollar === nothing || length(dollar.match) > 1
             return false
         else
-            seek(p, after_expr - 1) # Offset Meta.parse end position.
-            ref = JuliaExpression(length(ji.captured) + 1, ex)
-            push!(ji.captured, ref)
-            append_child(node, Node(ref))
-            return true
+            consume(p, dollar)
+            after_opener, count = position(p), length(dollar.match)
+            ex, after_expr = Meta.parse(rest(p), 1; greedy = false, raise = false)
+            after_expr += after_opener
+            if Meta.isexpr(ex, [:error, :incomplete])
+                # Bails out on Julia parse errors, do we rather want to propagate them?
+                return false
+            else
+                seek(p, after_expr - 1) # Offset Meta.parse end position.
+                ref = JuliaExpression(length(ji.captured) + 1, ex)
+                push!(ji.captured, ref)
+                append_child(node, Node(ref))
+                return true
+            end
         end
     end
-end
 
 export @cm_str
 
@@ -110,14 +111,23 @@ macro cm_str(str, name = "jmd")
     ji = JuliaInterpolationRule()
     parser = _init_parser(__module__, name)
     enable!(parser, ji)
-    ast = parser(str)
+    multiline = occursin("\n", str)
+    ast = parser(
+        str;
+        source = String(__source__.file),
+        line = __source__.line + Int(multiline),
+    )
     # We construct an expression that first, one-by-one and in order, evaluates each
     # of the interpolated expressions that appeared in the string, adds them to a
     # list, and finally calls _interp! on it to update the AST with the evaluated
     # values.
     expr = Expr(:block, :(values = []))
     for v in ji.captured
-        push!(expr.args, :(let x = $(esc(v.ex)); push!(values, x); end))
+        push!(expr.args, :(
+            let x = $(esc(v.ex))
+                push!(values, x)
+            end
+        ))
     end
     push!(expr.args, :(_interp!($ast, $(ji.captured), values)))
     return expr
@@ -134,20 +144,23 @@ function _init_parser(mod::Module, name::AbstractString)::Parser
     options = (
         jmd = function ()
             p = Parser()
-            enable!(p, [
-                AdmonitionRule(),
-                AttributeRule(),
-                AutoIdentifierRule(),
-                CitationRule(),
-                FootnoteRule(),
-                MathRule(),
-                RawContentRule(),
-                TableRule(),
-                TypographyRule(),
-            ])
+            enable!(
+                p,
+                [
+                    AdmonitionRule(),
+                    AttributeRule(),
+                    AutoIdentifierRule(),
+                    CitationRule(),
+                    FootnoteRule(),
+                    MathRule(),
+                    RawContentRule(),
+                    TableRule(),
+                    TypographyRule(),
+                ],
+            )
             return p
         end,
-        none = () -> Parser()
+        none = () -> Parser(),
     )
     s = Symbol(name)
     if isdefined(mod, s)
@@ -181,6 +194,10 @@ function write_latex(jv::JuliaExpression, rend, node, enter)
     print(rend.buffer, ")}")
 end
 
+function write_typst(jv::JuliaExpression, rend, node, enter)
+    print(rend.buffer, string(jv.ex))
+end
+
 function write_term(jv::JuliaExpression, rend, node, enter)
     style = crayon"yellow"
     push_inline!(rend, style)
@@ -192,7 +209,7 @@ end
 
 function write_html(jv::JuliaValue, rend, node, enter)
     tag(rend, "span", attributes(rend, node, ["class" => "julia-value"]))
-    print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref))
+    print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref; context = rend.buffer))
     tag(rend, "/span")
 end
 
@@ -215,6 +232,11 @@ function write_term(jv::JuliaValue, rend, node, enter)
     pop_inline!(rend)
 end
 
+function write_typst(jv::JuliaValue, rend, node, enter)
+    literal(rend, sprint(print, jv.ref))
+end
+
 # Markdown output should be roundtrip-able, so printout the interpolated
 # expression rather than it's value.
-write_markdown(jv::Union{JuliaExpression,JuliaValue}, rend, node, ent) = print(rend.buffer, '$', "($(jv.ex))")
+write_markdown(jv::Union{JuliaExpression,JuliaValue}, rend, node, ent) =
+    print(rend.buffer, '$', "($(jv.ex))")

@@ -16,7 +16,8 @@ can_contain(::Attributes, t) = false
 
 function parse_block_attributes(parser::Parser, container::Node)
     # Block attributes mustn't appear directly after another attribute block.
-    if !parser.indented && (isnull(container.last_child) || !(container.last_child.t isa Attributes))
+    if !parser.indented &&
+       (isnull(container.last_child) || !(container.last_child.t isa Attributes))
         dict, literal = try_parse_attributes(parser)
         if dict !== nothing
             advance_next_nonspace(parser)
@@ -33,16 +34,17 @@ end
 
 block_rule(::AttributeRule) = Rule(parse_block_attributes, 1, "{")
 
-inline_rule(rule::AttributeRule) = Rule(1, "{") do parser, block
-    isnull(block.first_child) && return false # Can't have inline attribute as first in block.
-    dict, literal = try_parse_attributes(parser)
-    dict === nothing && return false
-    node = Node(Attributes(dict, false))
-    node.literal = literal
-    push!(rule.nodes, node)
-    append_child(block, node)
-    return true
-end
+inline_rule(rule::AttributeRule) =
+    Rule(1, "{") do parser, block
+        isnull(block.first_child) && return false # Can't have inline attribute as first in block.
+        dict, literal = try_parse_attributes(parser)
+        dict === nothing && return false
+        node = Node(Attributes(dict, false))
+        node.literal = literal
+        push!(rule.nodes, node)
+        append_child(block, node)
+        return true
+    end
 
 function try_parse_attributes(parser::AbstractParser)
     start_mark = pos = position(parser)
@@ -81,7 +83,7 @@ function try_parse_attributes(parser::AbstractParser)
                     break
                 end
             end
-            word = chop(String(bytes(parser, mark, pos)); tail=1)
+            word = chop(String(bytes(parser, mark, pos)); tail = 1)
             if isempty(key)
                 # Keys can't start with a number.
                 startswith(word, r"[0-9]") && break
@@ -114,7 +116,7 @@ function try_parse_attributes(parser::AbstractParser)
                 # Strings can't be keys, so fail to parse.
                 break
             else
-                str = chop(String(bytes(parser, mark, pos)); head=1, tail=1)
+                str = chop(String(bytes(parser, mark, pos)); head = 1, tail = 1)
                 if key == "class"
                     push!(get!(() -> String[], dict, key), str)
                 else
@@ -133,26 +135,29 @@ function try_parse_attributes(parser::AbstractParser)
     end
 end
 
-block_modifier(::AttributeRule) = Rule(1) do parser, node
-    if node.t isa Attributes && !isnull(node.nxt)
-        node.nxt.t isa Attributes || (node.nxt.meta = node.t.dict)
+block_modifier(::AttributeRule) =
+    Rule(1) do parser, node
+        if node.t isa Attributes && !isnull(node.nxt)
+            node.nxt.t isa Attributes || (node.nxt.meta = node.t.dict)
+        end
+        return nothing
     end
-    return nothing
-end
 
-inline_modifier(rule::AttributeRule) = Rule(1) do parser, block
-    while !isempty(rule.nodes)
-        node = pop!(rule.nodes)
-        if !isnull(node.prv) && !(node.prv.t isa Attributes)
-            node.prv.meta = node.t.dict
+inline_modifier(rule::AttributeRule) =
+    Rule(1) do parser, block
+        while !isempty(rule.nodes)
+            node = pop!(rule.nodes)
+            if !isnull(node.prv) && !(node.prv.t isa Attributes)
+                node.prv.meta = node.t.dict
+            end
         end
     end
-end
 
 # Writers.
 
 write_html(::Attributes, w, n, ent) = nothing
 write_latex(::Attributes, w, n, ent) = nothing
+write_typst(::Attributes, w, n, ent) = nothing
 write_term(::Attributes, w, n, ent) = nothing
 
 function write_markdown(at::Attributes, w, n, ent)

@@ -23,6 +23,7 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
     include("writers.jl")
     include("extensions.jl")
     include("templates.jl")
+    include("sourcepos.jl")
     include("integration.jl")
 
     include("unicodes.jl")
@@ -33,7 +34,8 @@ using CommonMark, Test, JSON, Pkg.TOML, Mustache, YAML
             for file in files
                 if endswith(file, ".md")
                     name = joinpath(root, file)
-                    expected = replace(read(splitext(name)[1] * ".html", String), "\r\n" => "\n")
+                    expected =
+                        replace(read(splitext(name)[1] * ".html", String), "\r\n" => "\n")
 
                     p = Parser()
                     ast = p(read(name, String))

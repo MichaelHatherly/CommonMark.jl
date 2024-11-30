@@ -1,26 +1,29 @@
 struct FootnoteRule
-    cache::Dict{String, Node}
+    cache::Dict{String,Node}
     FootnoteRule() = new(Dict())
 end
-block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
-    if !parser.indented
-        ln = SubString(parser.buf, parser.next_nonspace)
-        m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
-        if m !== nothing
-            close_unmatched_blocks(parser)
-            fr.cache[m[1]] = add_child(parser, FootnoteDefinition(m[1]), parser.next_nonspace)
-            advance_offset(parser, length(m.match), false)
-            return 1
+block_rule(fr::FootnoteRule) =
+    Rule(0.5, "[") do parser, container
+        if !parser.indented
+            ln = SubString(parser.buf, parser.next_nonspace)
+            m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
+            if m !== nothing
+                close_unmatched_blocks(parser)
+                fr.cache[m[1]] =
+                    add_child(parser, FootnoteDefinition(m[1]), parser.next_nonspace)
+                advance_offset(parser, length(m.match), false)
+                return 1
+            end
         end
+        return 0
     end
-    return 0
-end
-inline_rule(fr::FootnoteRule) = Rule(0.5, "[") do p, node
-    m = consume(p, match(r"^\[\^([\w\d]+)]", p))
-    m === nothing && return false
-    append_child(node, Node(FootnoteLink(m[1], fr)))
-    return true
-end
+inline_rule(fr::FootnoteRule) =
+    Rule(0.5, "[") do p, node
+        m = consume(p, match(r"^\[\^([\w\d]+)]", p))
+        m === nothing && return false
+        append_child(node, Node(FootnoteLink(m[1], fr)))
+        return true
+    end
 
 struct FootnoteDefinition <: AbstractBlock
     id::String
@@ -54,7 +57,11 @@ end
 
 function write_html(f::FootnoteDefinition, rend, node, enter)
     if enter
-        tag(rend, "div", attributes(rend, node, ["class" => "footnote", "id" => "footnote-$(f.id)"]))
+        tag(
+            rend,
+            "div",
+            attributes(rend, node, ["class" => "footnote", "id" => "footnote-$(f.id)"]),
+        )
         tag(rend, "p", ["class" => "footnote-title"])
         print(rend.buffer, f.id)
         tag(rend, "/p")
@@ -64,6 +71,11 @@ function write_html(f::FootnoteDefinition, rend, node, enter)
 end
 
 function write_latex(f::FootnoteDefinition, w, node, enter)
+    get(w.buffer, :footnote, false) || (w.enabled = !enter)
+    return nothing
+end
+
+function write_typst(f::FootnoteDefinition, w, node, enter)
     get(w.buffer, :footnote, false) || (w.enabled = !enter)
     return nothing
 end
@@ -80,7 +92,13 @@ function write_term(f::FootnoteDefinition, rend, node, enter)
         pop_margin!(rend)
         pop_margin!(rend)
         print_margin(rend)
-        print_literal(rend, style, rpad("└", available_columns(rend), "─"), inv(style), "\n")
+        print_literal(
+            rend,
+            style,
+            rpad("└", available_columns(rend), "─"),
+            inv(style),
+            "\n",
+        )
         if !isnull(node.nxt)
             print_margin(rend)
             print_literal(rend, "\n")
@@ -100,7 +118,11 @@ end
 # Links
 
 function write_html(f::FootnoteLink, rend, node, enter)
-    tag(rend, "a", attributes(rend, node, ["href" => "#footnote-$(f.id)", "class" => "footnote"]))
+    tag(
+        rend,
+        "a",
+        attributes(rend, node, ["href" => "#footnote-$(f.id)", "class" => "footnote"]),
+    )
     print(rend.buffer, f.id)
     tag(rend, "/a")
 end
@@ -115,6 +137,21 @@ function write_latex(f::FootnoteLink, w, node, enter)
             literal(w, "\\footnote{")
             latex(IOContext(w.buffer, :footnote => true), f.rule.cache[f.id])
             literal(w, "\\label{fn:$(f.id)}}")
+        end
+    end
+    return nothing
+end
+
+function write_typst(f::FootnoteLink, w, node, enter)
+    if haskey(f.rule.cache, f.id)
+        seen = get!(() -> Set{String}(), w, :footnotes)
+        if f.id in seen
+            literal(w, "#footnote(<fn-$(f.id)>)")
+        else
+            push!(seen, f.id)
+            literal(w, "#footnote[")
+            typst(IOContext(w.buffer, :footnote => true), f.rule.cache[f.id])
+            literal(w, "] <fn-$(f.id)>")
         end
     end
     return nothing

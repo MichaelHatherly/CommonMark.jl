@@ -10,52 +10,68 @@ end
     @test latex(ast) == ""
     @test markdown(ast) == ""
     @test term(ast) == ""
+    @test typst(ast) == ""
 
     ast = cm"no interpolation"
     @test html(ast) == "<p>no interpolation</p>\n"
     @test latex(ast) == "no interpolation\\par\n"
     @test markdown(ast) == "no interpolation\n"
     @test term(ast) == " no interpolation\n"
+    @test typst(ast) == "no interpolation\n"
 
     value = :interpolation
     ast = cm"'some' $value $(value)"
-    @test html(ast) == "<p>‘some’ <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
+    @test html(ast) ==
+          "<p>‘some’ <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
     @test latex(ast) == "‘some’ interpolation interpolation\\par\n"
     @test markdown(ast) == "‘some’ \$(value) \$(value)\n"
     @test term(ast) == " ‘some’ \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
+    @test typst(ast) == "‘some’ interpolation interpolation\n"
 
     ast = cm"*expressions* $(1 + 2) and $(2 + 3)"
-    @test html(ast) == "<p><em>expressions</em> <span class=\"julia-value\">3</span> and <span class=\"julia-value\">5</span></p>\n"
+    @test html(ast) ==
+          "<p><em>expressions</em> <span class=\"julia-value\">3</span> and <span class=\"julia-value\">5</span></p>\n"
     @test latex(ast) == "\\textit{expressions} 3 and 5\\par\n"
     @test markdown(ast) == "*expressions* \$(1 + 2) and \$(2 + 3)\n"
     @test term(ast) == " \e[3mexpressions\e[23m \e[33m3\e[39m and \e[33m5\e[39m\n"
+    @test typst(ast) == "#emph[expressions] 3 and 5\n"
 
     ast = cm"> *expressions* $(1 + 2) and $(2 + 3)"
-    @test html(ast) == "<blockquote>\n<p><em>expressions</em> <span class=\"julia-value\">3</span> and <span class=\"julia-value\">5</span></p>\n</blockquote>\n"
+    @test html(ast) ==
+          "<blockquote>\n<p><em>expressions</em> <span class=\"julia-value\">3</span> and <span class=\"julia-value\">5</span></p>\n</blockquote>\n"
     @test latex(ast) == "\\begin{quote}\n\\textit{expressions} 3 and 5\\par\n\\end{quote}\n"
     @test markdown(ast) == "> *expressions* \$(1 + 2) and \$(2 + 3)\n"
-    @test term(ast) == " \e[1m│\e[22m \e[3mexpressions\e[23m \e[33m3\e[39m and \e[33m5\e[39m\n"
+    @test term(ast) ==
+          " \e[1m│\e[22m \e[3mexpressions\e[23m \e[33m3\e[39m and \e[33m5\e[39m\n"
+    @test typst(ast) == "#quote(block: true)[\n#emph[expressions] 3 and 5\n]\n"
 
     value = :interpolation
     ast = cm"'some' $value $(value)"basic
-    @test html(ast) == "<p>'some' <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
+    @test html(ast) ==
+          "<p>'some' <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
     @test latex(ast) == "'some' interpolation interpolation\\par\n"
     @test markdown(ast) == "'some' \$(value) \$(value)\n"
     @test term(ast) == " 'some' \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
+    @test typst(ast) == "'some' interpolation interpolation\n"
 
     value = :interpolation
     ast = cm"'some' ``math`` $value $(value)"custom_parser
-    @test html(ast) == "<p>'some' <span class=\"math tex\">\\(math\\)</span> <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
+    @test html(ast) ==
+          "<p>'some' <span class=\"math tex\">\\(math\\)</span> <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
     @test latex(ast) == "'some' \\(math\\) interpolation interpolation\\par\n"
     @test markdown(ast) == "'some' ``math`` \$(value) \$(value)\n"
-    @test term(ast) == " 'some' \e[35mmath\e[39m \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
+    @test term(ast) ==
+          " 'some' \e[35mmath\e[39m \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
+    @test typst(ast) == "'some' \$math\$ interpolation interpolation\n"
 
     value = 1
     ast = cm"$(value) $(value + 1) $(value += 1) $(value += 1)"
-    @test html(ast) == "<p><span class=\"julia-value\">1</span> <span class=\"julia-value\">2</span> <span class=\"julia-value\">2</span> <span class=\"julia-value\">3</span></p>\n"
+    @test html(ast) ==
+          "<p><span class=\"julia-value\">1</span> <span class=\"julia-value\">2</span> <span class=\"julia-value\">2</span> <span class=\"julia-value\">3</span></p>\n"
     @test latex(ast) == "1 2 2 3\\par\n"
     @test markdown(ast) == "\$(value) \$(value + 1) \$(value += 1) \$(value += 1)\n"
     @test term(ast) == " \e[33m1\e[39m \e[33m2\e[39m \e[33m2\e[39m \e[33m3\e[39m\n"
+    @test typst(ast) == "1 2 2 3\n"
 
     # A case that can fail if the @cm_str macro relies on evaluating the passed expressions in argument
     # lists (like the constructor of a vector).
@@ -63,32 +79,41 @@ end
     let
         global value_global
         value_global = 1
-        ast = cm"$(value_global) $(value_global + 1) $(value_global += 1) $(value_global += 1)"
+        ast =
+            cm"$(value_global) $(value_global + 1) $(value_global += 1) $(value_global += 1)"
         @test latex(ast) == "1 2 2 3\\par\n"
     end
 
     # Interpolated strings are not markdown-interpreted
     ast = cm"""*expressions* $("**test**")"""
-    @test html(ast) == "<p><em>expressions</em> <span class=\"julia-value\">**test**</span></p>\n"
+    @test html(ast) ==
+          "<p><em>expressions</em> <span class=\"julia-value\">**test**</span></p>\n"
     @test latex(ast) == "\\textit{expressions} **test**\\par\n"
     @test markdown(ast) == "*expressions* \$(**test**)\n"
     @test term(ast) == " \e[3mexpressions\e[23m \e[33m**test**\e[39m\n"
+    @test typst(ast) == "#emph[expressions] **test**\n"
 
     # Interpolated values are not linked to their macroexpansion origin.
-    asts = [cm"Value = **$(each)**" for each in 1:3]
-    @test html(asts[1]) == "<p>Value = <strong><span class=\"julia-value\">1</span></strong></p>\n"
-    @test html(asts[2]) == "<p>Value = <strong><span class=\"julia-value\">2</span></strong></p>\n"
-    @test html(asts[3]) == "<p>Value = <strong><span class=\"julia-value\">3</span></strong></p>\n"
+    asts = [cm"Value = **$(each)**" for each = 1:3]
+    @test html(asts[1]) ==
+          "<p>Value = <strong><span class=\"julia-value\">1</span></strong></p>\n"
+    @test html(asts[2]) ==
+          "<p>Value = <strong><span class=\"julia-value\">2</span></strong></p>\n"
+    @test html(asts[3]) ==
+          "<p>Value = <strong><span class=\"julia-value\">3</span></strong></p>\n"
 
     # Interpolating collections.
-    worlds = [HTML("<div>world $i</div>") for i in 1:3]
-    @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+    worlds = [HTML("<div>world $i</div>") for i = 1:3]
+    @test html(cm"Hello $(worlds)") ==
+          "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
 
-    worlds = (HTML("<div>world $i</div>") for i in 1:3)
-    @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+    worlds = (HTML("<div>world $i</div>") for i = 1:3)
+    @test html(cm"Hello $(worlds)") ==
+          "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
 
-    worlds = Tuple(HTML("<div>world $i</div>") for i in 1:3)
-    @test html(cm"Hello $(worlds)") == "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+    worlds = Tuple(HTML("<div>world $i</div>") for i = 1:3)
+    @test html(cm"Hello $(worlds)") ==
+          "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
 
     # Make sure that the evaluation of values happens at runtime.
     f(x) = cm"if x = $(x), then x² = $(x^2)"
@@ -104,18 +129,39 @@ end
     # Make sure that a variable that evaluates to different values in different positions
     # gets interpolated correctly.
     let x = 1
-        function f!(); x += 1; 42; end # closure that updates the local `x` variable
+        function f!()
+            x += 1
+            42
+        end # closure that updates the local `x` variable
         ast = cm"$(x), $(f!()), $(x)"
         @test markdown(ast) == "\$(x), \$(f!()), \$(x)\n"
         @test term(ast) == " \e[33m1\e[39m, \e[33m42\e[39m, \e[33m2\e[39m\n"
     end
 
+    # IOContext passthrough
+    struct MyInterpolatedType end
+
+    function Base.show(io::IO, m::MIME"text/html", x::MyInterpolatedType)
+        write(io, get(io, :secret, "not found"))
+    end
+
+    value = MyInterpolatedType()
+    ast = cm"hello $(value)"
+    out1 = repr(MIME"text/html"(), ast)
+    out2 = repr(MIME"text/html"(), ast; context = (:secret => "🙊"))
+    @test out1 == "<p>hello <span class=\"julia-value\">not found</span></p>\n"
+    @test out2 == "<p>hello <span class=\"julia-value\">🙊</span></p>\n"
+
     # ASTs containing JuliaExpression elements
     p = Parser()
     enable!(p, CommonMark.JuliaInterpolationRule())
     ast = p("foo: \$(foo), \$(x ^ 2), \$1234")
-    @test html(ast) == "<p>foo: <span class=\"julia-expr\">\$(foo)</span>, <span class=\"julia-expr\">\$(x ^ 2)</span>, <span class=\"julia-expr\">\$(1234)</span></p>\n"
-    @test latex(ast) == "foo: \\texttt{\\\$(foo)}, \\texttt{\\\$(x \\^{} 2)}, \\texttt{\\\$(1234)}\\par\n"
+    @test html(ast) ==
+          "<p>foo: <span class=\"julia-expr\">\$(foo)</span>, <span class=\"julia-expr\">\$(x ^ 2)</span>, <span class=\"julia-expr\">\$(1234)</span></p>\n"
+    @test latex(ast) ==
+          "foo: \\texttt{\\\$(foo)}, \\texttt{\\\$(x \\^{} 2)}, \\texttt{\\\$(1234)}\\par\n"
     @test markdown(ast) == "foo: \$(foo), \$(x ^ 2), \$(1234)\n"
-    @test term(ast) == " foo: \e[33m\$(foo)\e[39m, \e[33m\$(x ^ 2)\e[39m, \e[33m\$(1234)\e[39m\n"
+    @test term(ast) ==
+          " foo: \e[33m\$(foo)\e[39m, \e[33m\$(x ^ 2)\e[39m, \e[33m\$(1234)\e[39m\n"
+    @test typst(ast) == "foo: foo, x ^ 2, 1234\n"
 end

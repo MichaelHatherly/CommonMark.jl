@@ -1,40 +1,43 @@
 const ESCAPED_CHAR = "\\\\$(ESCAPABLE)"
 const WHITESPACECHAR = collect(" \t\n\x0b\x0c\x0d")
 
-const reLinkTitle             = Regex("^(?:\"($(ESCAPED_CHAR)|[^\"\\x00])*\"|'($(ESCAPED_CHAR)|[^'\\x00])*'|\\(($(ESCAPED_CHAR)|[^()\\x00])*\\))")
+const reLinkTitle = Regex(
+    "^(?:\"($(ESCAPED_CHAR)|[^\"\\x00])*\"|'($(ESCAPED_CHAR)|[^'\\x00])*'|\\(($(ESCAPED_CHAR)|[^()\\x00])*\\))",
+)
 const reLinkDestinationBraces = r"^(?:<(?:[^<>\n\\\x00]|\\.)*>)"
-const reEscapable             = Regex("^$(ESCAPABLE)")
-const reEntityHere            = Regex("^$(ENTITY)", "i")
-const reTicks                 = r"`+"
-const reTicksHere             = r"^`+"
-const reEllipses              = r"\.\.\."
-const reDash                  = r"--+"
-const reEmailAutolink         = r"^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>"
-const reAutolink              = r"^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>"i
-const reSpnl                  = r"^ *(?:\n *)?"
-const reWhitespaceChar        = r"^^[ \t\n\x0b\x0c\x0d]"
-const reWhitespace            = r"[ \t\n\x0b\x0c\x0d]+"
+const reEscapable = Regex("^$(ESCAPABLE)")
+const reEntityHere = Regex("^$(ENTITY)", "i")
+const reTicks = r"`+"
+const reTicksHere = r"^`+"
+const reEllipses = r"\.\.\."
+const reDash = r"--+"
+const reEmailAutolink =
+    r"^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>"
+const reAutolink = r"^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>"i
+const reSpnl = r"^ *(?:\n *)?"
+const reWhitespaceChar = r"^^[ \t\n\x0b\x0c\x0d]"
+const reWhitespace = r"[ \t\n\x0b\x0c\x0d]+"
 const reUnicodeWhitespaceChar = r"^\s"
-const reFinalSpace            = r" *$"
-const reInitialSpace          = r"^ *"
-const reSpaceAtEndOfLine      = r"^ *(?:\n|$)"
-const reLinkLabel             = r"^\[(?:[^\\\[\]]|\\.){0,1000}\]"
+const reFinalSpace = r" *$"
+const reInitialSpace = r"^ *"
+const reSpaceAtEndOfLine = r"^ *(?:\n|$)"
+const reLinkLabel = r"^\[(?:[^\\\[\]]|\\.){0,1000}\]"
 
 mutable struct Delimiter
     cc::Char
     numdelims::Int
     origdelims::Int
     node::Node
-    previous::Union{Nothing, Delimiter}
-    next::Union{Nothing, Delimiter}
+    previous::Union{Nothing,Delimiter}
+    next::Union{Nothing,Delimiter}
     can_open::Bool
     can_close::Bool
 end
 
 mutable struct Bracket
     node::Node
-    previous::Union{Nothing, Bracket}
-    previousDelimiter::Union{Nothing, Delimiter}
+    previous::Union{Nothing,Bracket}
+    previousDelimiter::Union{Nothing,Delimiter}
     index::Int
     image::Bool
     active::Bool
@@ -47,10 +50,10 @@ mutable struct InlineParser <: AbstractParser
     pos::Int
     len::Int
     # extra
-    brackets::Union{Nothing, Bracket}
-    delimiters::Union{Nothing, Delimiter}
-    refmap::Dict{String, Any}
-    inline_parsers::Dict{Char, Vector{Function}}
+    brackets::Union{Nothing,Bracket}
+    delimiters::Union{Nothing,Delimiter}
+    refmap::Dict{String,Any}
+    inline_parsers::Dict{Char,Vector{Function}}
     modifiers::Vector{Function}
 
     function InlineParser()
@@ -115,7 +118,7 @@ function parse_inlines(parser::InlineParser, block::Node)
     parser.buf = strip(block.literal)
     block.literal = ""
     parser.pos = 1
-    parser.len = length(parser.buf)
+    parser.len = ncodeunits(parser.buf)
     parser.delimiters = nothing
     parser.brackets = nothing
     while (parse_inline(parser, block))

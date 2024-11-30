@@ -13,13 +13,18 @@ function continue_(::CodeBlock, parser::Parser, container::Node)
     ln = parser.buf
     indent = parser.indent
     if container.t.is_fenced
-        match = indent <= 3 &&
+        match =
+            indent <= 3 &&
             length(ln) >= parser.next_nonspace + 1 &&
             ln[parser.next_nonspace] == container.t.fence_char &&
             Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace))
-        t = indent <= 3 && length(ln) >= parser.next_nonspace + 1 &&
+        t =
+            indent <= 3 &&
+            length(ln) >= parser.next_nonspace + 1 &&
             ln[parser.next_nonspace] == container.t.fence_char
-        m = t ? Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace)) : nothing
+        m =
+            t ? Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace)) :
+            nothing
         if m !== nothing && length(m.match) >= container.t.fence_length
             # closing fence - we're at end of line, so we can return
             finalize(parser, container, parser.line_number)
@@ -54,7 +59,7 @@ end
 function finalize(::CodeBlock, parser::Parser, block::Node)
     if block.t.is_fenced
         # first line becomes info string
-        first_line, rest = split(block.literal, '\n'; limit=2)
+        first_line, rest = split(block.literal, '\n'; limit = 2)
         info = unescape_string(strip(first_line))
         block.t.info = info
         block.literal = rest

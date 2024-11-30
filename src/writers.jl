@@ -1,11 +1,15 @@
-function writer(mime, file::AbstractString, ast::Node, env=Dict{String,Any}())
+function writer(mime, file::AbstractString, ast::Node, env = Dict{String,Any}(); kws...)
     env = merge(env, Dict("outputfile" => file))
-    open(io -> writer(io, mime, ast, env), file, "w")
+    open(io -> writer(io, mime, ast, env; kws...), file, "w")
 end
-writer(mime, io::IO, ast::Node, env=nothing) = writer(io, mime, ast, env)
-writer(mime, ast::Node, env=nothing) = sprint(writer, mime, ast, env)
+writer(mime, io::IO, ast::Node, env = nothing; kws...) = writer(io, mime, ast, env; kws...)
+function writer(mime, ast::Node, env = nothing; kws...)
+    io = IOBuffer()
+    writer(mime, io, ast, env; kws...)
+    return String(take!(io))
+end
 
-function writer(io::IO, mime::MIME, ast::Node, env::Dict)
+function writer(io::IO, mime::MIME, ast::Node, env::Dict; kws...)
     # Merge all metadata provided, priority is right-to-left.
     env = recursive_merge(default_config(), env, frontmatter(ast), ast.meta)
     if haskey(env, "template-engine")
@@ -13,13 +17,13 @@ function writer(io::IO, mime::MIME, ast::Node, env::Dict)
         # Empty templates will skip the template rendering step.
         if !isempty(temp)
             env["body"] = sprint(show, mime, ast, env)
-            env["template-engine"](io, temp, env; tags=("\${", "}"))
+            env["template-engine"](io, temp, env; tags = ("\${", "}"))
             return nothing
         end
     end
-    show(io, mime, ast, env)
+    show(io, mime, ast, env; kws...)
 end
-writer(io::IO, mime::MIME, ast::Node, ::Nothing) = show(io, mime, ast)
+writer(io::IO, mime::MIME, ast::Node, ::Nothing; kws...) = show(io, mime, ast; kws...)
 
 default_config() = Dict{String,Any}(
     "authors" => [],
@@ -29,13 +33,11 @@ default_config() = Dict{String,Any}(
     "abstract" => "",
     "keywords" => [],
     "lang" => "en",
-    "latex" => Dict{String,Any}(
-        "documentclass" => "article",
-    ),
+    "latex" => Dict{String,Any}("documentclass" => "article"),
 )
 
-_smart_link(mime, obj, node, env) = haskey(env, "smartlink-engine") ?
-    env["smartlink-engine"](mime, obj, node, env) : obj
+_smart_link(mime, obj, node, env) =
+    haskey(env, "smartlink-engine") ? env["smartlink-engine"](mime, obj, node, env) : obj
 
 function template(env, fmt)
     # Template load order:
@@ -44,8 +46,8 @@ function template(env, fmt)
     # - <fmt>.template.file
     # - TEMPLATES["<fmt>"]
     #
-    config = get(() -> Dict{String, Any}(), env, fmt)
-    tmp = get(() -> Dict{String, Any}(), config, "template")
+    config = get(() -> Dict{String,Any}(), env, fmt)
+    tmp = get(() -> Dict{String,Any}(), config, "template")
     get(tmp, "string") do
         haskey(tmp, "file") ? read(tmp["file"], String) :
         haskey(TEMPLATES, fmt) ? read(TEMPLATES[fmt], String) : ""
@@ -59,15 +61,16 @@ recursive_merge(args...) = last(args)
 frontmatter(n::Node) = has_frontmatter(n) ? n.first_child.t.data : Dict{String,Any}()
 has_frontmatter(n::Node) = !isnull(n.first_child) && n.first_child.t isa FrontMatter
 
-mutable struct Writer{F, I <: IO}
+mutable struct Writer{F,I<:IO}
     format::F
     buffer::I
     last::Char
     enabled::Bool
-    context::Dict{Symbol, Any}
+    context::Dict{Symbol,Any}
     env::Dict{String,Any}
 end
-Writer(format, buffer=IOBuffer(), env=Dict{String,Any}()) = Writer(format, buffer, '\n', true, Dict{Symbol, Any}(), env)
+Writer(format, buffer = IOBuffer(), env = Dict{String,Any}()) =
+    Writer(format, buffer, '\n', true, Dict{Symbol,Any}(), env)
 
 Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
 Base.get!(f::Function, w::Writer, k::Symbol) = get!(f, w.context, k)
@@ -90,7 +93,7 @@ function cr(r::Writer)
     return nothing
 end
 
-function _syntax_highlighter(w::Writer, mime::MIME, node::Node, escape=identity)
+function _syntax_highlighter(w::Writer, mime::MIME, node::Node, escape = identity)
     key = "syntax-highlighter"
     return haskey(w.env, key) ? w.env[key](mime, node) : escape(node.literal)
 end
@@ -100,6 +103,7 @@ include("writers/latex.jl")
 include("writers/term.jl")
 include("writers/markdown.jl")
 include("writers/notebook.jl")
+include("writers/typst.jl")
 
 function ast_dump(io::IO, ast::Node)
     indent = -2
@@ -107,9 +111,9 @@ function ast_dump(io::IO, ast::Node)
         T = typeof(node.t).name.name
         if is_container(node)
             indent += enter ? 2 : -2
-            enter && printstyled(io, ' '^indent, T, "\n"; color=:blue)
+            enter && printstyled(io, ' '^indent, T, "\n"; color = :blue)
         else
-            printstyled(io, ' '^(indent + 2), T, "\n"; bold=true, color=:red)
+            printstyled(io, ' '^(indent + 2), T, "\n"; bold = true, color = :red)
             println(io, ' '^(indent + 4), repr(node.literal))
         end
     end

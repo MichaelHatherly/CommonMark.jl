@@ -1,6 +1,6 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/markdown", ast::Node, env=Dict{String,Any}())
+function Base.show(io::IO, ::MIME"text/markdown", ast::Node, env = Dict{String,Any}())
     writer = Writer(Markdown(io), io, env)
     write_markdown(writer, ast)
     return nothing
@@ -11,7 +11,7 @@ markdown(args...) = writer(MIME"text/markdown"(), args...)
 
 mime_to_str(::MIME"text/markdown") = "markdown"
 
-mutable struct Markdown{I <: IO}
+mutable struct Markdown{I<:IO}
     buffer::I
     indent::Int
     margin::Vector{MarginSegment}
@@ -42,13 +42,13 @@ write_markdown(::Text, w, node, ent) = literal(w, node.literal)
 
 write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
 
-function write_markdown(::Union{SoftBreak, LineBreak}, w, node, ent)
+function write_markdown(::Union{SoftBreak,LineBreak}, w, node, ent)
     cr(w)
     print_margin(w)
 end
 
 function write_markdown(::Code, w, node, ent)
-    num = foldl(eachmatch(r"`+", node.literal); init=0) do a, b
+    num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
         max(a, length(b.match))
     end
     literal(w, "`"^(num == 1 ? 3 : 1))
@@ -165,7 +165,7 @@ function write_markdown(code::CodeBlock, w, node, ent)
         print_margin(w)
         literal(w, fence, code.info)
         cr(w)
-        for line in eachline(IOBuffer(node.literal); keep=true)
+        for line in eachline(IOBuffer(node.literal); keep = true)
             print_margin(w)
             literal(w, line)
         end
@@ -173,7 +173,7 @@ function write_markdown(code::CodeBlock, w, node, ent)
         literal(w, fence)
         cr(w)
     else
-        for line in eachline(IOBuffer(node.literal); keep=true)
+        for line in eachline(IOBuffer(node.literal); keep = true)
             print_margin(w)
             indent = all(isspace, line) ? 0 : CODE_INDENT
             literal(w, ' '^indent, line)
@@ -183,7 +183,7 @@ function write_markdown(code::CodeBlock, w, node, ent)
 end
 
 function write_markdown(::HtmlBlock, w, node, ent)
-    for line in eachline(IOBuffer(node.literal); keep=true)
+    for line in eachline(IOBuffer(node.literal); keep = true)
         print_margin(w)
         literal(w, line)
     end

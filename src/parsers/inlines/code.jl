@@ -33,7 +33,7 @@ function normalize_inline_code(str::AbstractString)
     str = replace(str, '\n' => ' ')
     all_space = all(c -> c === ' ', str)
     if !all_space && occursin(r"^ .+ $", str)
-        str = chop(str; head=1, tail=1)
+        str = chop(str; head = 1, tail = 1)
     end
     return str
 end

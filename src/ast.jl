@@ -4,7 +4,7 @@ abstract type AbstractInline <: AbstractContainer end
 
 is_container(::AbstractContainer) = false
 
-const SourcePos = NTuple{2, NTuple{2, Int}}
+const SourcePos = NTuple{2,NTuple{2,Int}}
 
 mutable struct Node
     t::AbstractContainer
@@ -22,7 +22,7 @@ mutable struct Node
 
     Node() = new()
 
-    function Node(t::AbstractContainer, sourcepos=((0, 0), (0, 0)))
+    function Node(t::AbstractContainer, sourcepos = ((0, 0), (0, 0)))
         node = new()
         node.t = t
         node.parent = NULL_NODE
@@ -82,7 +82,7 @@ Base.show(io::IO, node::Node) = print(io, "Node($(typeof(node.t)))")
 
 Base.IteratorSize(::Type{Node}) = Base.SizeUnknown()
 
-function Base.iterate(node::Node, (sr, sc, se)=(node, node, true))
+function Base.iterate(node::Node, (sr, sc, se) = (node, node, true))
     cur, entering = sc, se
     isnull(cur) && return nothing
     if entering && is_container(cur)

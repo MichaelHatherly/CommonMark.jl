@@ -28,22 +28,21 @@ function scan_delims(parser::InlineParser, c::AbstractChar)
 
     c_after = trypeek(parser, Char, '\n')
 
-    ws_after     = Base.Unicode.isspace(c_after)
-    punct_after  = Base.Unicode.ispunct(c_after)
-    ws_before    = Base.Unicode.isspace(c_before)
+    ws_after = Base.Unicode.isspace(c_after)
+    punct_after = Base.Unicode.ispunct(c_after)
+    ws_before = Base.Unicode.isspace(c_before)
     punct_before = Base.Unicode.ispunct(c_before)
 
-    left_flanking  = !ws_after  && (!punct_after  || ws_before || punct_before)
-    right_flanking = !ws_before && (!punct_before || ws_after  || punct_after)
-    can_open, can_close =
-        if c == '_'
-            (left_flanking  && (!right_flanking || punct_before)),
-            (right_flanking && (!left_flanking  || punct_after))
-        elseif c in (''', '"')
-            (left_flanking && !right_flanking), right_flanking
-        else
-            left_flanking, right_flanking
-        end
+    left_flanking = !ws_after && (!punct_after || ws_before || punct_before)
+    right_flanking = !ws_before && (!punct_before || ws_after || punct_after)
+    can_open, can_close = if c == '_'
+        (left_flanking && (!right_flanking || punct_before)),
+        (right_flanking && (!left_flanking || punct_after))
+    elseif c in (''', '"')
+        (left_flanking && !right_flanking), right_flanking
+    else
+        left_flanking, right_flanking
+    end
 
     seek(parser, startpos)
     return numdelims, can_open, can_close
@@ -99,7 +98,7 @@ function remove_delimiters_between(bottom::Delimiter, top::Delimiter)
 end
 
 function process_emphasis(parser::InlineParser, stack_bottom)
-    openers_bottom = Dict{Char, Union{Nothing, Delimiter}}(
+    openers_bottom = Dict{Char,Union{Nothing,Delimiter}}(
         '_' => stack_bottom,
         '*' => stack_bottom,
         ''' => stack_bottom,
@@ -123,8 +122,15 @@ function process_emphasis(parser::InlineParser, stack_bottom)
             opener = closer.previous
             opener_found = false
             closercc = closer.cc
-            while (opener !== nothing && opener !== stack_bottom && opener !== openers_bottom[closercc])
-                odd_match = (closer.can_open || opener.can_close) && closer.origdelims % 3 != 0 && (opener.origdelims + closer.origdelims) % 3 == 0
+            while (
+                opener !== nothing &&
+                opener !== stack_bottom &&
+                opener !== openers_bottom[closercc]
+            )
+                odd_match =
+                    (closer.can_open || opener.can_close) &&
+                    closer.origdelims % 3 != 0 &&
+                    (opener.origdelims + closer.origdelims) % 3 == 0
                 if opener.cc == closercc && opener.can_open && !odd_match
                     opener_found = true
                     break
@@ -146,8 +152,10 @@ function process_emphasis(parser::InlineParser, stack_bottom)
                     # Remove used delimiters from stack elements and inlines.
                     opener.numdelims -= use_delims
                     closer.numdelims -= use_delims
-                    opener_inl.literal = opener_inl.literal[1:length(opener_inl.literal) - use_delims]
-                    closer_inl.literal = closer_inl.literal[1:length(closer_inl.literal) - use_delims]
+                    opener_inl.literal =
+                        opener_inl.literal[1:length(opener_inl.literal)-use_delims]
+                    closer_inl.literal =
+                        closer_inl.literal[1:length(closer_inl.literal)-use_delims]
 
                     # Build contents for new Emph or Strong element.
                     emph = use_delims == 1 ? Node(Emph()) : Node(Strong())

@@ -12,7 +12,7 @@ function parse_string(parser::InlineParser, block::Node)
         read(parser, Char)
     end
     start === position(parser) && return false
-    append_child(block, text(String(bytes(parser, start, position(parser)-1))))
+    append_child(block, text(String(bytes(parser, start, position(parser) - 1))))
     return true
 end
 
@@ -56,9 +56,9 @@ end
 function inline_rule(tr::TypographyRule)
     return (
         tr.double_quotes ? Rule(parse_double_quote, 1, "\"") : nothing,
-        tr.single_quotes ? Rule(parse_single_quote, 1, "'")  : nothing,
-        tr.ellipses      ? Rule(parse_ellipsis,     1, ".")  : nothing,
-        tr.dashes        ? Rule(parse_dashes,       1, "-")  : nothing
+        tr.single_quotes ? Rule(parse_single_quote, 1, "'") : nothing,
+        tr.ellipses ? Rule(parse_ellipsis, 1, ".") : nothing,
+        tr.dashes ? Rule(parse_dashes, 1, "-") : nothing,
     )
 end
 
