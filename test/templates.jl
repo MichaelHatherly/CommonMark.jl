@@ -1,3 +1,5 @@
+test_template_str(filename) = read(joinpath(@__DIR__, "templates", filename), String)
+
 @testset "Templates" begin
     p = Parser()
 
@@ -11,8 +13,8 @@
 
     # Basic.
 
-    test(html(ast, dict), read("templates/basic.html", String))
-    test(latex(ast, dict), read("templates/basic.tex", String))
+    test(html(ast, dict), test_template_str("basic.html"))
+    test(latex(ast, dict), test_template_str("basic.tex"))
 
     # Ignore templates.
     test(markdown(ast, dict), "*word*\n")
@@ -42,8 +44,8 @@
         ),
     )
 
-    test(html(ast, env), read("templates/env.html", String))
-    test(latex(ast, env), read("templates/env.tex", String))
+    test(html(ast, env), test_template_str("env.html"))
+    test(latex(ast, env), test_template_str("env.tex"))
 
     # Ignore templates.
     test(markdown(ast, env), "*word*\n")
@@ -65,8 +67,8 @@
            """
     ast = p(text)
 
-    test(html(ast, dict), read("templates/frontmatter.html", String))
-    test(latex(ast, dict), read("templates/frontmatter.tex", String))
+    test(html(ast, dict), test_template_str("frontmatter.html"))
+    test(latex(ast, dict), test_template_str("frontmatter.tex"))
 
     # Ignore templates.
     test(markdown(ast, dict), text)
@@ -75,10 +77,8 @@
 
     # Front Matter and Global Configuration.
 
-    test(html(ast, env), read("templates/frontmatter-env.html", String))
-    test(latex(ast, env), read("templates/frontmatter-env.tex", String))
-
-    # Ignore templates.
+    test(html(ast, env), test_template_str("frontmatter-env.html"))
+    test(latex(ast, env), test_template_str("frontmatter-env.tex"))
     test(markdown(ast, env), text)
     test(term(ast, env), " \e[3mword\e[23m\n")
     test(join(JSON.parse(notebook(ast, env))["cells"][1]["source"]), text)
@@ -96,11 +96,13 @@
            *word*
            """
     ast = p(text)
-    test(html(ast, env), "<section>\n<p><em>word</em></p>\n\n</section>\n")
-    test(
-        latex(ast, env),
-        "\\documentclass{memoir}\n\\begin{document}\n\\textit{word}\\par\n\n\\end{document}\n",
-    )
+    cd(@__DIR__) do
+        test(html(ast, env), "<section>\n<p><em>word</em></p>\n\n</section>\n")
+        test(
+            latex(ast, env),
+            "\\documentclass{memoir}\n\\begin{document}\n\\textit{word}\\par\n\n\\end{document}\n",
+        )
+    end
 
     config = """
              [html.template]
@@ -109,7 +111,8 @@
              string = "\\\\begin{document}\\n\${{body}}\\\\end{document}"
              """
     env = merge(dict, TOML.parse(config))
-
-    test(html(ast, env), "<body>\n<p><em>word</em></p>\n</body>")
-    test(latex(ast, env), "\\begin{document}\n\\textit{word}\\par\n\\end{document}")
+    cd(@__DIR__) do
+        test(html(ast, env), "<body>\n<p><em>word</em></p>\n</body>")
+        test(latex(ast, env), "\\begin{document}\n\\textit{word}\\par\n\\end{document}")
+    end
 end
