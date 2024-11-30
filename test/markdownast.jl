@@ -144,6 +144,93 @@ end
     end
 
     # CommonMark.CodeBlock
+
+
+    @testset "CommonMark.List" begin
+        convert_to_markdownast_and_compare(
+            """
+            - Item 1
+            - Item 2
+
+            1. Foo
+            2. Bar
+            """,
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.List(:bullet, true) do
+                    MarkdownAST.Item() do
+                        MarkdownAST.Paragraph() do
+                            "Item 1"
+                        end
+                    end
+                    MarkdownAST.Item() do
+                        MarkdownAST.Paragraph() do
+                            "Item 2"
+                        end
+                    end
+                end
+                MarkdownAST.List(:ordered, true) do
+                    MarkdownAST.Item() do
+                        MarkdownAST.Paragraph() do
+                            "Foo"
+                        end
+                    end
+                    MarkdownAST.Item() do
+                        MarkdownAST.Paragraph() do
+                            "Bar"
+                        end
+                    end
+                end
+            end
+        )
+        convert_to_markdownast_and_compare(
+            """
+            - Foo
+
+              Bar
+            - Baz
+            """,
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.List(:bullet, false) do
+                    MarkdownAST.Item() do
+                        MarkdownAST.Paragraph() do
+                            "Foo"
+                        end
+                        MarkdownAST.Paragraph() do
+                            "Bar"
+                        end
+                    end
+                    MarkdownAST.Item() do
+                        MarkdownAST.Paragraph() do
+                            "Baz"
+                        end
+                    end
+                end
+            end
+        )
+    end
+
+    @testset "CommonMark.ThematicBreak" begin
+        convert_to_markdownast_and_compare(
+            """
+            foo
+
+            ---
+
+            bar
+            """,
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.Paragraph() do
+                    "foo"
+                end
+                MarkdownAST.ThematicBreak()
+                MarkdownAST.Paragraph() do
+                    "bar"
+                end
+            end
+        )
+    end
+
+
     # CommonMark.DisplayMath
     # CommonMark.Document
     # CommonMark.FootnoteDefinition
@@ -203,20 +290,90 @@ end
     # CommonMark.ThematicBreak
     # CommonMark.TypstBlock
 
+    # Inline containers
+
     # CommonMark.Backslash
-    # CommonMark.Code
-    # CommonMark.Emph
+
+    @testset "CommonMark.Code" begin
+        convert_to_markdownast_and_compare(
+            "This is `inline code`",
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.Paragraph() do
+                    MarkdownAST.Text("This is ")
+                    MarkdownAST.Code("inline code")
+                end
+            end
+        )
+    end
+
+    @testset "CommonMark.Emph" begin
+        convert_to_markdownast_and_compare(
+            "This is *emphasized*",
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.Paragraph() do
+                    MarkdownAST.Text("This is ")
+                    MarkdownAST.Emph() do
+                        MarkdownAST.Text("emphasized")
+                    end
+                end
+            end
+        )
+    end
+
     # CommonMark.FootnoteLink
     # CommonMark.HtmlInline
-    # CommonMark.Image
+
+    @testset "CommonMark.Image" begin
+        convert_to_markdownast_and_compare(
+            """
+            ![Alt text](image.jpg)
+            """,
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.Paragraph() do
+                    MarkdownAST.Image("image.jpg", "") do
+                        "Alt text"
+                    end
+                end
+            end
+        )
+    end
+
     # CommonMark.JuliaExpression
     # CommonMark.JuliaValue
     # CommonMark.LaTeXInline
     # CommonMark.LineBreak
-    # CommonMark.Link
+
+    @testset "CommonMark.Link" begin
+        convert_to_markdownast_and_compare(
+            "[Link](https://example.com)",
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.Paragraph() do
+                    MarkdownAST.Link("https://example.com", "") do
+                        MarkdownAST.Text("Link")
+                    end
+                end
+            end
+        )
+    end
+
     # CommonMark.Math
     # CommonMark.SoftBreak
     # CommonMark.Strong
+
+    @testset "CommonMark.Strong" begin
+        convert_to_markdownast_and_compare(
+            "This is **strong**",
+            MarkdownAST.@ast MarkdownAST.Document() do
+                MarkdownAST.Paragraph() do
+                    MarkdownAST.Text("This is ")
+                    MarkdownAST.Strong() do
+                        MarkdownAST.Text("strong")
+                    end
+                end
+            end
+        )
+    end
+
     # CommonMark.TablePipe
     # CommonMark.Text
     # CommonMark.TypstInline
@@ -236,21 +393,16 @@ end
         )
     end
 
-    # CommonMark.Citation
-    @testset "CommonMark.Citation" begin
+    @testset "CommonMark.{Citation,CitationBracket}" begin
         @test_throws CommonMark.UnsupportedContainerError(CommonMark.Citation) convert_to_markdownast(
             """
-            [foo][bar]
+            @foo
             """;
             rules = [CommonMark.CitationRule()]
         )
-    end
-
-    # CommonMark.CitationBracket
-    @testset "CommonMark.CitationBracket" begin
         @test_throws CommonMark.UnsupportedContainerError(CommonMark.CitationBracket) convert_to_markdownast(
             """
-            [foo]
+            [@foo, @bar]
             """;
             rules = [CommonMark.CitationRule()]
         )
