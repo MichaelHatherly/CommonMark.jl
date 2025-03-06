@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.9.0] - 2025-03-06
+
+### Added
+
+- Add `typst` writer [#84]
+
 ## [v0.8.15] - 2024-10-04
 
 ### Fixed
@@ -279,6 +285,7 @@ Initial release.
 [v0.8.13]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.8.13
 [v0.8.14]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.8.14
 [v0.8.15]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.8.15
+[v0.9.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.9.0
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
@@ -294,3 +301,4 @@ Initial release.
 [#80]: https://github.com/MichaelHatherly/CommonMark.jl/issues/80
 [#81]: https://github.com/MichaelHatherly/CommonMark.jl/issues/81
 [#82]: https://github.com/MichaelHatherly/CommonMark.jl/issues/82
+[#84]: https://github.com/MichaelHatherly/CommonMark.jl/issues/84
