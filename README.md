@@ -59,6 +59,7 @@ Supported output formats are currently:
 
 - `html`
 - `latex`
+- `typst`
 - `term`: colourised and Unicode-formatted for display in a terminal.
 - `markdown`
 - `notebook`: [Jupyter](https://jupyter.org/) notebooks.
