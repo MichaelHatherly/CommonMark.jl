@@ -15,7 +15,8 @@ term(args...) = writer(MIME"text/plain"(), args...)
 
 mime_to_str(::MIME"text/plain") = "term"
 
-import Crayons: Crayon, @crayon_str
+include("../vendor/Crayons/src/Crayons.jl")
+import .Crayons: Crayon, @crayon_str
 
 mutable struct MarginSegment
     text::String
