@@ -5,73 +5,52 @@ function custom_parser()
 end
 
 @testset "Interpolation" begin
-    ast = cm""
-    @test html(ast) == ""
-    @test latex(ast) == ""
-    @test markdown(ast) == ""
-    @test term(ast) == ""
-    @test typst(ast) == ""
+    using ReferenceTests
 
+    # Helper function for tests that can use references
+    function test_interpolation(base_name, ast)
+        formats = [
+            (html, "html.txt"),
+            (latex, "tex"),
+            (markdown, "md"),
+            (term, "txt"),
+            (typst, "typ"),
+        ]
+        for (func, ext) in formats
+            filename = "references/interpolation/$(base_name).$(ext)"
+            output = func(ast)
+            @test_reference filename Text(output)
+        end
+    end
+    # Empty string
+    ast = cm""
+    test_interpolation("empty", ast)
+
+    # No interpolation
     ast = cm"no interpolation"
-    @test html(ast) == "<p>no interpolation</p>\n"
-    @test latex(ast) == "no interpolation\\par\n"
-    @test markdown(ast) == "no interpolation\n"
-    @test term(ast) == " no interpolation\n"
-    @test typst(ast) == "no interpolation\n"
+    test_interpolation("no_interpolation", ast)
 
     value = :interpolation
     ast = cm"'some' $value $(value)"
-    @test html(ast) ==
-          "<p>‘some’ <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
-    @test latex(ast) == "‘some’ interpolation interpolation\\par\n"
-    @test markdown(ast) == "‘some’ \$(value) \$(value)\n"
-    @test term(ast) == " ‘some’ \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
-    @test typst(ast) == "‘some’ interpolation interpolation\n"
+    test_interpolation("basic", ast)
 
     ast = cm"*expressions* $(1 + 2) and $(2 + 3)"
-    @test html(ast) ==
-          "<p><em>expressions</em> <span class=\"julia-value\">3</span> and <span class=\"julia-value\">5</span></p>\n"
-    @test latex(ast) == "\\textit{expressions} 3 and 5\\par\n"
-    @test markdown(ast) == "*expressions* \$(1 + 2) and \$(2 + 3)\n"
-    @test term(ast) == " \e[3mexpressions\e[23m \e[33m3\e[39m and \e[33m5\e[39m\n"
-    @test typst(ast) == "#emph[expressions] 3 and 5\n"
+    test_interpolation("expressions", ast)
 
     ast = cm"> *expressions* $(1 + 2) and $(2 + 3)"
-    @test html(ast) ==
-          "<blockquote>\n<p><em>expressions</em> <span class=\"julia-value\">3</span> and <span class=\"julia-value\">5</span></p>\n</blockquote>\n"
-    @test latex(ast) == "\\begin{quote}\n\\textit{expressions} 3 and 5\\par\n\\end{quote}\n"
-    @test markdown(ast) == "> *expressions* \$(1 + 2) and \$(2 + 3)\n"
-    @test term(ast) ==
-          " \e[1m│\e[22m \e[3mexpressions\e[23m \e[33m3\e[39m and \e[33m5\e[39m\n"
-    @test typst(ast) == "#quote(block: true)[\n#emph[expressions] 3 and 5\n]\n"
+    test_interpolation("block_quote", ast)
 
     value = :interpolation
     ast = cm"'some' $value $(value)"basic
-    @test html(ast) ==
-          "<p>'some' <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
-    @test latex(ast) == "'some' interpolation interpolation\\par\n"
-    @test markdown(ast) == "'some' \$(value) \$(value)\n"
-    @test term(ast) == " 'some' \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
-    @test typst(ast) == "'some' interpolation interpolation\n"
+    test_interpolation("basic_interpolation", ast)
 
     value = :interpolation
     ast = cm"'some' ``math`` $value $(value)"custom_parser
-    @test html(ast) ==
-          "<p>'some' <span class=\"math tex\">\\(math\\)</span> <span class=\"julia-value\">interpolation</span> <span class=\"julia-value\">interpolation</span></p>\n"
-    @test latex(ast) == "'some' \\(math\\) interpolation interpolation\\par\n"
-    @test markdown(ast) == "'some' ``math`` \$(value) \$(value)\n"
-    @test term(ast) ==
-          " 'some' \e[35mmath\e[39m \e[33minterpolation\e[39m \e[33minterpolation\e[39m\n"
-    @test typst(ast) == "'some' \$math\$ interpolation interpolation\n"
+    test_interpolation("math_interpolation", ast)
 
     value = 1
     ast = cm"$(value) $(value + 1) $(value += 1) $(value += 1)"
-    @test html(ast) ==
-          "<p><span class=\"julia-value\">1</span> <span class=\"julia-value\">2</span> <span class=\"julia-value\">2</span> <span class=\"julia-value\">3</span></p>\n"
-    @test latex(ast) == "1 2 2 3\\par\n"
-    @test markdown(ast) == "\$(value) \$(value + 1) \$(value += 1) \$(value += 1)\n"
-    @test term(ast) == " \e[33m1\e[39m \e[33m2\e[39m \e[33m2\e[39m \e[33m3\e[39m\n"
-    @test typst(ast) == "1 2 2 3\n"
+    test_interpolation("expression_with_assignment", ast)
 
     # A case that can fail if the @cm_str macro relies on evaluating the passed expressions in argument
     # lists (like the constructor of a vector).
@@ -86,44 +65,32 @@ end
 
     # Interpolated strings are not markdown-interpreted
     ast = cm"""*expressions* $("**test**")"""
-    @test html(ast) ==
-          "<p><em>expressions</em> <span class=\"julia-value\">**test**</span></p>\n"
-    @test latex(ast) == "\\textit{expressions} **test**\\par\n"
-    @test markdown(ast) == "*expressions* \$(**test**)\n"
-    @test term(ast) == " \e[3mexpressions\e[23m \e[33m**test**\e[39m\n"
-    @test typst(ast) == "#emph[expressions] **test**\n"
+    test_interpolation("interpolated_string", ast)
 
     # Interpolated values are not linked to their macroexpansion origin.
     asts = [cm"Value = **$(each)**" for each = 1:3]
-    @test html(asts[1]) ==
-          "<p>Value = <strong><span class=\"julia-value\">1</span></strong></p>\n"
-    @test html(asts[2]) ==
-          "<p>Value = <strong><span class=\"julia-value\">2</span></strong></p>\n"
-    @test html(asts[3]) ==
-          "<p>Value = <strong><span class=\"julia-value\">3</span></strong></p>\n"
+    test_interpolation("interpolated_values_1", asts[1])
+    test_interpolation("interpolated_values_2", asts[2])
+    test_interpolation("interpolated_values_3", asts[3])
 
     # Interpolating collections.
     worlds = [HTML("<div>world $i</div>") for i = 1:3]
-    @test html(cm"Hello $(worlds)") ==
-          "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+    test_interpolation("interpolated_collection", cm"Hello $(worlds)")
 
     worlds = (HTML("<div>world $i</div>") for i = 1:3)
     @test html(cm"Hello $(worlds)") ==
           "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
 
     worlds = Tuple(HTML("<div>world $i</div>") for i = 1:3)
-    @test html(cm"Hello $(worlds)") ==
-          "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+    test_interpolation("interpolated_tuple", cm"Hello $(worlds)")
 
     # Make sure that the evaluation of values happens at runtime.
     f(x) = cm"if x = $(x), then x² = $(x^2)"
     let ast = f(2)
-        @test markdown(ast) == "if x = \$(x), then x² = \$(x ^ 2)\n"
-        @test term(ast) == " if x = \e[33m2\e[39m, then x² = \e[33m4\e[39m\n"
+        test_interpolation("interpolation_runtime_evaluation", ast)
     end
     let ast = f(-3)
-        @test markdown(ast) == "if x = \$(x), then x² = \$(x ^ 2)\n"
-        @test term(ast) == " if x = \e[33m-3\e[39m, then x² = \e[33m9\e[39m\n"
+        test_interpolation("interpolation_runtime_evaluation_negative", ast)
     end
 
     # Make sure that a variable that evaluates to different values in different positions
@@ -134,8 +101,7 @@ end
             42
         end # closure that updates the local `x` variable
         ast = cm"$(x), $(f!()), $(x)"
-        @test markdown(ast) == "\$(x), \$(f!()), \$(x)\n"
-        @test term(ast) == " \e[33m1\e[39m, \e[33m42\e[39m, \e[33m2\e[39m\n"
+        test_interpolation("variable_update", ast)
     end
 
     # IOContext passthrough
@@ -156,12 +122,5 @@ end
     p = Parser()
     enable!(p, CommonMark.JuliaInterpolationRule())
     ast = p("foo: \$(foo), \$(x ^ 2), \$1234")
-    @test html(ast) ==
-          "<p>foo: <span class=\"julia-expr\">\$(foo)</span>, <span class=\"julia-expr\">\$(x ^ 2)</span>, <span class=\"julia-expr\">\$(1234)</span></p>\n"
-    @test latex(ast) ==
-          "foo: \\texttt{\\\$(foo)}, \\texttt{\\\$(x \\^{} 2)}, \\texttt{\\\$(1234)}\\par\n"
-    @test markdown(ast) == "foo: \$(foo), \$(x ^ 2), \$(1234)\n"
-    @test term(ast) ==
-          " foo: \e[33m\$(foo)\e[39m, \e[33m\$(x ^ 2)\e[39m, \e[33m\$(1234)\e[39m\n"
-    @test typst(ast) == "foo: foo, x ^ 2, 1234\n"
+    test_interpolation("julia_expressions", ast)
 end

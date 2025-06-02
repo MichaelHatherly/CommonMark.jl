@@ -1,0 +1,1 @@
+<p>foo: <span class="julia-expr">$(foo)</span>, <span class="julia-expr">$(x ^ 2)</span>, <span class="julia-expr">$(1234)</span></p>

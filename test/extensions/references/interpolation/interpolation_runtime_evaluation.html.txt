@@ -1,0 +1,1 @@
+<p>if x = <span class="julia-value">2</span>, then x² = <span class="julia-value">4</span></p>

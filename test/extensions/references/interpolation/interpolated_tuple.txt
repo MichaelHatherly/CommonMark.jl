@@ -1,0 +1,2 @@
+ Hello [33m(HTML{String}("<div>world 1</div>"), HTML{String}("<div>world 2</div>"),
+[39m [33mHTML{String}("<div>world 3</div>"))[39m
