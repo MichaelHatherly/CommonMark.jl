@@ -1,13 +1,14 @@
 @testset "LaTeX" begin
+    using ReferenceTests
     p = Parser()
 
-    test = function (text, expected)
+    function test(filename, text)
         ast = p(text)
-        @test latex(ast) == expected
+        @test_reference filename Text(latex(ast))
     end
 
     # Code blocks.
-    test("`code`", "\\texttt{code}\\par\n")
+    test("references/latex/code.tex", "`code`", "\\texttt{code}\\par\n")
     # Inline HTML.
     test("<em>text</em>", "text\\par\n")
     # Links.
