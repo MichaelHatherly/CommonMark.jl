@@ -1,4 +1,22 @@
 @testset "Smart Links" begin
+    using ReferenceTests
+
+    # Helper function for tests that can use references
+    function test_smartlink(base_name, ast, env)
+        formats = [
+            (html, "html.txt"),
+            (latex, "tex"),
+            (markdown, "md"),
+            (term, "txt"),
+            (typst, "typ"),
+        ]
+        for (func, ext) in formats
+            filename = "references/smartlinks/$(base_name).$(ext)"
+            output = func(ast, env)
+            @test_reference filename Text(output)
+        end
+    end
+
     function handler(::MIME"text/html", obj::CommonMark.Link, node::CommonMark.Node, env)
         name, _ = splitext(obj.destination)
         obj = deepcopy(obj)
@@ -10,18 +28,11 @@
     p = Parser()
     env = Dict("root" => "/root", "smartlink-engine" => handler)
 
+    # Smart link transformation
     ast = p("[link](url.md)")
-    @test html(ast, env) == "<p><a href=\"/root/url.html\">link</a></p>\n"
-    @test latex(ast, env) == "\\href{url.md}{link}\\par\n"
-    @test term(ast, env) == " \e[34;4mlink\e[39;24m\n"
-    @test markdown(ast, env) == "[link](url.md)\n"
-    @test typst(ast, env) == "#link(\"url.md\")[link]\n"
+    test_smartlink("link", ast, env)
 
+    # Image (not transformed by smartlink)
     ast = p("![link](url.img)")
-    @test html(ast, env) == "<p><img src=\"url.img\" alt=\"link\" /></p>\n"
-    @test latex(ast, env) ==
-          "\\begin{figure}\n\\centering\n\\includegraphics[max width=\\linewidth]{url.img}\n\\caption{link}\n\\end{figure}\n\\par\n"
-    @test term(ast, env) == " \e[32mlink\e[39m\n"
-    @test markdown(ast, env) == "![link](url.img)\n"
-    @test typst(ast, env) == "#figure(image(\"url.img\"), caption: [link])\n"
+    test_smartlink("image", ast, env)
 end
