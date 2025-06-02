@@ -1,54 +1,56 @@
 @testset "Notebook" begin
+    using ReferenceTests
     p = Parser()
 
-    test = function (text, expected)
+    function test(filename, text)
         ast = p(text)
-        json = JSON.Parser.parse(notebook(ast))
-        @test join(json["cells"][1]["source"]) == expected
+        json = notebook(ast)
+        pretty = JSON.json(JSON.parse(json), 2)
+        @test_reference filename Text(pretty)
     end
 
     # Code blocks.
-    test("`code`", "`code`\n")
+    test("references/notebook/code.json", "`code`")
     # Inline HTML.
-    test("<em>text</em>", "<em>text</em>\n")
+    test("references/notebook/inline_html.json", "<em>text</em>")
     # Links.
-    test("[link](url)", "[link](url)\n")
+    test("references/notebook/link.json", "[link](url)")
     # Images.
-    test("![link](url)", "![link](url)\n")
+    test("references/notebook/image.json", "![link](url)")
     # Emphasis.
-    test("*text*", "*text*\n")
+    test("references/notebook/emphasis.json", "*text*")
     # Strong.
-    test("**text**", "**text**\n")
+    test("references/notebook/strong.json", "**text**")
     # Headings.
-    test("# h1", "# h1\n")
-    test("## h2", "## h2\n")
-    test("### h3", "### h3\n")
-    test("#### h4", "#### h4\n")
-    test("##### h5", "##### h5\n")
-    test("###### h6", "###### h6\n")
+    test("references/notebook/h1.json", "# h1")
+    test("references/notebook/h2.json", "## h2")
+    test("references/notebook/h3.json", "### h3")
+    test("references/notebook/h4.json", "#### h4")
+    test("references/notebook/h5.json", "##### h5")
+    test("references/notebook/h6.json", "###### h6")
     # Block quotes.
-    test("> quote", "> quote\n")
+    test("references/notebook/blockquote.json", "> quote")
     # Lists.
     test(
+        "references/notebook/list_nested_ordered.json",
         "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
-        " 1. one\n 2.  5. five\n     6. six\n 3. three\n 4. four\n",
     )
-    test("- - - - - - - item", "  -   +   *   -   +   *   * item\n")
+    test("references/notebook/list_nested_unordered.json", "- - - - - - - item")
     # Thematic Breaks.
-    test("***", "* * *\n")
+    test("references/notebook/thematic_break.json", "***")
     # Code blocks.
     test(
+        "references/notebook/code_block_fenced_julia.json",
         """
         ```julia
         code
         ```
         """,
-        "code",
     )
     test(
+        "references/notebook/code_block_indented.json",
         """
             code
         """,
-        "    code\n",
     )
 end
