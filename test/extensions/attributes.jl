@@ -1,4 +1,6 @@
 @testset "Attributes" begin
+    using ReferenceTests
+
     p = Parser()
     enable!(p, AttributeRule())
 
@@ -136,22 +138,29 @@
         "[http://www.website.com](http://www.website.com){#id}",
     )
 
-    test = function (input, f, output)
+    # Writer output tests
+    test = function (filename, input)
         ast = p(input)
-        @test f(ast) == output
+        # Check if it ends with .html.txt for HTML output
+        output = if endswith(filename, ".html.txt")
+            html(ast)
+        elseif endswith(filename, ".tex")
+            latex(ast)
+        elseif endswith(filename, ".typ")
+            typst(ast)
+        else
+            error("Unknown extension")
+        end
+        @test_reference filename Text(output)
     end
 
-    test(
-        "{#id}\n# H1",
-        html,
-        "<h1 id=\"id\"><a href=\"#id\" class=\"anchor\"></a>H1</h1>\n",
-    )
-    test("{.one.two}\n# H1", html, "<h1 class=\"one two\">H1</h1>\n")
-    test("{#id}\n# H1", latex, "\\protect\\hypertarget{id}{}\n\\section{H1}\n")
-    test("{#id}\n# H1", typst, "= H1\n")
+    test("references/attributes/heading_with_id.html.txt", "{#id}\n# H1")
+    test("references/attributes/heading_with_classes.html.txt", "{.one.two}\n# H1")
+    test("references/attributes/heading_with_id.tex", "{#id}\n# H1")
+    test("references/attributes/heading_with_id.typ", "{#id}\n# H1")
 
-    test("*word*{#id}", html, "<p><em id=\"id\">word</em></p>\n")
-    test("*word*{.one.two}", html, "<p><em class=\"one two\">word</em></p>\n")
-    test("*word*{#id}", latex, "\\protect\\hypertarget{id}{}\\textit{word}\\par\n")
-    test("*word*{#id}", typst, "#emph[word]\n")
+    test("references/attributes/emphasis_with_id.html.txt", "*word*{#id}")
+    test("references/attributes/emphasis_with_classes.html.txt", "*word*{.one.two}")
+    test("references/attributes/emphasis_with_id.tex", "*word*{#id}")
+    test("references/attributes/emphasis_with_id.typ", "*word*{#id}")
 end
