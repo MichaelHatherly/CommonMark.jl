@@ -1,0 +1,21 @@
+<h1 id="refs"><a href="#refs" class="anchor"></a>The reference list.</h1>
+<p id="ref-aruoba2015">Aruoba, S. Borağan, and Jesús Fernández-Villaverde. 2015. <em>A comparison of programming languages in macroeconomics. </em></p>
+<p id="ref-cabutto2018">Ault, Shaun V., Tyler A. Cabutto, Sean P. Heeney, Guifen Mao, and Jin Wang. 2018. <em>An Overview of the Julia Programming Language. </em></p>
+<p id="ref-besard2018">Besard, Tim, Bjorn De Sutter, and Christophe Foket. 2018. <em>Effective extensible programming: Unleashing julia on gpus. </em></p>
+<p id="ref-bezanson2017">Bezanson, Jeff, Alan Edelman, Stefan Karpinski, and Viral B. Shah. 2017. <em>Julia: A fresh approach to numerical computing. </em></p>
+<p id="ref-bezanson2012">Bezanson, Jeff, Alan Edelman, Stefan Karpinski, and Viral B. Shah. 2012. <em>Julia: A fast dynamic language for technical computing. </em></p>
+<p id="ref-udell2014">Boyd, Stephen, Steven Diamond, Jenny Hong, Karanveer Mohan, Madeleine Udell, and David Zeng. 2014. <em>Convex optimization in Julia. </em>IEEE. </p>
+<p id="ref-chen2016">Chen, Jiahao, and Jarrett Revels. 2016. <em>Robust benchmarking in noisy environments. </em></p>
+<p id="ref-cusumano-towner2019">Cusumano-Towner, Marco F., Alexander K. Lew, Vikash K. Mansinghka, and Feras A. Saad. 2019. <em>Gen: A general-purpose probabilistic programming system with programmable inference. </em>New York, NY, USA: ACM. doi:10.1145/3314221.3314642. <a href="http://doi.acm.org/10.1145/3314221.3314642" title="http://doi.acm.org/10.1145/3314221.3314642">http://doi.acm.org/10.1145/3314221.3314642</a>. </p>
+<p id="ref-lubin2015">Dunning, Iain, and Miles Lubin. 2015. <em>Computing in operations research using Julia. </em></p>
+<p id="ref-edelman2015">Edelman, Alan. 2015. <em>Julia: A fresh approach to parallel programming. </em>IEEE. </p>
+<p id="ref-elmqvist2016">Elmqvist, Hilding, Toivo Henningsson, and Martin Otter. 2016. <em>Systems modeling and programming in a unified environment based on Julia. </em>Springer. </p>
+<p id="ref-fieker2017">Fieker, Claus, William Hart, Tommy Hofmann, and Fredrik Johansson. 2017. <em>Nemo/Hecke: computer algebra and number theory packages for the Julia programming language. </em></p>
+<p id="ref-innes2018a">Fischer, Keno, Dhairya Gandhi, Michael Innes, Neethu Mariya Joy, Tejan Karmali, Avik Pal, Marco Concetto Rudilosso, Elliot Saba, and Viral Shah. 2018. <em>Fashionable modelling with flux. </em><a href="http://arxiv.org/abs/1811.01457" title="http://arxiv.org/abs/1811.01457">http://arxiv.org/abs/1811.01457</a>. </p>
+<p id="ref-ge2018">Ge, Hong, Zoubin Ghahramani, and Kai Xu. 2018. <em>Turing: a language for flexible probabilistic inference. </em><a href="http://proceedings.mlr.press/v84/ge18b.html" title="http://proceedings.mlr.press/v84/ge18b.html">http://proceedings.mlr.press/v84/ge18b.html</a>. </p>
+<p id="ref-innes2018">Innes, Michael. 2018. <em>Don't unroll adjoint: Differentiating SSA-Form programs. </em><a href="http://arxiv.org/abs/1810.07951" title="http://arxiv.org/abs/1810.07951">http://arxiv.org/abs/1810.07951</a>. </p>
+<p id="ref-innes2018b">Innes, Mike. 2018. <em>Flux: Elegant machine learning with julia. </em>doi:10.21105/joss.00602. </p>
+<p id="ref-masthay2017">Masthay, Tyler M., and Saverio Perugini. 2017. <em>Parareal Algorithm Implementation and Simulation in Julia. </em></p>
+<p id="ref-mogensen2018">Mogensen, Patrick Kofod, and Asbjørn Nilsen Riseth. 2018. <em>Optim: A mathematical optimization package for Julia. </em></p>
+<p id="ref-rackauckas2017">Nie, Qing, and Christopher Rackauckas. 2017. <em>DifferentialEquations.jl – a performant and feature-rich ecosystem for solving differential equations in julia. </em>doi:10.5334/jors.151. <a href="https://app.dimensions.ai/details/publication/pub.1085583166" title="https://app.dimensions.ai/details/publication/pub.1085583166">https://app.dimensions.ai/details/publication/pub.1085583166</a>. </p>
+<p id="ref-novosel2019">Novosel, Rok, and Bostjan Slivnik. 2019. <em>Beyond Classical Parallel Programming Frameworks: Chapel vs Julia. </em>Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik. </p>
