@@ -8,72 +8,70 @@
     end
 
     # Code blocks.
-    test("references/latex/code.tex", "`code`", "\\texttt{code}\\par\n")
+    test("references/latex/code.tex", "`code`")
     # Inline HTML.
-    test("<em>text</em>", "text\\par\n")
+    test("references/latex/inline_html.tex", "<em>text</em>")
     # Links.
-    test("[link](url)", "\\href{url}{link}\\par\n")
+    test("references/latex/link.tex", "[link](url)")
     # Images.
-    test(
-        "![link](url)",
-        "\\begin{figure}\n\\centering\n\\includegraphics[max width=\\linewidth]{url}\n\\caption{link}\n\\end{figure}\n\\par\n",
-    )
+    test("references/latex/image.tex", "![link](url)")
     # Emphasis.
-    test("*text*", "\\textit{text}\\par\n")
+    test("references/latex/emphasis.tex", "*text*")
     # Strong.
-    test("**text**", "\\textbf{text}\\par\n")
+    test("references/latex/strong.tex", "**text**")
     # Headings.
-    test("# h1", "\\section{h1}\n")
-    test("## h2", "\\subsection{h2}\n")
-    test("### h3", "\\subsubsection{h3}\n")
-    test("#### h4", "\\paragraph{h4}\n")
-    test("##### h5", "\\subparagraph{h5}\n")
-    test("###### h6", "\\subsubparagraph{h6}\n")
+    test("references/latex/h1.tex", "# h1")
+    test("references/latex/h2.tex", "## h2")
+    test("references/latex/h3.tex", "### h3")
+    test("references/latex/h4.tex", "#### h4")
+    test("references/latex/h5.tex", "##### h5")
+    test("references/latex/h6.tex", "###### h6")
     # Block quotes.
-    test("> quote", "\\begin{quote}\nquote\\par\n\\end{quote}\n")
+    test("references/latex/blockquote.tex", "> quote")
     # Lists.
+    test("references/latex/list_unordered.tex", "- item")
+    test("references/latex/list_ordered.tex", "1. item")
+    test("references/latex/list_ordered_start.tex", "3. item")
     test(
-        "- item",
-        "\\begin{itemize}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{itemize}\n",
+        "references/latex/list_unordered_multiple.tex",
+        """
+        - item
+        - item
+        """,
     )
     test(
-        "1. item",
-        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{0}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n",
+        "references/latex/list_ordered_multiple.tex",
+        """
+        1. item
+        2. item
+        """,
     )
     test(
-        "3. item",
-        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{2}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\end{enumerate}\n",
-    )
-    test(
-        "- item\n- item",
-        "\\begin{itemize}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{itemize}\n",
-    )
-    test(
-        "1. item\n2. item",
-        "\\begin{enumerate}\n\\def\\labelenumi{\\arabic{enumi}.}\n\\setcounter{enumi}{0}\n\\setlength{\\itemsep}{0pt}\n\\setlength{\\parskip}{0pt}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{enumerate}\n",
-    )
-    test(
-        "- item\n\n- item",
-        "\\begin{itemize}\n\\item\nitem\\par\n\\item\nitem\\par\n\\end{itemize}\n",
+        "references/latex/list_loose.tex",
+        """
+        - item
+
+        - item
+        """,
     )
 
     # Thematic Breaks.
-    test("***", "\\par\\bigskip\\noindent\\hrulefill\\par\\bigskip\n")
+    test("references/latex/thematic_break.tex", "***")
     # Code blocks.
     test(
+        "references/latex/code_block_indented.tex",
         """
             code
         """,
-        "\\begin{verbatim}\ncode\n\\end{verbatim}\n",
     )
     test(
+        "references/latex/code_block_fenced.tex",
         """
         ```
         code
         ```
         """,
-        "\\begin{lstlisting}\ncode\n\\end{lstlisting}\n",
     )
     # Escapes.
-    test("^~\\&%\$#_{}", "\\^{}{\\textasciitilde}\\&\\%\\\$\\#\\_\\{\\}\\par\n")
+    test("references/latex/escapes.tex", "^~\\&%\$#_{}")
 end
