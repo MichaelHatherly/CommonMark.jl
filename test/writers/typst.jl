@@ -1,57 +1,77 @@
 @testset "Typst" begin
+    using ReferenceTests
     p = Parser()
 
-    test = function (text, expected)
+    function test(filename, text)
         ast = p(text)
-        @test typst(ast) == expected
+        @test_reference filename Text(typst(ast))
     end
 
     # Code blocks.
-    test("`code`", "`code`\n")
+    test("references/typst/code.typ", "`code`")
     # Inline HTML.
-    test("<em>text</em>", "text\n")
+    test("references/typst/inline_html.typ", "<em>text</em>")
     # Links.
-    test("[link](url)", "#link(\"url\")[link]\n")
+    test("references/typst/link.typ", "[link](url)")
     # Images.
-    test("![link](url)", "#figure(image(\"url\"), caption: [link])\n")
+    test("references/typst/image.typ", "![link](url)")
     # Emphasis.
-    test("*text*", "#emph[text]\n")
+    test("references/typst/emphasis.typ", "*text*")
     # Strong.
-    test("**text**", "#strong[text]\n")
+    test("references/typst/strong.typ", "**text**")
     # Headings.
-    test("# h1", "= h1\n")
-    test("## h2", "== h2\n")
-    test("### h3", "=== h3\n")
-    test("#### h4", "==== h4\n")
-    test("##### h5", "===== h5\n")
-    test("###### h6", "====== h6\n")
+    test("references/typst/h1.typ", "# h1")
+    test("references/typst/h2.typ", "## h2")
+    test("references/typst/h3.typ", "### h3")
+    test("references/typst/h4.typ", "#### h4")
+    test("references/typst/h5.typ", "##### h5")
+    test("references/typst/h6.typ", "###### h6")
     # Block quotes.
-    test("> quote", "#quote(block: true)[\nquote\n]\n")
+    test("references/typst/blockquote.typ", "> quote")
     # Lists.
-    test("- item", "  - item\n")
-    test("1. item", " 1. item\n")
-    test("3. item", " 3. item\n")
-    test("- item\n- item", "  - item\n  - item\n")
-    test("1. item\n2. item", " 1. item\n 2. item\n")
-    test("- item\n\n- item", "  - item\n\n  - item\n")
+    test("references/typst/list_unordered.typ", "- item")
+    test("references/typst/list_ordered.typ", "1. item")
+    test("references/typst/list_ordered_start.typ", "3. item")
+    test(
+        "references/typst/list_unordered_multiple.typ",
+        """
+        - item
+        - item
+        """,
+    )
+    test(
+        "references/typst/list_ordered_multiple.typ",
+        """
+        1. item
+        2. item
+        """,
+    )
+    test(
+        "references/typst/list_loose.typ",
+        """
+        - item
+
+        - item
+        """,
+    )
 
     # Thematic Breaks.
-    test("***", "#line(start: (25%, 0%), end: (75%, 0%))\n")
+    test("references/typst/thematic_break.typ", "***")
     # Code blocks.
     test(
+        "references/typst/code_block_indented.typ",
         """
             code
         """,
-        "```\ncode\n```\n",
     )
     test(
+        "references/typst/code_block_fenced.typ",
         """
         ```
         code
         ```
         """,
-        "```\ncode\n```\n",
     )
     # Escapes.
-    test("^~\\&%\$#_{}", "^\\~\\&%\\\$\\#\\_{}\n")
+    test("references/typst/escapes.typ", "^~\\&%\$#_{}")
 end
