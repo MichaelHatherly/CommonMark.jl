@@ -1,0 +1,4 @@
+<p>text<a href="#footnote-1" class="footnote" id="id">1</a>.</p>
+<div class="footnote" id="footnote-1" key="value"><p class="footnote-title">1</p>
+<p>text</p>
+</div>
