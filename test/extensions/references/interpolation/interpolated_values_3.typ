@@ -1,1 +1,1 @@
-Value = #strong[2]
+Value = #strong[3]

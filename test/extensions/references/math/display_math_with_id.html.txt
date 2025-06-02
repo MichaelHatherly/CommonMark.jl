@@ -1,0 +1,1 @@
+<div class="display-math tex" id="id">\[math\]</div>

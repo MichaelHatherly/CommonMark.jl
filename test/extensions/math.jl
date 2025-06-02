@@ -1,37 +1,49 @@
 @testset "Math" begin
+    using ReferenceTests
+
+    # Helper function for tests that can use references
+    function test_math(base_name, ast)
+        formats = [
+            (html, "html.txt"),
+            (latex, "tex"),
+            (markdown, "md"),
+            (term, "txt"),
+            (typst, "typ"),
+        ]
+        for (func, ext) in formats
+            filename = "references/math/$(base_name).$(ext)"
+            output = func(ast)
+            @test_reference filename Text(output)
+        end
+    end
+
     p = Parser()
     enable!(p, MathRule())
 
-    # Inline
+    # Inline math
     text = "Some ``math``."
     ast = p(text)
+    test_math("inline_math", ast)
 
-    @test html(ast) == "<p>Some <span class=\"math tex\">\\(math\\)</span>.</p>\n"
-    @test latex(ast) == "Some \\(math\\).\\par\n"
-    @test typst(ast) == "Some \$math\$.\n"
-    @test term(ast) == " Some \e[35mmath\e[39m.\n"
-    @test markdown(ast) == "Some ``math``.\n"
-
+    # Single backtick should remain as code
     ast = p("`x`")
     @test html(ast) == "<p><code>x</code></p>\n"
 
-    # Display
+    # Display math
     text = "```math\nmath\n```"
     ast = p(text)
+    test_math("display_math", ast)
 
-    @test html(ast) == "<div class=\"display-math tex\">\\[math\\]</div>"
-    @test latex(ast) == "\\begin{equation*}\nmath\n\\end{equation*}\n"
-    @test typst(ast) == "\$ math \$\n"
-    @test term(ast) == "   \e[35m│\e[39m \e[90mmath\e[39m\n"
-    @test markdown(ast) == "```math\nmath\n```\n"
-
+    # Math with attributes
     p = enable!(Parser(), [MathRule(), AttributeRule()])
+    
+    # Inline math with attributes
     text = "Some ``math``{key='value'}."
     ast = p(text)
-
     @test html(ast) ==
           "<p>Some <span class=\"math tex\" key=\"value\">\\(math\\)</span>.</p>\n"
 
+    # Display math with id
     text = """
            {#id}
            ```math
@@ -39,11 +51,9 @@
            ```
            """
     ast = p(text)
+    test_math("display_math_with_id", ast)
 
-    @test html(ast) == "<div class=\"display-math tex\" id=\"id\">\\[math\\]</div>"
-    @test latex(ast) ==
-          "\\protect\\hypertarget{id}{}\\begin{equation*}\nmath\n\\end{equation*}\n"
-
+    # Display math with class
     text = """
            {.red}
            ```math
@@ -51,9 +61,9 @@
            ```
            """
     ast = p(text)
-
     @test html(ast) == "<div class=\"display-math tex red\">\\[E=mc^2\\]</div>"
 
+    # Display math with id and class
     text = """
            {#id .red}
            ```math
@@ -61,25 +71,18 @@
            ```
            """
     ast = p(text)
-
     @test html(ast) == "<div class=\"display-math tex red\" id=\"id\">\\[E=mc^2\\]</div>"
 
     # Dollar math
     p = enable!(Parser(), DollarMathRule())
 
+    # Inline dollar math
     text = raw"Some $math$."
     ast = p(text)
-    @test html(ast) == "<p>Some <span class=\"math tex\">\\(math\\)</span>.</p>\n"
-    @test latex(ast) == "Some \\(math\\).\\par\n"
-    @test typst(ast) == "Some \$math\$.\n"
-    @test markdown(ast) == "Some ``math``.\n"
-    @test term(ast) == " Some \e[35mmath\e[39m.\n"
+    test_math("inline_dollar_math", ast)
 
+    # Display dollar math
     text = raw"$$display math$$"
     ast = p(text)
-    @test html(ast) == "<div class=\"display-math tex\">\\[display math\\]</div>"
-    @test latex(ast) == "\\begin{equation*}\ndisplay math\n\\end{equation*}\n"
-    @test typst(ast) == "\$ display math \$\n"
-    @test markdown(ast) == "```math\ndisplay math\n```\n"
-    @test term(ast) == "   \e[35m│\e[39m \e[90mdisplay math\e[39m\n"
+    test_math("display_dollar_math", ast)
 end
