@@ -1,56 +1,54 @@
 @testset "Terminal" begin
+    using ReferenceTests
     p = Parser()
 
-    test = function (text, expected)
+    function test(filename, text)
         ast = p(text)
-        @test term(ast) == expected
+        @test_reference filename Text(term(ast))
     end
 
     # Code blocks.
-    test("`code`", " \e[36mcode\e[39m\n")
+    test("references/term/code.txt", "`code`")
     # Inline HTML.
-    test("<em>text</em>", " \e[90m<em>\e[39mtext\e[90m</em>\e[39m\n")
+    test("references/term/inline_html.txt", "<em>text</em>")
     # Links.
-    test("[link](url)", " \e[34;4mlink\e[39;24m\n")
+    test("references/term/link.txt", "[link](url)")
     # Images.
-    test("![link](url)", " \e[32mlink\e[39m\n")
+    test("references/term/image.txt", "![link](url)")
     # Emphasis.
-    test("*text*", " \e[3mtext\e[23m\n")
+    test("references/term/emphasis.txt", "*text*")
     # Strong.
-    test("**text**", " \e[1mtext\e[22m\n")
+    test("references/term/strong.txt", "**text**")
     # Headings.
-    test("# h1", " \e[34;1m#\e[39;22m h1\n")
-    test("## h2", " \e[34;1m##\e[39;22m h2\n")
-    test("### h3", " \e[34;1m###\e[39;22m h3\n")
-    test("#### h4", " \e[34;1m####\e[39;22m h4\n")
-    test("##### h5", " \e[34;1m#####\e[39;22m h5\n")
-    test("###### h6", " \e[34;1m######\e[39;22m h6\n")
+    test("references/term/h1.txt", "# h1")
+    test("references/term/h2.txt", "## h2")
+    test("references/term/h3.txt", "### h3")
+    test("references/term/h4.txt", "#### h4")
+    test("references/term/h5.txt", "##### h5")
+    test("references/term/h6.txt", "###### h6")
     # Block quotes.
-    test("> quote", " \e[1m│\e[22m quote\n")
-    test(">", " \e[1m│\e[22m\n")
+    test("references/term/blockquote.txt", "> quote")
+    test("references/term/blockquote_empty.txt", ">")
     # Lists.
     test(
+        "references/term/list_nested_ordered.txt",
         "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
-        "  1. one\n  \n  2.  5. five\n      \n      6. six\n  \n  3. three\n  \n  4. four\n",
     )
-    test("- - - - - - - item", "  ●  ○  ▶  ▷  ■  □  □ item\n")
-    test("  - ", "  ● \n")
-    test("1. ", "  1. \n")
-    test("  - one\n  *\n  + three\n", "  ● one\n \n  ● \n \n  ● three\n")
-    test("1. one\n2.\n3. three", "  1. one\n  \n  2. \n  \n  3. three\n")
+    test("references/term/list_nested_unordered.txt", "- - - - - - - item")
+    test("references/term/list_empty_bullet.txt", "  - ")
+    test("references/term/list_empty_ordered.txt", "1. ")
+    test("references/term/list_mixed_markers.txt", "  - one\n  *\n  + three\n")
+    test("references/term/list_ordered_with_empty.txt", "1. one\n2.\n3. three")
 
     # Thematic Breaks.
-    test(
-        "***",
-        " \e[90m═════════════════════════════════════ § ═════════════════════════════════════\e[39m\n",
-    )
+    test("references/term/thematic_break.txt", "***")
     # Code blocks.
     test(
+        "references/term/code_block_fenced.txt",
         """
         ```
         code
         ```
         """,
-        "   \e[36m│\e[39m \e[90mcode\e[39m\n",
     )
 end
