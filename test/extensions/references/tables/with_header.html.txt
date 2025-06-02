@@ -1,0 +1,2 @@
+<h1>Header</h1>
+<table><thead><tr><th align="left">table</th></tr></thead><tbody><tr><td align="left">content</td></tr></tbody></table>
