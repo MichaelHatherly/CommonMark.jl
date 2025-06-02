@@ -16,12 +16,7 @@
     ast = p(text)
 
     # Test with custom syntax highlighter
-    formats = [
-        (html, "html.txt"),
-        (latex, "tex"),
-        (term, "txt"),
-        (markdown, "md")
-    ]
+    formats = [(html, "html.txt"), (latex, "tex"), (term, "txt"), (markdown, "md")]
     for (func, ext) in formats
         filename = "references/highlights/custom_highlighter.$(ext)"
         output = func(ast, env)
