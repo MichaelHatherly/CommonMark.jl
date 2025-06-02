@@ -36,7 +36,7 @@
 
     # Math with attributes
     p = enable!(Parser(), [MathRule(), AttributeRule()])
-    
+
     # Inline math with attributes
     text = "Some ``math``{key='value'}."
     ast = p(text)
