@@ -1,4 +1,6 @@
-@testset "Highlights" begin
+@testitem "highlights" tags = [:extensions, :highlights] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     highlighter(::MIME"text/html", node) = "NO HTML HIGHLIGHTING"

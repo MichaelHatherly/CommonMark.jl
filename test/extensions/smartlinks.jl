@@ -1,4 +1,6 @@
-@testset "Smart Links" begin
+@testitem "smart_links" tags = [:extensions, :smartlinks] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     # Helper function for tests that can use references

@@ -1,11 +1,13 @@
-function custom_parser()
-    p = Parser()
-    enable!(p, MathRule())
-    return p
-end
-
-@testset "Interpolation" begin
+@testitem "interpolation" tags = [:extensions, :interpolation] begin
+    using CommonMark
+    using Test
     using ReferenceTests
+
+    function custom_parser()
+        p = Parser()
+        enable!(p, MathRule())
+        return p
+    end
 
     # Helper function for tests that can use references
     function test_interpolation(base_name, ast)

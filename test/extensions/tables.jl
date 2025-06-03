@@ -1,4 +1,6 @@
-@testset "Tables" begin
+@testitem "tables" tags = [:extensions, :tables] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     # Helper function for tests that can use references

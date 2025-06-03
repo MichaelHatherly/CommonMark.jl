@@ -1,5 +1,8 @@
-@testset "Multiple Extensions" begin
+@testitem "multiple_extensions" tags = [:integration] begin
+    using CommonMark
+    using Test
     using ReferenceTests
+    using YAML
 
     # Helper function for tests that can use references
     function test_integration(base_name, ast)

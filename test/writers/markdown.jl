@@ -1,5 +1,8 @@
-@testset "Markdown" begin
+@testitem "markdown_writer" tags = [:writers, :markdown] begin
+    using CommonMark
+    using Test
     using ReferenceTests
+
     p = Parser()
 
     function test(filename, text)

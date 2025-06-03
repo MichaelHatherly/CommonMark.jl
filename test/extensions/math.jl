@@ -1,4 +1,6 @@
-@testset "Math" begin
+@testitem "math" tags = [:extensions, :math] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     # Helper function for tests that can use references

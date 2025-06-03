@@ -1,4 +1,6 @@
-@testset "Attributes" begin
+@testitem "attributes" tags = [:extensions, :attributes] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     p = Parser()

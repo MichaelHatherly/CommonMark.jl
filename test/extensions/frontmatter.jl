@@ -1,4 +1,10 @@
-@testset "Frontmatter" begin
+@testitem "frontmatter" tags = [:extensions, :frontmatter] begin
+    using CommonMark
+    using Test
+    using JSON
+    using Pkg.TOML
+    using YAML
+
     p = Parser()
     enable!(
         p,

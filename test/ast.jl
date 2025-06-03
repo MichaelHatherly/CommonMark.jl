@@ -1,4 +1,7 @@
-@testset "AST" begin
+@testitem "ast_operations" tags = [:core] begin
+    using CommonMark
+    using Test
+
     text = CommonMark.text
     root = text("root")
 

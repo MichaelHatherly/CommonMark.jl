@@ -1,4 +1,6 @@
-@testset "Raw Content" begin
+@testitem "raw_content" tags = [:extensions, :raw] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     # Helper function for tests that can use references

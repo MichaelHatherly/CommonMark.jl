@@ -1,5 +1,8 @@
-@testset "Citations" begin
+@testitem "citations" tags = [:extensions, :citations] begin
+    using CommonMark
+    using Test
     using ReferenceTests
+    using JSON
 
     p = enable!(Parser(), CitationRule())
     bib = JSON.parsefile(joinpath(@__DIR__, "citations.json"))

@@ -1,4 +1,6 @@
-@testset "Footnotes" begin
+@testitem "footnotes" tags = [:extensions, :footnotes] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     p = Parser()

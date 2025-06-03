@@ -1,4 +1,6 @@
-@testset "Extra Spec" begin
+@testitem "extra_spec_tests" tags = [:spec, :core] begin
+    using CommonMark
+    using Test
     cases = [(
         """
         <textarea>

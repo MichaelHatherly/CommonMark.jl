@@ -1,5 +1,9 @@
-@testset "Notebook" begin
+@testitem "notebook_writer" tags = [:writers, :notebook] begin
+    using CommonMark
+    using Test
     using ReferenceTests
+    using JSON
+
     p = Parser()
 
     function test(filename, text)

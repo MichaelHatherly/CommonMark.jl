@@ -1,5 +1,8 @@
-@testset "Terminal" begin
+@testitem "terminal_writer" tags = [:writers, :term] begin
+    using CommonMark
+    using Test
     using ReferenceTests
+
     p = Parser()
 
     function test(filename, text)

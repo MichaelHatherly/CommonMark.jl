@@ -1,4 +1,6 @@
-@testset "Admonitions" begin
+@testitem "admonitions" tags = [:extensions, :admonitions] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     p = Parser()

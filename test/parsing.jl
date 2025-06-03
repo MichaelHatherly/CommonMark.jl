@@ -1,4 +1,6 @@
-@testset "Parsing" begin
+@testitem "parser_functionality" tags = [:core] begin
+    using CommonMark
+    using Test
     # AST metadata via keywords.
     p = Parser()
     ast = p(""; empty = true)

@@ -1,6 +1,12 @@
-test_template_str(filename) = read(joinpath(@__DIR__, "templates", filename), String)
+@testitem "template_system" tags = [:templates, :core] begin
+    using CommonMark
+    using Test
+    using Mustache
+    using YAML
+    using JSON
+    using Pkg.TOML
 
-@testset "Templates" begin
+    test_template_str(filename) = read(joinpath(@__DIR__, "templates", filename), String)
     p = Parser()
 
     ast = p("*word*")

@@ -1,4 +1,6 @@
-@testset "Typography" begin
+@testitem "typography" tags = [:extensions, :typography] begin
+    using CommonMark
+    using Test
     using ReferenceTests
 
     # Helper function for tests that can use references

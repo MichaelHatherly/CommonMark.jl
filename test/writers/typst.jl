@@ -1,5 +1,8 @@
-@testset "Typst" begin
+@testitem "typst_writer" tags = [:writers, :typst] begin
+    using CommonMark
+    using Test
     using ReferenceTests
+
     p = Parser()
 
     function test(filename, text)
