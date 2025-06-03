@@ -9,43 +9,43 @@
 
     function test(filename, text)
         ast = p(text)
-        json = notebook(ast)
-        pretty = JSON.json(JSON.parse(json), 2)
-        @test_reference joinpath(dir, filename) Text(pretty)
+        json = JSON.parse(notebook(ast))
+        markdown = join(only(json["cells"])["source"])
+        @test_reference joinpath(dir, filename) Text(markdown)
     end
 
     # Code blocks.
-    test("references/notebook/code.json", "`code`")
+    test("references/notebook/code.md", "`code`")
     # Inline HTML.
-    test("references/notebook/inline_html.json", "<em>text</em>")
+    test("references/notebook/inline_html.md", "<em>text</em>")
     # Links.
-    test("references/notebook/link.json", "[link](url)")
+    test("references/notebook/link.md", "[link](url)")
     # Images.
-    test("references/notebook/image.json", "![link](url)")
+    test("references/notebook/image.md", "![link](url)")
     # Emphasis.
-    test("references/notebook/emphasis.json", "*text*")
+    test("references/notebook/emphasis.md", "*text*")
     # Strong.
-    test("references/notebook/strong.json", "**text**")
+    test("references/notebook/strong.md", "**text**")
     # Headings.
-    test("references/notebook/h1.json", "# h1")
-    test("references/notebook/h2.json", "## h2")
-    test("references/notebook/h3.json", "### h3")
-    test("references/notebook/h4.json", "#### h4")
-    test("references/notebook/h5.json", "##### h5")
-    test("references/notebook/h6.json", "###### h6")
+    test("references/notebook/h1.md", "# h1")
+    test("references/notebook/h2.md", "## h2")
+    test("references/notebook/h3.md", "### h3")
+    test("references/notebook/h4.md", "#### h4")
+    test("references/notebook/h5.md", "##### h5")
+    test("references/notebook/h6.md", "###### h6")
     # Block quotes.
-    test("references/notebook/blockquote.json", "> quote")
+    test("references/notebook/blockquote.md", "> quote")
     # Lists.
     test(
-        "references/notebook/list_nested_ordered.json",
+        "references/notebook/list_nested_ordered.md",
         "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
     )
-    test("references/notebook/list_nested_unordered.json", "- - - - - - - item")
+    test("references/notebook/list_nested_unordered.md", "- - - - - - - item")
     # Thematic Breaks.
-    test("references/notebook/thematic_break.json", "***")
+    test("references/notebook/thematic_break.md", "***")
     # Code blocks.
     test(
-        "references/notebook/code_block_fenced_julia.json",
+        "references/notebook/code_block_fenced_julia.md",
         """
         ```julia
         code
@@ -53,7 +53,7 @@
         """,
     )
     test(
-        "references/notebook/code_block_indented.json",
+        "references/notebook/code_block_indented.md",
         """
             code
         """,
