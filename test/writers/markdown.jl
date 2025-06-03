@@ -49,11 +49,20 @@
         "references/markdown/list_nested_ordered.md",
         "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
     )
-    test_with_roundtrip("references/markdown/list_nested_unordered.md", "- - - - - - - item")
+    test_with_roundtrip(
+        "references/markdown/list_nested_unordered.md",
+        "- - - - - - - item",
+    )
     test_with_roundtrip("references/markdown/list_empty_bullet.md", "  - ")
     test_with_roundtrip("references/markdown/list_empty_ordered.md", "1. ")
-    test_with_roundtrip("references/markdown/list_with_empty_item.md", "  - one\n  - \n  - three\n")
-    test_with_roundtrip("references/markdown/list_ordered_with_empty.md", "1. one\n2.\n3. three")
+    test_with_roundtrip(
+        "references/markdown/list_with_empty_item.md",
+        "  - one\n  - \n  - three\n",
+    )
+    test_with_roundtrip(
+        "references/markdown/list_ordered_with_empty.md",
+        "1. one\n2.\n3. three",
+    )
     # Thematic Breaks.
     test_with_roundtrip("references/markdown/thematic_break.md", "***")
     # Code blocks.

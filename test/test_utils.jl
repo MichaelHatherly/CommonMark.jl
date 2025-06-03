@@ -10,20 +10,26 @@
     end
 
     # Multi-format reference testing helper with explicit directory
-    function test_all_formats(test_dir::String, base_name::String, ast, reference_dir::String;
-        formats=[:html, :latex, :markdown, :term, :typst],
-        env=nothing)
+    function test_all_formats(
+        test_dir::String,
+        base_name::String,
+        ast,
+        reference_dir::String;
+        formats = [:html, :latex, :markdown, :term, :typst],
+        env = nothing,
+    )
         format_specs = Dict(
             :html => (html, "html.txt"),
             :latex => (latex, "tex"),
             :markdown => (markdown, "md"),
             :term => (term, "txt"),
-            :typst => (typst, "typ")
+            :typst => (typst, "typ"),
         )
 
         for format in formats
             func, ext = format_specs[format]
-            filename = joinpath(test_dir, "references", reference_dir, "$(base_name).$(ext)")
+            filename =
+                joinpath(test_dir, "references", reference_dir, "$(base_name).$(ext)")
             output = isnothing(env) ? func(ast) : func(ast, env)
             @test_reference filename Text(output)
         end
@@ -36,7 +42,13 @@
     end
 
     # Single-format reference testing helper with explicit directory
-    function _test_single_format(test_dir::String, filename::String, text::String, parser, format_func)
+    function _test_single_format(
+        test_dir::String,
+        filename::String,
+        text::String,
+        parser,
+        format_func,
+    )
         ast = parser(text)
         output = format_func(ast)
         full_path = joinpath(test_dir, filename)
@@ -44,7 +56,14 @@
     end
 
     # Reference test with custom processing
-    function test_format_with_processor(test_dir::String, filename::String, text::String, parser, format_func, processor)
+    function test_format_with_processor(
+        test_dir::String,
+        filename::String,
+        text::String,
+        parser,
+        format_func,
+        processor,
+    )
         ast = parser(text)
         output = format_func(ast)
         processed = processor(output)
@@ -66,7 +85,7 @@
         :latex => "tex",
         :markdown => "md",
         :term => "txt",
-        :typst => "typ"
+        :typst => "typ",
     )
 
     const FORMAT_FUNCTIONS = Dict(
@@ -74,11 +93,18 @@
         :latex => latex,
         :markdown => markdown,
         :term => term,
-        :typst => typst
+        :typst => typst,
     )
 
     # Export all functions and macros
-    export test_all_formats, test_single_format, test_format_with_processor,
-        @test_all_formats, @test_single_format, @test_format_with_processor,
-        create_parser, normalize_line_endings, FORMAT_EXTENSIONS, FORMAT_FUNCTIONS
+    export test_all_formats,
+        test_single_format,
+        test_format_with_processor,
+        @test_all_formats,
+        @test_single_format,
+        @test_format_with_processor,
+        create_parser,
+        normalize_line_endings,
+        FORMAT_EXTENSIONS,
+        FORMAT_FUNCTIONS
 end

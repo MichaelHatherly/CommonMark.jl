@@ -1,4 +1,4 @@
-@testitem "highlights" tags = [:extensions, :highlights] begin
+@testitem "highlights" tags = [:extensions, :highlights] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
@@ -7,8 +7,9 @@
     highlighter(::MIME"text/latex", node) = "NO LATEX HIGHLIGHTING"
     highlighter(::MIME"text/plain", node) = "NO TERM HIGHLIGHTING"
 
-    p = Parser()
+    p = create_parser()
     env = Dict("syntax-highlighter" => highlighter)
+    test_highlight = test_all_formats(pwd())
 
     text = """
             ```julia
@@ -18,10 +19,11 @@
     ast = p(text)
 
     # Test with custom syntax highlighter
-    formats = [(html, "html.txt"), (latex, "tex"), (term, "txt"), (markdown, "md")]
-    for (func, ext) in formats
-        filename = "references/highlights/custom_highlighter.$(ext)"
-        output = func(ast, env)
-        @test_reference filename Text(output)
-    end
+    test_highlight(
+        "custom_highlighter",
+        ast,
+        "highlights",
+        env = env,
+        formats = [:html, :latex, :term, :markdown],
+    )
 end

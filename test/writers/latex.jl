@@ -37,7 +37,7 @@
         - item
         - item
         """,
-        latex
+        latex,
     )
     test(
         "references/latex/list_ordered_multiple.tex",
@@ -45,7 +45,7 @@
         1. item
         2. item
         """,
-        latex
+        latex,
     )
     test(
         "references/latex/list_loose.tex",
@@ -54,7 +54,7 @@
 
         - item
         """,
-        latex
+        latex,
     )
 
     # Thematic Breaks.
@@ -65,7 +65,7 @@
         """
             code
         """,
-        latex
+        latex,
     )
     test(
         "references/latex/code_block_fenced.tex",
@@ -74,7 +74,7 @@
         code
         ```
         """,
-        latex
+        latex,
     )
     # Escapes.
     test("references/latex/escapes.tex", "^~\\&%\$#_{}", latex)

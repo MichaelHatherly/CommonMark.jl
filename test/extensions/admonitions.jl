@@ -1,83 +1,43 @@
-@testitem "admonitions" tags = [:extensions, :admonitions] begin
+@testitem "admonitions" tags = [:extensions, :admonitions] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
 
-    p = Parser()
-    enable!(p, AdmonitionRule())
-
-    # Helper function to test all output formats
-    function test_admonition(
-        base_name,
-        text,
-        parser = p;
-        formats = [:html, :latex, :term, :markdown, :typst],
-    )
-        exts = Dict(
-            :html => "html.txt",
-            :latex => "tex",
-            :term => "txt",
-            :markdown => "md",
-            :typst => "typ",
-        )
-        funcs = Dict(
-            :html => html,
-            :latex => latex,
-            :term => term,
-            :markdown => markdown,
-            :typst => typst,
-        )
-        ast = parser(text)
-        for format in formats
-            ext = exts[format]
-            func = funcs[format]
-            filename = "references/admonitions/$(base_name).$(ext)"
-            output = func(ast)
-            @test_reference filename Text(output)
-        end
-    end
+    p = create_parser(AdmonitionRule())
+    test_admonition = test_all_formats(pwd())
 
     # Basic warning admonition
-    test_admonition(
-        "warning_basic",
-        """
-        !!! warning
+    test_admonition("warning_basic", p("""
+                                     !!! warning
 
-            text
-        """,
-    )
+                                         text
+                                     """), "admonitions")
 
     # Warning with tab-indented content
-    test_admonition(
-        "warning_tab_indent",
-        """
-        !!! warning
+    test_admonition("warning_tab_indent", p("""
+                                          !!! warning
 
-        \ttext
-        """,
-    )
+                                          \ttext
+                                          """), "admonitions")
 
     # Info admonition with custom title
-    test_admonition(
-        "info_custom_title",
-        """
-        !!! info "Custom Title"
+    test_admonition("info_custom_title", p("""
+                                         !!! info "Custom Title"
 
-            text
-        """,
-    )
+                                             text
+                                         """), "admonitions")
 
     # Warning with attributes (id)
-    p_with_attrs = enable!(Parser(), [AdmonitionRule(), AttributeRule()])
+    p_with_attrs = create_parser([AdmonitionRule(), AttributeRule()])
     test_admonition(
         "warning_with_id",
-        """
+        p_with_attrs("""
         {#id}
         !!! warning
 
             text
-        """,
-        p_with_attrs;
+        """),
+        "admonitions",
         formats = [:html, :latex],
     )
 end

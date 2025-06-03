@@ -1,26 +1,16 @@
-@testitem "citations" tags = [:extensions, :citations] begin
+@testitem "citations" tags = [:extensions, :citations] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
     using JSON
 
-    p = enable!(Parser(), CitationRule())
-    bib = JSON.parsefile(joinpath(@__DIR__, "citations.json"))
+    p = create_parser(CitationRule())
+    bib = JSON.parsefile(joinpath(pwd(), "citations.json"))
+    test_citations = test_all_formats(pwd())
 
-    test = function (bib, ast, base_name)
+    function test(bib, ast, base_name)
         env = Dict{String,Any}("references" => bib)
-        formats = [
-            (html, "html.txt"),
-            (latex, "tex"),
-            (markdown, "md"),
-            (term, "txt"),
-            (typst, "typ"),
-        ]
-        for (func, ext) in formats
-            filename = "references/citations/$(base_name).$(ext)"
-            output = func(ast, env)
-            @test_reference filename Text(output)
-        end
+        test_citations(base_name, ast, "citations", env = env)
     end
 
     # Unbracketed citations.
@@ -52,7 +42,7 @@
     test(bib, p("[@bezanson2017]"), "bracketed_many")
 
     # Reference lists.
-    p = enable!(Parser(), [CitationRule(), AttributeRule()])
+    p = create_parser([CitationRule(), AttributeRule()])
 
     text = """
            {#refs}

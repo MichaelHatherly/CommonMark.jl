@@ -1,31 +1,16 @@
-@testitem "math" tags = [:extensions, :math] begin
+@testitem "math" tags = [:extensions, :math] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
 
-    # Helper function for tests that can use references
-    function test_math(base_name, ast)
-        formats = [
-            (html, "html.txt"),
-            (latex, "tex"),
-            (markdown, "md"),
-            (term, "txt"),
-            (typst, "typ"),
-        ]
-        for (func, ext) in formats
-            filename = "references/math/$(base_name).$(ext)"
-            output = func(ast)
-            @test_reference filename Text(output)
-        end
-    end
+    test_math = test_all_formats(pwd())
 
-    p = Parser()
-    enable!(p, MathRule())
+    p = create_parser(MathRule())
 
     # Inline math
     text = "Some ``math``."
     ast = p(text)
-    test_math("inline_math", ast)
+    test_math("inline_math", ast, "math")
 
     # Single backtick should remain as code
     ast = p("`x`")
@@ -34,10 +19,10 @@
     # Display math
     text = "```math\nmath\n```"
     ast = p(text)
-    test_math("display_math", ast)
+    test_math("display_math", ast, "math")
 
     # Math with attributes
-    p = enable!(Parser(), [MathRule(), AttributeRule()])
+    p = create_parser([MathRule(), AttributeRule()])
 
     # Inline math with attributes
     text = "Some ``math``{key='value'}."
@@ -53,7 +38,7 @@
            ```
            """
     ast = p(text)
-    test_math("display_math_with_id", ast)
+    test_math("display_math_with_id", ast, "math")
 
     # Display math with class
     text = """
@@ -76,15 +61,15 @@
     @test html(ast) == "<div class=\"display-math tex red\" id=\"id\">\\[E=mc^2\\]</div>"
 
     # Dollar math
-    p = enable!(Parser(), DollarMathRule())
+    p = create_parser(DollarMathRule())
 
     # Inline dollar math
     text = raw"Some $math$."
     ast = p(text)
-    test_math("inline_dollar_math", ast)
+    test_math("inline_dollar_math", ast, "math")
 
     # Display dollar math
     text = raw"$$display math$$"
     ast = p(text)
-    test_math("display_dollar_math", ast)
+    test_math("display_dollar_math", ast, "math")
 end

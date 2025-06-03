@@ -1,79 +1,61 @@
-@testitem "footnotes" tags = [:extensions, :footnotes] begin
+@testitem "footnotes" tags = [:extensions, :footnotes] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
 
-    p = Parser()
-    enable!(p, FootnoteRule())
-
-    # Helper function to test all output formats
-    function test_footnote(
-        base_name,
-        text,
-        parser = p;
-        formats = [:html, :latex, :typst, :term, :markdown],
-    )
-        ast = parser(text)
-        format_exts = [
-            (:html, html, "html.txt"),
-            (:latex, latex, "tex"),
-            (:typst, typst, "typ"),
-            (:term, term, "txt"),
-            (:markdown, markdown, "md"),
-        ]
-        for (format, func, ext) in format_exts
-            if format in formats
-                filename = "references/footnotes/$(base_name).$(ext)"
-                output = func(ast)
-                @test_reference filename Text(output)
-            end
-        end
-    end
+    p = create_parser(FootnoteRule())
+    test_footnote = test_all_formats(pwd())
 
     # Links
-    test_footnote("link_only", "text[^1]")
+    test_footnote("link_only", p("text[^1]"), "footnotes")
 
     # Definitions
-    test_footnote("definition_only", "[^1]: text")
+    test_footnote("definition_only", p("[^1]: text"), "footnotes")
 
     # Link with definition
     test_footnote(
         "link_with_definition",
-        "text[^1].\n\n[^1]: text",
+        p("text[^1].\n\n[^1]: text"),
+        "footnotes",
         formats = [:latex, :typst, :markdown],
     )
 
     # Footnote with attributes
-    p_with_attrs = enable!(Parser(), [FootnoteRule(), AttributeRule()])
-    test_footnote("link_with_id", "text[^1]{#id}", p_with_attrs, formats = [:html])
+    p_with_attrs = create_parser([FootnoteRule(), AttributeRule()])
+    test_footnote(
+        "link_with_id",
+        p_with_attrs("text[^1]{#id}"),
+        "footnotes",
+        formats = [:html],
+    )
 
     # Definition with attributes
     test_footnote(
         "definition_with_attrs",
-        """
+        p_with_attrs("""
 {key="value"}
 [^1]: text
-""",
-        p_with_attrs,
+"""),
+        "footnotes",
         formats = [:html],
     )
 
     # Full footnote with attributes
     test_footnote(
         "full_with_attrs",
-        """
+        p_with_attrs("""
 text[^1]{#id}.
 
 {key="value"}
 [^1]: text
-""",
-        p_with_attrs,
+"""),
+        "footnotes",
         formats = [:html, :latex, :typst],
     )
 
     # Definition with blank line and spaces
-    test_footnote("definition_blank_spaces", "[^1]:\n\n    text")
+    test_footnote("definition_blank_spaces", p("[^1]:\n\n    text"), "footnotes")
 
     # Definition with blank line and tab
-    test_footnote("definition_blank_tab", "[^1]:\n\n\ttext")
+    test_footnote("definition_blank_tab", p("[^1]:\n\n\ttext"), "footnotes")
 end

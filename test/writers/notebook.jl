@@ -1,16 +1,17 @@
-@testitem "notebook_writer" tags = [:writers, :notebook] begin
+@testitem "notebook_writer" tags = [:writers, :notebook] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
     using JSON
 
-    p = Parser()
+    p = create_parser()
+    dir = pwd()
 
     function test(filename, text)
         ast = p(text)
         json = notebook(ast)
         pretty = JSON.json(JSON.parse(json), 2)
-        @test_reference filename Text(pretty)
+        @test_reference joinpath(dir, filename) Text(pretty)
     end
 
     # Code blocks.
