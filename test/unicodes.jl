@@ -3,12 +3,10 @@
     using Test
     using ReferenceTests
 
-    test_unicode = test_all_formats(pwd())
-
     p = create_parser(AdmonitionRule())
+    test_unicode = test_single_format(pwd(), p)
 
     # Unicode in admonition title
     text = "!!! note \"Ju 的文字\"\n    Ju\n"
-    ast = p(text)
-    test_unicode("admonition_unicode_title", ast, "unicodes")
+    test_unicode("references/admonition_unicode_title.html.txt", text, html)
 end
