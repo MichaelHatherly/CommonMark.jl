@@ -10,7 +10,7 @@
     function test(filename, text)
         ast = p(text)
         json = JSON.parse(notebook(ast))
-        markdown = join(only(json["cells"])["source"])
+        markdown = join(json["cells"][1]["source"])
         @test_reference joinpath(dir, filename) Text(markdown)
     end
 
