@@ -1,24 +1,10 @@
-@testitem "multiple_extensions" tags = [:integration] begin
+@testitem "multiple_extensions" tags = [:integration] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
     using YAML
 
-    # Helper function for tests that can use references
-    function test_integration(base_name, ast)
-        formats = [
-            (html, "html.txt"),
-            (latex, "tex"),
-            (markdown, "md"),
-            (term, "txt"),
-            (typst, "typ"),
-        ]
-        for (func, ext) in formats
-            filename = "references/integration/$(base_name).$(ext)"
-            output = func(ast)
-            @test_reference filename Text(output)
-        end
-    end
+    test_integration = test_all_formats(pwd())
 
     extensions = [
         AdmonitionRule(),
@@ -32,11 +18,11 @@
         TableRule(),
         TypographyRule(),
     ]
-    p = enable!(Parser(), extensions)
+    p = create_parser(extensions)
     ast = open(p, joinpath(@__DIR__, "integration.md"))
 
     # Test all output formats
-    test_integration("multiple_extensions", ast)
+    test_integration("multiple_extensions", ast, "integration")
 
     # Also keep the specific markdown output test for backward compatibility
     @test markdown(ast) ==

@@ -1,26 +1,11 @@
-@testitem "tables" tags = [:extensions, :tables] begin
+@testitem "tables" tags = [:extensions, :tables] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
 
-    # Helper function for tests that can use references
-    function test_table(base_name, ast)
-        formats = [
-            (html, "html.txt"),
-            (latex, "tex"),
-            (markdown, "md"),
-            (term, "txt"),
-            (typst, "typ"),
-        ]
-        for (func, ext) in formats
-            filename = "references/tables/$(base_name).$(ext)"
-            output = func(ast)
-            @test_reference filename Text(output)
-        end
-    end
+    test_table = test_all_formats(pwd())
 
-    p = Parser()
-    enable!(p, TableRule())
+    p = create_parser(TableRule())
 
     # Basic table
     text = """
@@ -29,7 +14,7 @@
            | x | y  | z   |
            """
     ast = p(text)
-    test_table("basic", ast)
+    test_table("basic", ast, "tables")
 
     # Roundtrip test
     @test markdown(p(markdown(ast))) ==
@@ -42,10 +27,10 @@
            |x|y|z|
            """
     ast = p(text)
-    test_table("misaligned", ast)
+    test_table("misaligned", ast, "tables")
 
     # Table with attributes
-    p = enable!(Parser(), [TableRule(), AttributeRule()])
+    p = create_parser([TableRule(), AttributeRule()])
 
     text = """
            {#id}
@@ -54,7 +39,7 @@
            | x | y  | z   |
            """
     ast = p(text)
-    test_table("with_id", ast)
+    test_table("with_id", ast, "tables")
 
     # Internal pipes
     text = """
@@ -64,7 +49,7 @@
            |1|2|3|4|
            """
     ast = p(text)
-    test_table("internal_pipes", ast)
+    test_table("internal_pipes", ast, "tables")
 
     # Empty columns
     text = """
@@ -73,7 +58,7 @@
            |||
            """
     ast = p(text)
-    test_table("empty_columns", ast)
+    test_table("empty_columns", ast, "tables")
 
     # Table with header
     text = """
@@ -84,7 +69,7 @@
            | content |
            """
     ast = p(text)
-    test_table("with_header", ast)
+    test_table("with_header", ast, "tables")
 
     # Messy tables
     text = """
@@ -95,7 +80,7 @@
            | *|*
            """
     ast = p(text)
-    test_table("messy", ast)
+    test_table("messy", ast, "tables")
 
     # Tables with lots of whitespace
     text = """
@@ -106,7 +91,7 @@
            | one       | two       |   three |   four  |
            """
     ast = p(text)
-    test_table("whitespace", ast)
+    test_table("whitespace", ast, "tables")
 
     # Unicode content
     text = """
@@ -115,5 +100,5 @@
            | col 3 is | right-aligned δεδομέ |   1 |
            """
     ast = p(text)
-    test_table("unicode", ast)
+    test_table("unicode", ast, "tables")
 end

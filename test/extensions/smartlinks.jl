@@ -1,23 +1,9 @@
-@testitem "smart_links" tags = [:extensions, :smartlinks] begin
+@testitem "smart_links" tags = [:extensions, :smartlinks] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
 
-    # Helper function for tests that can use references
-    function test_smartlink(base_name, ast, env)
-        formats = [
-            (html, "html.txt"),
-            (latex, "tex"),
-            (markdown, "md"),
-            (term, "txt"),
-            (typst, "typ"),
-        ]
-        for (func, ext) in formats
-            filename = "references/smartlinks/$(base_name).$(ext)"
-            output = func(ast, env)
-            @test_reference filename Text(output)
-        end
-    end
+    test_smartlink = test_all_formats(pwd())
 
     function handler(::MIME"text/html", obj::CommonMark.Link, node::CommonMark.Node, env)
         name, _ = splitext(obj.destination)
@@ -27,14 +13,14 @@
     end
     handler(mime, obj, node, env) = obj
 
-    p = Parser()
+    p = create_parser()
     env = Dict("root" => "/root", "smartlink-engine" => handler)
 
     # Smart link transformation
     ast = p("[link](url.md)")
-    test_smartlink("link", ast, env)
+    test_smartlink("link", ast, "smartlinks", env = env)
 
     # Image (not transformed by smartlink)
     ast = p("![link](url.img)")
-    test_smartlink("image", ast, env)
+    test_smartlink("image", ast, "smartlinks", env = env)
 end

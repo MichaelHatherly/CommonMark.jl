@@ -12,20 +12,23 @@
     ast = p("*word*")
     dict = Dict("template-engine" => render)
 
-    test = function (a, b)
+    test_template_output = function (a, b)
         norm = s -> replace(s, "\r\n" => "\n")
         @test norm(a) == norm(b)
     end
 
     # Basic.
 
-    test(html(ast, dict), test_template_str("basic.html"))
-    test(latex(ast, dict), test_template_str("basic.tex"))
+    test_template_output(html(ast, dict), test_template_str("basic.html"))
+    test_template_output(latex(ast, dict), test_template_str("basic.tex"))
 
     # Ignore templates.
-    test(markdown(ast, dict), "*word*\n")
-    test(term(ast, dict), " \e[3mword\e[23m\n")
-    test(join(JSON.parse(notebook(ast, dict))["cells"][1]["source"]), "*word*\n")
+    test_template_output(markdown(ast, dict), "*word*\n")
+    test_template_output(term(ast, dict), " \e[3mword\e[23m\n")
+    test_template_output(
+        join(JSON.parse(notebook(ast, dict))["cells"][1]["source"]),
+        "*word*\n",
+    )
 
     # Global Configuration.
 
@@ -50,13 +53,16 @@
         ),
     )
 
-    test(html(ast, env), test_template_str("env.html"))
-    test(latex(ast, env), test_template_str("env.tex"))
+    test_template_output(html(ast, env), test_template_str("env.html"))
+    test_template_output(latex(ast, env), test_template_str("env.tex"))
 
     # Ignore templates.
-    test(markdown(ast, env), "*word*\n")
-    test(term(ast, env), " \e[3mword\e[23m\n")
-    test(join(JSON.parse(notebook(ast, env))["cells"][1]["source"]), "*word*\n")
+    test_template_output(markdown(ast, env), "*word*\n")
+    test_template_output(term(ast, env), " \e[3mword\e[23m\n")
+    test_template_output(
+        join(JSON.parse(notebook(ast, env))["cells"][1]["source"]),
+        "*word*\n",
+    )
 
     # Front Matter Configuration.
 
@@ -73,23 +79,23 @@
            """
     ast = p(text)
 
-    test(html(ast, dict), test_template_str("frontmatter.html"))
-    test(latex(ast, dict), test_template_str("frontmatter.tex"))
+    test_template_output(html(ast, dict), test_template_str("frontmatter.html"))
+    test_template_output(latex(ast, dict), test_template_str("frontmatter.tex"))
 
     # Ignore templates.
-    test(markdown(ast, dict), text)
-    test(term(ast, dict), " \e[3mword\e[23m\n")
-    test(join(JSON.parse(notebook(ast, dict))["cells"][1]["source"]), text)
+    test_template_output(markdown(ast, dict), text)
+    test_template_output(term(ast, dict), " \e[3mword\e[23m\n")
+    test_template_output(join(JSON.parse(notebook(ast, dict))["cells"][1]["source"]), text)
 
     # Front Matter and Global Configuration.
 
-    test(html(ast, env), test_template_str("frontmatter-env.html"))
-    test(latex(ast, env), test_template_str("frontmatter-env.tex"))
+    test_template_output(html(ast, env), test_template_str("frontmatter-env.html"))
+    test_template_output(latex(ast, env), test_template_str("frontmatter-env.tex"))
 
     # Ignore templates.
-    test(markdown(ast, env), text)
-    test(term(ast, env), " \e[3mword\e[23m\n")
-    test(join(JSON.parse(notebook(ast, env))["cells"][1]["source"]), text)
+    test_template_output(markdown(ast, env), text)
+    test_template_output(term(ast, env), " \e[3mword\e[23m\n")
+    test_template_output(join(JSON.parse(notebook(ast, env))["cells"][1]["source"]), text)
 
     # File and string templates.
 
@@ -105,8 +111,11 @@
            """
     ast = p(text)
     cd(@__DIR__) do
-        test(html(ast, env), "<section>\n<p><em>word</em></p>\n\n</section>\n")
-        test(
+        test_template_output(
+            html(ast, env),
+            "<section>\n<p><em>word</em></p>\n\n</section>\n",
+        )
+        test_template_output(
             latex(ast, env),
             "\\documentclass{memoir}\n\\begin{document}\n\\textit{word}\\par\n\n\\end{document}\n",
         )
@@ -120,7 +129,10 @@
              """
     env = merge(dict, TOML.parse(config))
     cd(@__DIR__) do
-        test(html(ast, env), "<body>\n<p><em>word</em></p>\n</body>")
-        test(latex(ast, env), "\\begin{document}\n\\textit{word}\\par\n\\end{document}")
+        test_template_output(html(ast, env), "<body>\n<p><em>word</em></p>\n</body>")
+        test_template_output(
+            latex(ast, env),
+            "\\begin{document}\n\\textit{word}\\par\n\\end{document}",
+        )
     end
 end

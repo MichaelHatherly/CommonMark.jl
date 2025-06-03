@@ -1,29 +1,14 @@
-@testitem "unicode_handling" tags = [:unicode] begin
+@testitem "unicode_handling" tags = [:unicode] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
 
-    # Helper function for tests that can use references
-    function test_unicode(base_name, ast)
-        formats = [
-            (html, "html.txt"),
-            (latex, "tex"),
-            (markdown, "md"),
-            (term, "txt"),
-            (typst, "typ"),
-        ]
-        for (func, ext) in formats
-            filename = "references/unicodes/$(base_name).$(ext)"
-            output = func(ast)
-            @test_reference filename Text(output)
-        end
-    end
+    test_unicode = test_all_formats(pwd())
 
-    p = Parser()
-    enable!(p, AdmonitionRule())
+    p = create_parser(AdmonitionRule())
 
     # Unicode in admonition title
     text = "!!! note \"Ju 的文字\"\n    Ju\n"
     ast = p(text)
-    test_unicode("admonition_unicode_title", ast)
+    test_unicode("admonition_unicode_title", ast, "unicodes")
 end
