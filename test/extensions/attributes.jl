@@ -143,12 +143,20 @@
     test_single = test_single_format(pwd(), p)
 
     test_single("references/attributes/heading_with_id.html.txt", "{#id}\n# H1", html)
-    test_single("references/attributes/heading_with_classes.html.txt", "{.one.two}\n# H1", html)
+    test_single(
+        "references/attributes/heading_with_classes.html.txt",
+        "{.one.two}\n# H1",
+        html,
+    )
     test_single("references/attributes/heading_with_id.tex", "{#id}\n# H1", latex)
     test_single("references/attributes/heading_with_id.typ", "{#id}\n# H1", typst)
 
     test_single("references/attributes/emphasis_with_id.html.txt", "*word*{#id}", html)
-    test_single("references/attributes/emphasis_with_classes.html.txt", "*word*{.one.two}", html)
+    test_single(
+        "references/attributes/emphasis_with_classes.html.txt",
+        "*word*{.one.two}",
+        html,
+    )
     test_single("references/attributes/emphasis_with_id.tex", "*word*{#id}", latex)
     test_single("references/attributes/emphasis_with_id.typ", "*word*{#id}", typst)
 end
