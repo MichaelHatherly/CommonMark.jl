@@ -36,9 +36,10 @@
     ast = cm"'some' ``math`` $value $(value)"custom_parser
     test_interpolation("math_interpolation", ast, "interpolation")
 
-    value = 1
-    ast = cm"$(value) $(value + 1) $(value += 1) $(value += 1)"
-    test_interpolation("expression_with_assignment", ast, "interpolation")
+    let value = 1
+        ast = cm"$(value) $(value + 1) $(value += 1) $(value += 1)"
+        test_interpolation("expression_with_assignment", ast, "interpolation")
+    end
 
     # A case that can fail if the @cm_str macro relies on evaluating the passed expressions in argument
     # lists (like the constructor of a vector).
