@@ -8,7 +8,7 @@
     p = Parser()
     enable!(
         p,
-        FrontMatterRule(json=JSON.Parser.parse, toml=TOML.parse, yaml=YAML.load),
+        FrontMatterRule(json = JSON.Parser.parse, toml = TOML.parse, yaml = YAML.load),
     )
 
     test_single = test_single_format(pwd(), p)
