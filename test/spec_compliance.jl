@@ -12,5 +12,8 @@
         # rendering. Proper tests are found below.
         latex(ast)
         term(ast)
+        typst(ast)
+        markdown(ast)
+        notebook(ast)
     end
 end

@@ -1,10 +1,9 @@
-@testitem "attributes" tags = [:extensions, :attributes] begin
+@testitem "attributes" tags = [:extensions, :attributes] setup = [Utilities] begin
     using CommonMark
     using Test
     using ReferenceTests
 
-    p = Parser()
-    enable!(p, AttributeRule())
+    p = create_parser(AttributeRule())
 
     # Syntax.
 
@@ -141,28 +140,15 @@
     )
 
     # Writer output tests
-    test = function (filename, input)
-        ast = p(input)
-        # Check if it ends with .html.txt for HTML output
-        output = if endswith(filename, ".html.txt")
-            html(ast)
-        elseif endswith(filename, ".tex")
-            latex(ast)
-        elseif endswith(filename, ".typ")
-            typst(ast)
-        else
-            error("Unknown extension")
-        end
-        @test_reference filename Text(output)
-    end
+    test_single = test_single_format(pwd(), p)
 
-    test("references/attributes/heading_with_id.html.txt", "{#id}\n# H1")
-    test("references/attributes/heading_with_classes.html.txt", "{.one.two}\n# H1")
-    test("references/attributes/heading_with_id.tex", "{#id}\n# H1")
-    test("references/attributes/heading_with_id.typ", "{#id}\n# H1")
+    test_single("references/attributes/heading_with_id.html.txt", "{#id}\n# H1", html)
+    test_single("references/attributes/heading_with_classes.html.txt", "{.one.two}\n# H1", html)
+    test_single("references/attributes/heading_with_id.tex", "{#id}\n# H1", latex)
+    test_single("references/attributes/heading_with_id.typ", "{#id}\n# H1", typst)
 
-    test("references/attributes/emphasis_with_id.html.txt", "*word*{#id}")
-    test("references/attributes/emphasis_with_classes.html.txt", "*word*{.one.two}")
-    test("references/attributes/emphasis_with_id.tex", "*word*{#id}")
-    test("references/attributes/emphasis_with_id.typ", "*word*{#id}")
+    test_single("references/attributes/emphasis_with_id.html.txt", "*word*{#id}", html)
+    test_single("references/attributes/emphasis_with_classes.html.txt", "*word*{.one.two}", html)
+    test_single("references/attributes/emphasis_with_id.tex", "*word*{#id}", latex)
+    test_single("references/attributes/emphasis_with_id.typ", "*word*{#id}", typst)
 end
