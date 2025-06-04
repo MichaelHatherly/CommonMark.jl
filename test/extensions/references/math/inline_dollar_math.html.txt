@@ -1,0 +1,1 @@
+<p>Some <span class="math tex">\(math\)</span>.</p>

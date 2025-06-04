@@ -1,70 +1,43 @@
-@testset "Admonitions" begin
-    p = Parser()
-    enable!(p, AdmonitionRule())
+@testitem "admonitions" tags = [:extensions, :admonitions] setup = [Utilities] begin
+    using CommonMark
+    using Test
+    using ReferenceTests
 
-    text = """
-           !!! warning
+    p = create_parser(AdmonitionRule())
+    test_admonition = test_all_formats(pwd())
 
-               text
-           """
-    ast = p(text)
+    # Basic warning admonition
+    test_admonition("warning_basic", p("""
+                                     !!! warning
 
-    @test html(ast) ==
-          "<div class=\"admonition warning\"><p class=\"admonition-title\">Warning</p>\n<p>text</p>\n</div>"
-    @test latex(ast) ==
-          "\\begin{admonition@warning}{Warning}\ntext\\par\n\\end{admonition@warning}\n"
-    @test term(ast) ==
-          " \e[33;1m┌ Warning ────────────────────────────────────────────────────────────────────\e[39;22m\n \e[33;1m│\e[39;22m text\n \e[33;1m└─────────────────────────────────────────────────────────────────────────────\e[39;22m\n"
-    @test markdown(ast) == "!!! warning\n    \n    text\n"
-    @test typst(ast) ==
-          "#block(fill: rgb(\"#e5e5e5\"), inset: 8pt, stroke: (left: 2pt + rgb(\"#facc15\"), rest: none), width: 100%)[#strong[Warning] \\\ntext\n]\n"
+                                         text
+                                     """), "admonitions")
 
-    text = """
-           !!! warning
+    # Warning with tab-indented content
+    test_admonition("warning_tab_indent", p("""
+                                          !!! warning
 
-           \ttext
-           """
-    ast = p(text)
+                                          \ttext
+                                          """), "admonitions")
 
-    @test html(ast) ==
-          "<div class=\"admonition warning\"><p class=\"admonition-title\">Warning</p>\n<p>text</p>\n</div>"
-    @test latex(ast) ==
-          "\\begin{admonition@warning}{Warning}\ntext\\par\n\\end{admonition@warning}\n"
-    @test term(ast) ==
-          " \e[33;1m┌ Warning ────────────────────────────────────────────────────────────────────\e[39;22m\n \e[33;1m│\e[39;22m text\n \e[33;1m└─────────────────────────────────────────────────────────────────────────────\e[39;22m\n"
-    @test markdown(ast) == "!!! warning\n    \n    text\n"
-    @test typst(ast) ==
-          "#block(fill: rgb(\"#e5e5e5\"), inset: 8pt, stroke: (left: 2pt + rgb(\"#facc15\"), rest: none), width: 100%)[#strong[Warning] \\\ntext\n]\n"
+    # Info admonition with custom title
+    test_admonition("info_custom_title", p("""
+                                         !!! info "Custom Title"
 
-    text = """
-           !!! info "Custom Title"
+                                             text
+                                         """), "admonitions")
 
-               text
-           """
-    ast = p(text)
+    # Warning with attributes (id)
+    p_with_attrs = create_parser([AdmonitionRule(), AttributeRule()])
+    test_admonition(
+        "warning_with_id",
+        p_with_attrs("""
+        {#id}
+        !!! warning
 
-    @test html(ast) ==
-          "<div class=\"admonition info\"><p class=\"admonition-title\">Custom Title</p>\n<p>text</p>\n</div>"
-    @test latex(ast) ==
-          "\\begin{admonition@info}{Custom Title}\ntext\\par\n\\end{admonition@info}\n"
-    @test term(ast) ==
-          " \e[36;1m┌ Custom Title ───────────────────────────────────────────────────────────────\e[39;22m\n \e[36;1m│\e[39;22m text\n \e[36;1m└─────────────────────────────────────────────────────────────────────────────\e[39;22m\n"
-    @test markdown(ast) == "!!! info \"Custom Title\"\n    \n    text\n"
-    @test typst(ast) ==
-          "#block(fill: rgb(\"#e5e5e5\"), inset: 8pt, stroke: (left: 2pt + rgb(\"#0ea5e9\"), rest: none), width: 100%)[#strong[Custom Title] \\\ntext\n]\n"
-
-    p = enable!(Parser(), [AdmonitionRule(), AttributeRule()])
-
-    text = """
-           {#id}
-           !!! warning
-
-               text
-           """
-    ast = p(text)
-
-    @test html(ast) ==
-          "<div class=\"admonition warning\" id=\"id\"><p class=\"admonition-title\">Warning</p>\n<p>text</p>\n</div>"
-    @test latex(ast) ==
-          "\\protect\\hypertarget{id}{}\n\\begin{admonition@warning}{Warning}\ntext\\par\n\\end{admonition@warning}\n"
+            text
+        """),
+        "admonitions",
+        formats = [:html, :latex],
+    )
 end

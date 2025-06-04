@@ -1,4 +1,6 @@
-@testset "Sourcepos" begin
+@testitem "source_positions" tags = [:core] begin
+    using CommonMark
+    using Test
     macro_ast_multiline = @__LINE__() + 2,
     cm"""
     # Header

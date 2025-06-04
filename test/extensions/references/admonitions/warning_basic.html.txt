@@ -1,0 +1,3 @@
+<div class="admonition warning"><p class="admonition-title">Warning</p>
+<p>text</p>
+</div>

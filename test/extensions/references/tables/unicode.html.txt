@@ -1,0 +1,1 @@
+<table><thead><tr><th align="left">Tables</th><th align="left">Are</th><th align="left">Cool</th></tr></thead><tbody><tr><td align="left">col 3 is</td><td align="left">right-aligned δεδομέ</td><td align="left">1</td></tr></tbody></table>

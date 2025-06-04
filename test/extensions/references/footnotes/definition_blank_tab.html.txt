@@ -1,0 +1,3 @@
+<div class="footnote" id="footnote-1"><p class="footnote-title">1</p>
+<p>text</p>
+</div>

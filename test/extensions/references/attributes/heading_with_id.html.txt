@@ -1,0 +1,1 @@
+<h1 id="id"><a href="#id" class="anchor"></a>H1</h1>

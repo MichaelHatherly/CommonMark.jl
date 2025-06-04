@@ -1,0 +1,3 @@
+<div class="admonition info"><p class="admonition-title">Custom Title</p>
+<p>text</p>
+</div>

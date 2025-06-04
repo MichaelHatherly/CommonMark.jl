@@ -1,70 +1,87 @@
-@testset "Markdown" begin
-    p = Parser()
+@testitem "markdown_writer" tags = [:writers, :markdown] setup = [Utilities] begin
+    using CommonMark
+    using Test
+    using ReferenceTests
 
-    test = function (text, expected)
+    p = create_parser()
+    test = test_single_format(pwd(), p)
+
+    function test_with_roundtrip(filename, text)
+        test(filename, text, markdown)
+        # Also test round-trip
         ast = p(text)
-        @test markdown(ast) == expected
-        @test markdown(p(markdown(ast))) == expected # Is markdown output round-trip-able?
+        output = markdown(ast)
+        @test markdown(p(output)) == output # Is markdown output round-trip-able?
     end
 
     # Code blocks.
-    test("`code`", "`code`\n")
+    test_with_roundtrip("references/markdown/code.md", "`code`")
     # Inline HTML.
-    test("<em>text</em>", "<em>text</em>\n")
+    test_with_roundtrip("references/markdown/inline_html.md", "<em>text</em>")
     # Links.
-    test("[link](url)", "[link](url)\n")
+    test_with_roundtrip("references/markdown/link.md", "[link](url)")
     # Images.
-    test("![link](url)", "![link](url)\n")
+    test_with_roundtrip("references/markdown/image.md", "![link](url)")
     # Emphasis.
-    test("*text*", "*text*\n")
+    test_with_roundtrip("references/markdown/emphasis_star.md", "*text*")
     # Strong.
-    test("**text**", "**text**\n")
+    test_with_roundtrip("references/markdown/strong_star.md", "**text**")
     # Emphasis.
-    test("_text_", "_text_\n")
+    test_with_roundtrip("references/markdown/emphasis_underscore.md", "_text_")
     # Strong.
-    test("__text__", "__text__\n")
+    test_with_roundtrip("references/markdown/strong_underscore.md", "__text__")
     # Emphasis.
-    test("_**text**_", "_**text**_\n")
+    test_with_roundtrip("references/markdown/emphasis_nested.md", "_**text**_")
     # Strong.
-    test("*__text__*", "*__text__*\n")
+    test_with_roundtrip("references/markdown/strong_nested.md", "*__text__*")
     # Headings.
-    test("# h1", "# h1\n")
-    test("## h2", "## h2\n")
-    test("### h3", "### h3\n")
-    test("#### h4", "#### h4\n")
-    test("##### h5", "##### h5\n")
-    test("###### h6", "###### h6\n")
+    test_with_roundtrip("references/markdown/h1.md", "# h1")
+    test_with_roundtrip("references/markdown/h2.md", "## h2")
+    test_with_roundtrip("references/markdown/h3.md", "### h3")
+    test_with_roundtrip("references/markdown/h4.md", "#### h4")
+    test_with_roundtrip("references/markdown/h5.md", "##### h5")
+    test_with_roundtrip("references/markdown/h6.md", "###### h6")
     # Block quotes.
-    test("> quote", "> quote\n")
-    test(">", ">\n")
+    test_with_roundtrip("references/markdown/blockquote.md", "> quote")
+    test_with_roundtrip("references/markdown/blockquote_empty.md", ">")
     # Lists.
-    test(
+    test_with_roundtrip(
+        "references/markdown/list_nested_ordered.md",
         "1. one\n2. 5. five\n   6. six\n3. three\n4. four\n",
-        " 1. one\n 2.  5. five\n     6. six\n 3. three\n 4. four\n",
     )
-    test("- - - - - - - item", "  -   +   *   -   +   *   * item\n")
-    test("  - ", "  - ")
-    test("1. ", " 1. ")
-    test("  - one\n  - \n  - three\n", "  - one\n  -     \n  - three\n")
-    test("1. one\n2.\n3. three", " 1. one\n 2.     \n 3. three\n")
+    test_with_roundtrip(
+        "references/markdown/list_nested_unordered.md",
+        "- - - - - - - item",
+    )
+    test_with_roundtrip("references/markdown/list_empty_bullet.md", "  - ")
+    test_with_roundtrip("references/markdown/list_empty_ordered.md", "1. ")
+    test_with_roundtrip(
+        "references/markdown/list_with_empty_item.md",
+        "  - one\n  - \n  - three\n",
+    )
+    test_with_roundtrip(
+        "references/markdown/list_ordered_with_empty.md",
+        "1. one\n2.\n3. three",
+    )
     # Thematic Breaks.
-    test("***", "* * *\n")
+    test_with_roundtrip("references/markdown/thematic_break.md", "***")
     # Code blocks.
-    test(
+    test_with_roundtrip(
+        "references/markdown/code_block_fenced_julia.md",
         """
         ```julia
         code
         ```
         """,
-        "```julia\ncode\n```\n",
     )
-    test(
+    test_with_roundtrip(
+        "references/markdown/code_block_indented.md",
         """
             code
         """,
-        "    code\n",
     )
-    test(
+    test_with_roundtrip(
+        "references/markdown/code_block_jldoctest.md",
         """
         ```jldoctest
         julia> a = 1
@@ -74,9 +91,9 @@
         2
         ```
         """,
-        "```jldoctest\njulia> a = 1\n1\n\njulia> b = 2\n2\n```\n",
     )
-    test(
+    test_with_roundtrip(
+        "references/markdown/code_block_indented_julia.md",
         """
             julia> a = 1
             1
@@ -84,9 +101,8 @@
             julia> b = 2
             2
         """,
-        "    julia> a = 1\n    1\n\n    julia> b = 2\n    2\n",
     )
     # Escapes.
-    test("\\\\", "\\\\\n")
-    test("\\`x\\`", "\\`x\\`\n")
+    test_with_roundtrip("references/markdown/escape_backslash.md", "\\\\")
+    test_with_roundtrip("references/markdown/escape_backtick.md", "\\`x\\`")
 end

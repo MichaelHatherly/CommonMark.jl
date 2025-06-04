@@ -1,0 +1,68 @@
+ [34;1m#[39;22m The reference list.
+ 
+ Aruoba, S. Borağan, and Jesús Fernández-Villaverde. 2015. [3mA comparison of
+[23m [3mprogramming languages in macroeconomics. [23m
+ 
+ Ault, Shaun V., Tyler A. Cabutto, Sean P. Heeney, Guifen Mao, and Jin Wang. 
+ 2018. [3mAn Overview of the Julia Programming Language. [23m
+ 
+ Besard, Tim, Bjorn De Sutter, and Christophe Foket. 2018. [3mEffective
+[23m [3mextensible programming: Unleashing julia on gpus. [23m
+ 
+ Bezanson, Jeff, Alan Edelman, Stefan Karpinski, and Viral B. Shah. 2017. [3m
+[23m [3mJulia: A fresh approach to numerical computing. [23m
+ 
+ Bezanson, Jeff, Alan Edelman, Stefan Karpinski, and Viral B. Shah. 2012. [3m
+[23m [3mJulia: A fast dynamic language for technical computing. [23m
+ 
+ Boyd, Stephen, Steven Diamond, Jenny Hong, Karanveer Mohan, Madeleine Udell,
+ and David Zeng. 2014. [3mConvex optimization in Julia. [23mIEEE. 
+ 
+ Chen, Jiahao, and Jarrett Revels. 2016. [3mRobust benchmarking in noisy
+[23m [3menvironments. [23m
+ 
+ Cusumano-Towner, Marco F., Alexander K. Lew, Vikash K. Mansinghka, and Feras
+ A. Saad. 2019. [3mGen: A general-purpose probabilistic programming system with
+[23m [3mprogrammable inference. [23mNew York, NY, USA: ACM. doi:10.1145/3314221.3314642. [34;4m
+[39;24m [34;4mhttp://doi.acm.org/10.1145/3314221.3314642[39;24m. 
+ 
+ Dunning, Iain, and Miles Lubin. 2015. [3mComputing in operations research using
+[23m [3mJulia. [23m
+ 
+ Edelman, Alan. 2015. [3mJulia: A fresh approach to parallel programming. [23mIEEE. 
+ 
+ Elmqvist, Hilding, Toivo Henningsson, and Martin Otter. 2016. [3mSystems
+[23m [3mmodeling and programming in a unified environment based on Julia. [23mSpringer. 
+ 
+ Fieker, Claus, William Hart, Tommy Hofmann, and Fredrik Johansson. 2017. [3m
+[23m [3mNemo/Hecke: computer algebra and number theory packages for the Julia
+[23m [3mprogramming language. [23m
+ 
+ Fischer, Keno, Dhairya Gandhi, Michael Innes, Neethu Mariya Joy, Tejan
+ Karmali, Avik Pal, Marco Concetto Rudilosso, Elliot Saba, and Viral Shah. 
+ 2018. [3mFashionable modelling with flux. [23m[34;4mhttp://arxiv.org/abs/1811.01457[39;24m. 
+ 
+ Ge, Hong, Zoubin Ghahramani, and Kai Xu. 2018. [3mTuring: a language for
+[23m [3mflexible probabilistic inference. [23m[34;4mhttp://proceedings.mlr.press/v84/ge18b.html[39;24m.
+ 
+ 
+ Innes, Michael. 2018. [3mDon't unroll adjoint: Differentiating SSA-Form
+[23m [3mprograms. [23m[34;4mhttp://arxiv.org/abs/1810.07951[39;24m. 
+ 
+ Innes, Mike. 2018. [3mFlux: Elegant machine learning with julia. [23m
+ doi:10.21105/joss.00602. 
+ 
+ Masthay, Tyler M., and Saverio Perugini. 2017. [3mParareal Algorithm
+[23m [3mImplementation and Simulation in Julia. [23m
+ 
+ Mogensen, Patrick Kofod, and Asbjørn Nilsen Riseth. 2018. [3mOptim: A
+[23m [3mmathematical optimization package for Julia. [23m
+ 
+ Nie, Qing, and Christopher Rackauckas. 2017. [3mDifferentialEquations.jl – a
+[23m [3mperformant and feature-rich ecosystem for solving differential equations in
+[23m [3mjulia. [23mdoi:10.5334/jors.151. [34;4m
+[39;24m [34;4mhttps://app.dimensions.ai/details/publication/pub.1085583166[39;24m. 
+ 
+ Novosel, Rok, and Bostjan Slivnik. 2019. [3mBeyond Classical Parallel
+[23m [3mProgramming Frameworks: Chapel vs Julia. [23mSchloss Dagstuhl-Leibniz-Zentrum
+ fuer Informatik. 

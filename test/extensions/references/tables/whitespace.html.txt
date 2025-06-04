@@ -1,0 +1,2 @@
+<h1>whitespace (#38)</h1>
+<table><thead><tr><th align="center">1</th><th align="left">2</th><th align="left">3</th><th align="right">4</th></tr></thead><tbody><tr><td align="center">one</td><td align="left">two</td><td align="left">three</td><td align="right">four</td></tr></tbody></table>

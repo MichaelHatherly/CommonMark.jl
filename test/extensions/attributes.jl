@@ -1,6 +1,9 @@
-@testset "Attributes" begin
-    p = Parser()
-    enable!(p, AttributeRule())
+@testitem "attributes" tags = [:extensions, :attributes] setup = [Utilities] begin
+    using CommonMark
+    using Test
+    using ReferenceTests
+
+    p = create_parser(AttributeRule())
 
     # Syntax.
 
@@ -136,22 +139,24 @@
         "[http://www.website.com](http://www.website.com){#id}",
     )
 
-    test = function (input, f, output)
-        ast = p(input)
-        @test f(ast) == output
-    end
+    # Writer output tests
+    test_single = test_single_format(pwd(), p)
 
-    test(
-        "{#id}\n# H1",
+    test_single("references/attributes/heading_with_id.html.txt", "{#id}\n# H1", html)
+    test_single(
+        "references/attributes/heading_with_classes.html.txt",
+        "{.one.two}\n# H1",
         html,
-        "<h1 id=\"id\"><a href=\"#id\" class=\"anchor\"></a>H1</h1>\n",
     )
-    test("{.one.two}\n# H1", html, "<h1 class=\"one two\">H1</h1>\n")
-    test("{#id}\n# H1", latex, "\\protect\\hypertarget{id}{}\n\\section{H1}\n")
-    test("{#id}\n# H1", typst, "= H1\n")
+    test_single("references/attributes/heading_with_id.tex", "{#id}\n# H1", latex)
+    test_single("references/attributes/heading_with_id.typ", "{#id}\n# H1", typst)
 
-    test("*word*{#id}", html, "<p><em id=\"id\">word</em></p>\n")
-    test("*word*{.one.two}", html, "<p><em class=\"one two\">word</em></p>\n")
-    test("*word*{#id}", latex, "\\protect\\hypertarget{id}{}\\textit{word}\\par\n")
-    test("*word*{#id}", typst, "#emph[word]\n")
+    test_single("references/attributes/emphasis_with_id.html.txt", "*word*{#id}", html)
+    test_single(
+        "references/attributes/emphasis_with_classes.html.txt",
+        "*word*{.one.two}",
+        html,
+    )
+    test_single("references/attributes/emphasis_with_id.tex", "*word*{#id}", latex)
+    test_single("references/attributes/emphasis_with_id.typ", "*word*{#id}", typst)
 end

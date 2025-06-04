@@ -1,0 +1,1 @@
+<p>if x = <span class="julia-value">-3</span>, then x² = <span class="julia-value">9</span></p>

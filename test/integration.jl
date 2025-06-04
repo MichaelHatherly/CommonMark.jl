@@ -1,4 +1,11 @@
-@testset "Multiple Extensions" begin
+@testitem "multiple_extensions" tags = [:integration] setup = [Utilities] begin
+    using CommonMark
+    using Test
+    using ReferenceTests
+    using YAML
+
+    test_integration = test_all_formats(pwd())
+
     extensions = [
         AdmonitionRule(),
         AttributeRule(),
@@ -11,11 +18,13 @@
         TableRule(),
         TypographyRule(),
     ]
-    p = enable!(Parser(), extensions)
+    p = create_parser(extensions)
     ast = open(p, joinpath(@__DIR__, "integration.md"))
-    @test !isempty(html(ast))
-    @test !isempty(latex(ast))
-    @test !isempty(term(ast))
+
+    # Test all output formats
+    test_integration("multiple_extensions", ast, "integration")
+
+    # Also keep the specific markdown output test for backward compatibility
     @test markdown(ast) ==
           replace(read(joinpath(@__DIR__, "integration_output.md"), String), "\r" => "")
 end

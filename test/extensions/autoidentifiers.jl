@@ -1,4 +1,6 @@
-@testset "Auto-Identifiers" begin
+@testitem "auto_identifiers" tags = [:extensions, :autoidentifiers] begin
+    using CommonMark
+    using Test
     slugs = Dict(
         # Examples from pandoc documentation:
         "Heading identifiers in HTML" => "heading-identifiers-in-html",

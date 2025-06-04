@@ -1,0 +1,1 @@
+<table><thead><tr><th align="left">1</th><th align="right">10</th><th align="center">100</th></tr></thead><tbody><tr><td align="left">x</td><td align="right">y</td><td align="center">z</td></tr></tbody></table>

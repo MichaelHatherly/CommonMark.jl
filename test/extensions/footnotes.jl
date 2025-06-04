@@ -1,84 +1,61 @@
-@testset "Footnotes" begin
-    p = Parser()
-    enable!(p, FootnoteRule())
+@testitem "footnotes" tags = [:extensions, :footnotes] setup = [Utilities] begin
+    using CommonMark
+    using Test
+    using ReferenceTests
+
+    p = create_parser(FootnoteRule())
+    test_footnote = test_all_formats(pwd())
 
     # Links
-    text = "text[^1]"
-    ast = p(text)
-
-    @test html(ast) == "<p>text<a href=\"#footnote-1\" class=\"footnote\">1</a></p>\n"
-    @test latex(ast) == "text\\par\n" # No definition so not displayed in LaTeX.
-    @test typst(ast) == "text\n" # No definition so not displayed in Typst.
-    @test term(ast) == " text\e[31m[^1]\e[39m\n"
-    @test markdown(ast) == "text[^1]\n"
+    test_footnote("link_only", p("text[^1]"), "footnotes")
 
     # Definitions
-    text = "[^1]: text"
-    ast = p(text)
+    test_footnote("definition_only", p("[^1]: text"), "footnotes")
 
-    @test html(ast) ==
-          "<div class=\"footnote\" id=\"footnote-1\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
-    @test latex(ast) == "" # Definitions vanish in LaTeX since they are inlined.
-    @test typst(ast) == "" # Definitions vanish in Typst since they are inlined.
-    @test term(ast) ==
-          " \e[31m┌ [^1] ───────────────────────────────────────────────────────────────────────\e[39m\n \e[31m│\e[39m text\n \e[31m└─────────────────────────────────────────────────────────────────────────────\e[39m\n"
-    @test markdown(ast) == "[^1]: text\n"
+    # Link with definition
+    test_footnote(
+        "link_with_definition",
+        p("text[^1].\n\n[^1]: text"),
+        "footnotes",
+        formats = [:latex, :typst, :markdown],
+    )
 
-    text = "text[^1].\n\n[^1]: text"
-    ast = p(text)
-    @test latex(ast) == "text\\footnote{text\\par\n\\label{fn:1}}.\\par\n"
-    @test typst(ast) == "text#footnote[text\n] <fn-1>.\n\n"
-    @test markdown(ast) == "text[^1].\n\n[^1]: text\n"
+    # Footnote with attributes
+    p_with_attrs = create_parser([FootnoteRule(), AttributeRule()])
+    test_footnote(
+        "link_with_id",
+        p_with_attrs("text[^1]{#id}"),
+        "footnotes",
+        formats = [:html],
+    )
 
-    p = enable!(Parser(), [FootnoteRule(), AttributeRule()])
+    # Definition with attributes
+    test_footnote(
+        "definition_with_attrs",
+        p_with_attrs("""
+{key="value"}
+[^1]: text
+"""),
+        "footnotes",
+        formats = [:html],
+    )
 
-    text = "text[^1]{#id}"
-    ast = p(text)
+    # Full footnote with attributes
+    test_footnote(
+        "full_with_attrs",
+        p_with_attrs("""
+text[^1]{#id}.
 
-    @test html(ast) ==
-          "<p>text<a href=\"#footnote-1\" class=\"footnote\" id=\"id\">1</a></p>\n"
+{key="value"}
+[^1]: text
+"""),
+        "footnotes",
+        formats = [:html, :latex, :typst],
+    )
 
-    text = """
-           {key="value"}
-           [^1]: text
-           """
-    ast = p(text)
+    # Definition with blank line and spaces
+    test_footnote("definition_blank_spaces", p("[^1]:\n\n    text"), "footnotes")
 
-    @test html(ast) ==
-          "<div class=\"footnote\" id=\"footnote-1\" key=\"value\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
-
-    text = """
-           text[^1]{#id}.
-
-           {key="value"}
-           [^1]: text
-           """
-    ast = p(text)
-    @test html(ast) ==
-          "<p>text<a href=\"#footnote-1\" class=\"footnote\" id=\"id\">1</a>.</p>\n<div class=\"footnote\" id=\"footnote-1\" key=\"value\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
-    @test latex(ast) ==
-          "text\\protect\\hypertarget{id}{}\\footnote{text\\par\n\\label{fn:1}}.\\par\n"
-    @test typst(ast) == "text#footnote[text\n] <fn-1>.\n\n"
-
-    text = "[^1]:\n\n    text"
-    ast = p(text)
-
-    @test html(ast) ==
-          "<div class=\"footnote\" id=\"footnote-1\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
-    @test latex(ast) == "" # Definitions vanish in LaTeX since they are inlined.
-    @test term(ast) ==
-          " \e[31m┌ [^1] ───────────────────────────────────────────────────────────────────────\e[39m\n \e[31m│\e[39m text\n \e[31m└─────────────────────────────────────────────────────────────────────────────\e[39m\n"
-    @test markdown(ast) == "[^1]: text\n"
-    @test typst(ast) == "" # Definitions vanish in Typst since they are inlined.
-
-    text = "[^1]:\n\n\ttext"
-    ast = p(text)
-
-    @test html(ast) ==
-          "<div class=\"footnote\" id=\"footnote-1\"><p class=\"footnote-title\">1</p>\n<p>text</p>\n</div>"
-    @test latex(ast) == "" # Definitions vanish in LaTeX since they are inlined.
-    @test typst(ast) == "" # Definitions vanish in Typst since they are inlined.
-    @test term(ast) ==
-          " \e[31m┌ [^1] ───────────────────────────────────────────────────────────────────────\e[39m\n \e[31m│\e[39m text\n \e[31m└─────────────────────────────────────────────────────────────────────────────\e[39m\n"
-    @test markdown(ast) == "[^1]: text\n"
+    # Definition with blank line and tab
+    test_footnote("definition_blank_tab", p("[^1]:\n\n\ttext"), "footnotes")
 end

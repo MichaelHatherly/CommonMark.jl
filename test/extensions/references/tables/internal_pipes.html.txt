@@ -1,0 +1,1 @@
+<table><thead><tr><th align="right">1</th><th align="left">10</th><th align="center"><code>|</code></th></tr></thead><tbody><tr><td align="right"><em>|</em></td><td align="left"><img src="url" alt="|" /></td><td align="left"></td></tr><tr><td align="right">1</td><td align="left">2</td><td align="center">3</td></tr></tbody></table>

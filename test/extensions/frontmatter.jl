@@ -1,50 +1,56 @@
-@testset "Frontmatter" begin
+@testitem "frontmatter" tags = [:extensions, :frontmatter] setup = [Utilities] begin
+    using CommonMark
+    using Test
+    using JSON
+    using Pkg.TOML
+    using YAML
+
     p = Parser()
     enable!(
         p,
         FrontMatterRule(json = JSON.Parser.parse, toml = TOML.parse, yaml = YAML.load),
     )
 
-    test = function (text, expected)
+    test_single = test_single_format(pwd(), p)
+
+    # Test function for checking frontmatter data
+    test_frontmatter_data = function (text)
         ast = p(text)
         data = frontmatter(ast)
         @test length(data) == 1
         @test data["field"] == "data"
-        @test html(ast) == expected
+        return ast
     end
 
     # JSON
-    test(
-        """
-        ;;;
-        {"field": "data"}
-        ;;;
-        ;;;
-        """,
-        "<p>;;;</p>\n",
-    )
+    json_text = """
+    ;;;
+    {"field": "data"}
+    ;;;
+    ;;;
+    """
+    test_frontmatter_data(json_text)
+    test_single("references/frontmatter/json.html.txt", json_text, html)
 
     # TOML
-    test(
-        """
-        +++
-        field = "data"
-        +++
-        +++
-        """,
-        "<p>+++</p>\n",
-    )
+    toml_text = """
+    +++
+    field = "data"
+    +++
+    +++
+    """
+    test_frontmatter_data(toml_text)
+    test_single("references/frontmatter/toml.html.txt", toml_text, html)
 
     # YAML
-    test(
-        """
-        ---
-        field: data
-        ---
-        ---
-        """,
-        "<hr />\n",
-    )
+    yaml_text = """
+    ---
+    field: data
+    ---
+    ---
+    """
+    test_frontmatter_data(yaml_text)
+    test_single("references/frontmatter/yaml.html.txt", yaml_text, html)
 
     # Unclosed frontmatter. Runs on until EOF.
     text = """
@@ -59,8 +65,7 @@
 
     # Frontmatter must begin on the first line of the file. Otherwise it's a literal.
     text = "\n+++"
-    ast = p(text)
-    @test html(ast) == "<p>+++</p>\n"
+    test_single("references/frontmatter/not_first_line.html.txt", text, html)
 
     text = """
            ---
