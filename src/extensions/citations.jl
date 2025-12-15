@@ -187,7 +187,7 @@ contains(others...) = false
 
 year(item) = rget(() -> nothing, item, "issued", "date-parts", 1, 1)
 authors(item) =
-    filter(d -> d isa Dict && haskey(d, "family"), rget(() -> [], item, "author"))
+    filter(d -> d isa AbstractDict && haskey(d, "family"), rget(() -> [], item, "author"))
 title(item) = rget(() -> nothing, item, "title")
 
 function year(env::AbstractDict, id::AbstractString)

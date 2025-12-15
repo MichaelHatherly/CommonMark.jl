@@ -3,6 +3,11 @@ block_modifier(::Any) = nothing
 inline_rule(::Any) = nothing
 inline_modifier(::Any) = nothing
 
+# Delimiter-based inline hooks
+delim_nodes(::Any) = nothing
+flanking_rule(::Any) = nothing
+uses_odd_match(::Any) = nothing
+
 struct Rule
     fn::Function
     priority::Float64
@@ -47,6 +52,18 @@ function enable!(p::AbstractParser, rule)
     enable!(p, inline_modifier, rule)
     enable!(p, block_rule, rule)
     enable!(p, block_modifier, rule)
+    # Register delimiter-based inline hooks
+    nodes = delim_nodes(rule)
+    nodes !== nothing && merge!(p.inline_parser.delim_nodes, nodes)
+    flank = flanking_rule(rule)
+    if flank !== nothing
+        char, mode = flank
+        # First registration wins
+        haskey(p.inline_parser.flanking_rules, char) ||
+            (p.inline_parser.flanking_rules[char] = mode)
+    end
+    odd = uses_odd_match(rule)
+    odd !== nothing && push!(p.inline_parser.odd_match_chars, odd)
     push!(p.rules, rule)
     return p
 end
@@ -68,6 +85,9 @@ function disable!(p::AbstractParser, rules::Union{Tuple,Vector})
     empty!(p.modifiers)
     empty!(p.inline_parser.inline_parsers)
     empty!(p.inline_parser.modifiers)
+    empty!(p.inline_parser.delim_nodes)
+    empty!(p.inline_parser.flanking_rules)
+    empty!(p.inline_parser.odd_match_chars)
     empty!(p.rules)
     return enable!(p, rules_kept)
 end

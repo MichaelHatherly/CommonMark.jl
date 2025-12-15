@@ -114,7 +114,7 @@ To enable provide the `FrontMatterRule` with your choice of parsers for the form
 
 ```julia
 using JSON
-enable!(parser, FrontMatterRule(json=JSON.Parser.parse))
+enable!(parser, FrontMatterRule(json=JSON.parse))
 ```
 
 You can access front matter from a parsed file using `frontmatter`. As follows.

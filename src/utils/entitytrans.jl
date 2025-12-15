@@ -2,7 +2,7 @@
 # Generated data:
 
 import JSON
-ENTITY_DATA = JSON.Parser.parsefile(joinpath(@__DIR__, "src", "utils", "entities.json"))
+ENTITY_DATA = JSON.parsefile(joinpath(@__DIR__, "src", "utils", "entities.json"))
 open(joinpath(@__DIR__, "src", "utils", "entities.jl"), "w") do io
     print(io, "const ENTITY_DATA = Dict(")
     for k in sort(collect(keys(ENTITY_DATA)))
