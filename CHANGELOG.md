@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add `StrikethroughRule` extension for `~~text~~` syntax [#93]
+- Add `StrikethroughRule` (`~~text~~`), `SubscriptRule` (`~text~`), and `SuperscriptRule` (`^text^`) extensions [#93]
 - Add generalized delimiter-based inline extension system (`delim_nodes`, `flanking_rule`, `uses_odd_match` hooks) [#93]
+- Add Unicode sub/superscript rendering for terminal writer [#93]
 
 ### Fixed
 

@@ -42,6 +42,8 @@ function scan_delims(parser::InlineParser, c::AbstractChar)
     can_open, can_close = if flanking == :underscore
         (left_flanking && (!right_flanking || punct_before)),
         (right_flanking && (!left_flanking || punct_after))
+    elseif flanking == :permissive
+        !ws_after, !ws_before
     elseif c in (''', '"')
         (left_flanking && !right_flanking), right_flanking
     else  # :standard
@@ -102,11 +104,16 @@ function remove_delimiters_between(bottom::Delimiter, top::Delimiter)
 end
 
 function process_emphasis(parser::InlineParser, stack_bottom)
-    # Build openers_bottom from registered delim chars + smart quotes
-    openers_bottom =
-        Dict{Char,Union{Nothing,Delimiter}}(''' => stack_bottom, '"' => stack_bottom)
-    for ((char, _), _) in parser.delim_nodes
-        openers_bottom[char] = stack_bottom
+    # Build openers_bottom keyed by (char, count) for proper multi-count handling
+    openers_bottom = Dict{Tuple{Char,Int},Union{Nothing,Delimiter}}()
+
+    # Smart quotes use count 0 (not registered in delim_nodes)
+    openers_bottom[(''', 0)] = stack_bottom
+    openers_bottom[('"', 0)] = stack_bottom
+
+    # Initialize for each registered (char, count) pair
+    for ((char, count), _) in parser.delim_nodes
+        openers_bottom[(char, count)] = stack_bottom
     end
 
     odd_match = false
@@ -135,10 +142,21 @@ function process_emphasis(parser::InlineParser, stack_bottom)
             # Found emphasis closer. Now look back for first matching opener.
             opener = closer.previous
             opener_found = false
+
+            # For chars with multiple registered counts, require compatible counts
+            registered_counts = sort(
+                [k[2] for k in keys(parser.delim_nodes) if k[1] == closercc],
+                rev = true,
+            )
+            multi_count = length(registered_counts) > 1
+
+            # For smart quotes, use count 0; otherwise use actual count
+            bottom_key =
+                closercc in (''', '"') ? (closercc, 0) : (closercc, closer.numdelims)
             while (
                 opener !== nothing &&
                 opener !== stack_bottom &&
-                opener !== get(openers_bottom, closercc, nothing)
+                opener !== get(openers_bottom, bottom_key, nothing)
             )
                 # Apply odd_match rule only if char is in odd_match_chars
                 apply_odd_match = closercc in parser.odd_match_chars
@@ -147,7 +165,18 @@ function process_emphasis(parser::InlineParser, stack_bottom)
                     (closer.can_open || opener.can_close) &&
                     closer.origdelims % 3 != 0 &&
                     (opener.origdelims + closer.origdelims) % 3 == 0
-                if opener.cc == closercc && opener.can_open && !odd_match
+
+                # For multi-count extension chars (not * or _), require exact match
+                # Standard emphasis (* _) allows partial matching per CommonMark spec
+                count_compatible = true
+                if multi_count && opener.cc == closercc && closercc ∉ ('*', '_')
+                    count_compatible = opener.numdelims == closer.numdelims
+                end
+
+                if opener.cc == closercc &&
+                   opener.can_open &&
+                   !odd_match &&
+                   count_compatible
                     opener_found = true
                     break
                 end
@@ -229,7 +258,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
 
             if !opener_found && !odd_match
                 # Set lower bound for future searches for openers
-                openers_bottom[closercc] = old_closer.previous
+                openers_bottom[bottom_key] = old_closer.previous
                 # We can remove a closer that can't be an opener, once we've
                 # seen there's no matching opener.
                 old_closer.can_open || remove_delimiter(parser, old_closer)

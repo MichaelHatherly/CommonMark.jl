@@ -41,6 +41,8 @@ export AdmonitionRule,
     MathRule,
     RawContentRule,
     StrikethroughRule,
+    SubscriptRule,
+    SuperscriptRule,
     TableRule,
     TypographyRule
 
