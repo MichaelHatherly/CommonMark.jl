@@ -55,6 +55,10 @@ mutable struct InlineParser <: AbstractParser
     refmap::Dict{String,Any}
     inline_parsers::Dict{Char,Vector{Function}}
     modifiers::Vector{Function}
+    # Delimiter-based inline registries
+    delim_nodes::Dict{Tuple{Char,Int},Type{<:AbstractInline}}
+    flanking_rules::Dict{Char,Symbol}
+    odd_match_chars::Set{Char}
 
     function InlineParser()
         parser = new()
@@ -66,6 +70,9 @@ mutable struct InlineParser <: AbstractParser
         parser.refmap = Dict()
         parser.inline_parsers = Dict()
         parser.modifiers = Function[]
+        parser.delim_nodes = Dict{Tuple{Char,Int},Type{<:AbstractInline}}()
+        parser.flanking_rules = Dict{Char,Symbol}()
+        parser.odd_match_chars = Set{Char}()
         return parser
     end
 end

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `StrikethroughRule` extension for `~~text~~` syntax [#93]
+- Add generalized delimiter-based inline extension system (`delim_nodes`, `flanking_rule`, `uses_odd_match` hooks) [#93]
+
+### Fixed
+
+- Fix citations author lookup failing for JSON-parsed bibliography data [#93]
+
+### Changed
+
+- Require JSON.jl v1 (drop support for 0.20, 0.21) [#93]
+
 ## [v0.9.0] - 2025-03-06
 
 ### Added

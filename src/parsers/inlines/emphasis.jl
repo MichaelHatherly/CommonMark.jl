@@ -35,12 +35,16 @@ function scan_delims(parser::InlineParser, c::AbstractChar)
 
     left_flanking = !ws_after && (!punct_after || ws_before || punct_before)
     right_flanking = !ws_before && (!punct_before || ws_after || punct_after)
-    can_open, can_close = if c == '_'
+
+    # Look up flanking rule from registry, default to :standard (except _ defaults to :underscore)
+    flanking = get(parser.flanking_rules, c, c == '_' ? :underscore : :standard)
+
+    can_open, can_close = if flanking == :underscore
         (left_flanking && (!right_flanking || punct_before)),
         (right_flanking && (!left_flanking || punct_after))
     elseif c in (''', '"')
         (left_flanking && !right_flanking), right_flanking
-    else
+    else  # :standard
         left_flanking, right_flanking
     end
 
@@ -98,12 +102,13 @@ function remove_delimiters_between(bottom::Delimiter, top::Delimiter)
 end
 
 function process_emphasis(parser::InlineParser, stack_bottom)
-    openers_bottom = Dict{Char,Union{Nothing,Delimiter}}(
-        '_' => stack_bottom,
-        '*' => stack_bottom,
-        ''' => stack_bottom,
-        '"' => stack_bottom,
-    )
+    # Build openers_bottom from registered delim chars + smart quotes
+    openers_bottom =
+        Dict{Char,Union{Nothing,Delimiter}}(''' => stack_bottom, '"' => stack_bottom)
+    for ((char, _), _) in parser.delim_nodes
+        openers_bottom[char] = stack_bottom
+    end
+
     odd_match = false
     use_delims = 0
 
@@ -118,16 +123,27 @@ function process_emphasis(parser::InlineParser, stack_bottom)
         if !closer.can_close
             closer = closer.next
         else
+            closercc = closer.cc
+            has_nodes = any(k -> k[1] == closercc, keys(parser.delim_nodes))
+
+            # Skip unknown delimiters (except smart quotes handled below)
+            if !has_nodes && closercc ∉ (''', '"')
+                closer = closer.next
+                continue
+            end
+
             # Found emphasis closer. Now look back for first matching opener.
             opener = closer.previous
             opener_found = false
-            closercc = closer.cc
             while (
                 opener !== nothing &&
                 opener !== stack_bottom &&
-                opener !== openers_bottom[closercc]
+                opener !== get(openers_bottom, closercc, nothing)
             )
+                # Apply odd_match rule only if char is in odd_match_chars
+                apply_odd_match = closercc in parser.odd_match_chars
                 odd_match =
+                    apply_odd_match &&
                     (closer.can_open || opener.can_close) &&
                     closer.origdelims % 3 != 0 &&
                     (opener.origdelims + closer.origdelims) % 3 == 0
@@ -139,12 +155,27 @@ function process_emphasis(parser::InlineParser, stack_bottom)
             end
             old_closer = closer
 
-            if closercc in ('*', '_')
+            if has_nodes
                 if !opener_found
                     closer = closer.next
                 else
-                    # Calculate actual number of delimiters used from closer.
-                    use_delims = (closer.numdelims ≥ 2 && opener.numdelims ≥ 2) ? 2 : 1
+                    # Calculate use_delims - find max registered for this char
+                    max_delims =
+                        maximum(k[2] for k in keys(parser.delim_nodes) if k[1] == closercc)
+                    use_delims = min(closer.numdelims, opener.numdelims, max_delims)
+
+                    # Find matching node type, trying smaller counts if needed
+                    NodeType = get(parser.delim_nodes, (closercc, use_delims), nothing)
+                    while use_delims > 0 && NodeType === nothing
+                        use_delims -= 1
+                        NodeType = get(parser.delim_nodes, (closercc, use_delims), nothing)
+                    end
+
+                    if NodeType === nothing
+                        # No valid node type for available delimiters
+                        closer = closer.next
+                        continue
+                    end
 
                     opener_inl = opener.node
                     closer_inl = closer.node
@@ -157,18 +188,18 @@ function process_emphasis(parser::InlineParser, stack_bottom)
                     closer_inl.literal =
                         closer_inl.literal[1:length(closer_inl.literal)-use_delims]
 
-                    # Build contents for new Emph or Strong element.
-                    emph = use_delims == 1 ? Node(Emph()) : Node(Strong())
-                    emph.literal = closercc^use_delims
+                    # Build container node
+                    container = Node(NodeType())
+                    container.literal = closercc^use_delims
 
                     tmp = opener_inl.nxt
                     while !isnull(tmp) && tmp !== closer_inl
                         nxt = tmp.nxt
                         unlink(tmp)
-                        append_child(emph, tmp)
+                        append_child(container, tmp)
                         tmp = nxt
                     end
-                    insert_after(opener_inl, emph)
+                    insert_after(opener_inl, container)
 
                     # Remove elts between opener and closer in delimiters stack.
                     remove_delimiters_between(opener, closer)
@@ -197,10 +228,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
             end
 
             if !opener_found && !odd_match
-                # Set lower bound for future searches for openers We don't do
-                # this with odd_match because a ** that doesn't match an
-                # earlier * might turn into an opener, and the * might be
-                # matched by something else.
+                # Set lower bound for future searches for openers
                 openers_bottom[closercc] = old_closer.previous
                 # We can remove a closer that can't be an opener, once we've
                 # seen there's no matching opener.
@@ -218,7 +246,13 @@ process_emphasis(parser::InlineParser, ::Node) = process_emphasis(parser, nothin
 struct AsteriskEmphasisRule end
 inline_rule(::AsteriskEmphasisRule) = Rule(parse_asterisk, 1, "*")
 inline_modifier(::AsteriskEmphasisRule) = Rule(process_emphasis, 1)
+delim_nodes(::AsteriskEmphasisRule) = Dict(('*', 1) => Emph, ('*', 2) => Strong)
+flanking_rule(::AsteriskEmphasisRule) = ('*', :standard)
+uses_odd_match(::AsteriskEmphasisRule) = '*'
 
 struct UnderscoreEmphasisRule end
 inline_rule(::UnderscoreEmphasisRule) = Rule(parse_underscore, 1, "_")
 inline_modifier(::UnderscoreEmphasisRule) = Rule(process_emphasis, 1)
+delim_nodes(::UnderscoreEmphasisRule) = Dict(('_', 1) => Emph, ('_', 2) => Strong)
+flanking_rule(::UnderscoreEmphasisRule) = ('_', :underscore)
+uses_odd_match(::UnderscoreEmphasisRule) = '_'

@@ -40,6 +40,7 @@ export AdmonitionRule,
     FrontMatterRule,
     MathRule,
     RawContentRule,
+    StrikethroughRule,
     TableRule,
     TypographyRule
 
