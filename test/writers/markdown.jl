@@ -53,6 +53,11 @@
         "references/markdown/list_nested_unordered.md",
         "- - - - - - - item",
     )
+    # Issue #43: nested list with content before it should not add blank lines
+    test_with_roundtrip(
+        "references/markdown/list_nested_with_content.md",
+        "- item 1\n  + nested 1\n  + nested 2\n- item 2\n",
+    )
     test_with_roundtrip("references/markdown/list_empty_bullet.md", "  - ")
     test_with_roundtrip("references/markdown/list_empty_ordered.md", "1. ")
     test_with_roundtrip(

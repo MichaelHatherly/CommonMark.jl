@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix markdown writer adding unwanted blank lines in tight lists with nested content [#97]
 - Fix markdown writer not escaping quotes in link/image titles [#95]
 - Fix citations author lookup failing for JSON-parsed bibliography data [#93]
 
@@ -322,3 +323,4 @@ Initial release.
 [#93]: https://github.com/MichaelHatherly/CommonMark.jl/issues/93
 [#94]: https://github.com/MichaelHatherly/CommonMark.jl/issues/94
 [#95]: https://github.com/MichaelHatherly/CommonMark.jl/issues/95
+[#97]: https://github.com/MichaelHatherly/CommonMark.jl/issues/97
