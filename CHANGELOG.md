@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `ReferenceLinkRule` extension to preserve reference link style in AST [#95]
 - Add `TaskListRule` extension for GitHub-style task lists (`- [ ]`/`- [x]`) [#94]
 - Add `StrikethroughRule` (`~~text~~`), `SubscriptRule` (`~text~`), and `SuperscriptRule` (`^text^`) extensions [#93]
 - Add generalized delimiter-based inline extension system (`delim_nodes`, `flanking_rule`, `uses_odd_match` hooks) [#93]
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix markdown writer not escaping quotes in link/image titles [#95]
 - Fix citations author lookup failing for JSON-parsed bibliography data [#93]
 
 ### Changed
@@ -317,3 +319,6 @@ Initial release.
 [#81]: https://github.com/MichaelHatherly/CommonMark.jl/issues/81
 [#82]: https://github.com/MichaelHatherly/CommonMark.jl/issues/82
 [#84]: https://github.com/MichaelHatherly/CommonMark.jl/issues/84
+[#93]: https://github.com/MichaelHatherly/CommonMark.jl/issues/93
+[#94]: https://github.com/MichaelHatherly/CommonMark.jl/issues/94
+[#95]: https://github.com/MichaelHatherly/CommonMark.jl/issues/95

@@ -20,6 +20,8 @@ mutable struct Markdown{I<:IO}
     Markdown(io::I) where {I} = new{I}(io, 0, [], 0, [])
 end
 
+escape_markdown_title(s::AbstractString) = replace(s, "\"" => "\\\"")
+
 function write_markdown(writer::Writer, ast::Node)
     for (node, entering) in ast
         write_markdown(node.t, writer, node, entering)
@@ -64,7 +66,7 @@ function write_markdown(link::Link, w, node, ent)
     else
         link = _smart_link(MIME"text/markdown"(), link, node, w.env)
         literal(w, "](", link.destination)
-        isempty(link.title) || literal(w, " \"", link.title, "\"")
+        isempty(link.title) || literal(w, " \"", escape_markdown_title(link.title), "\"")
         literal(w, ")")
     end
 end
@@ -75,7 +77,7 @@ function write_markdown(image::Image, w, node, ent)
     else
         image = _smart_link(MIME"text/markdown"(), image, node, w.env)
         literal(w, "](", image.destination)
-        isempty(image.title) || literal(w, " \"", image.title, "\"")
+        isempty(image.title) || literal(w, " \"", escape_markdown_title(image.title), "\"")
         literal(w, ")")
     end
 end
