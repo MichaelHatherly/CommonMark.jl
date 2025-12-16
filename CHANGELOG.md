@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `TaskListRule` extension for GitHub-style task lists (`- [ ]`/`- [x]`) [#94]
 - Add `StrikethroughRule` (`~~text~~`), `SubscriptRule` (`~text~`), and `SuperscriptRule` (`^text^`) extensions [#93]
 - Add generalized delimiter-based inline extension system (`delim_nodes`, `flanking_rule`, `uses_odd_match` hooks) [#93]
 - Add Unicode sub/superscript rendering for terminal writer [#93]

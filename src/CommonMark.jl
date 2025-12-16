@@ -44,6 +44,7 @@ export AdmonitionRule,
     SubscriptRule,
     SuperscriptRule,
     TableRule,
+    TaskListRule,
     TypographyRule
 
 end # module
