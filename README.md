@@ -356,6 +356,79 @@ algorithm used by Pandoc. Non-unique identifiers are suffixed with a numeric
 counter and so cannot be considered stable. If you need stable identifiers then
 you should use `AttributeRule` to assign stable `id`s manually.
 
+### Strikethrough
+
+Strike through text using double tildes.
+
+```markdown
+This is ~~deleted~~ text.
+```
+
+Enabled with:
+
+```julia
+enable!(parser, StrikethroughRule())
+```
+
+### Subscript
+
+Subscript text using single tildes.
+
+```markdown
+H~2~O is water.
+```
+
+Enabled with:
+
+```julia
+enable!(parser, SubscriptRule())
+```
+
+### Superscript
+
+Superscript text using carets.
+
+```markdown
+E = mc^2^
+```
+
+Enabled with:
+
+```julia
+enable!(parser, SuperscriptRule())
+```
+
+### Task Lists
+
+GitHub-style task lists with checkboxes.
+
+```markdown
+- [ ] Unchecked item
+- [x] Checked item
+```
+
+Enabled with:
+
+```julia
+enable!(parser, TaskListRule())
+```
+
+### Reference Links
+
+Preserve reference-style links in the AST instead of resolving them to inline links. Useful for markdown-to-markdown roundtripping.
+
+```markdown
+[link text][ref]
+
+[ref]: https://example.com "Optional Title"
+```
+
+Enabled with:
+
+```julia
+enable!(parser, ReferenceLinkRule())
+```
+
 ### CommonMark Defaults
 
 Block rules enabled by default in `Parser` objects:
