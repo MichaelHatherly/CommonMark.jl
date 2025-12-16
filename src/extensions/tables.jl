@@ -34,7 +34,7 @@ function gfm_table(parser::Parser, container::Node)
     if !parser.indented
         if container.t isa Paragraph
             header = container.literal
-            spec_str = SubString(parser.buf, parser.next_nonspace)
+            spec_str = rest_from_nonspace(parser)
             if valid_table_spec(spec_str)
                 # Parse the table spec line.
                 spec = parse_table_spec(spec_str)
@@ -52,17 +52,17 @@ function gfm_table(parser::Parser, container::Node)
                 insert_after(container, table)
                 unlink(container)
                 parser.tip = table
-                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+                advance_to_end(parser)
                 return 2
             end
         end
         if container.t isa Table
-            line = SubString(parser.buf, parser.next_nonspace)
+            line = rest_from_nonspace(parser)
             if valid_table_row(line)
                 row = Node(TableRow(), container.sourcepos)
                 append_child(container.last_child, row)
                 row.literal = line
-                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+                advance_to_end(parser)
                 return 2
             end
         end

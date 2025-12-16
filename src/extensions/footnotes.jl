@@ -5,7 +5,7 @@ end
 block_rule(fr::FootnoteRule) =
     Rule(0.5, "[") do parser, container
         if !parser.indented
-            ln = SubString(parser.buf, parser.next_nonspace)
+            ln = rest_from_nonspace(parser)
             m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
             if m !== nothing
                 close_unmatched_blocks(parser)

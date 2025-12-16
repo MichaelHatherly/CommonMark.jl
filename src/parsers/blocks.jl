@@ -146,7 +146,7 @@ function add_line(parser::Parser)
         chars_to_tab = 4 - (parser.column % 4)
         parser.tip.literal *= (' '^chars_to_tab)
     end
-    parser.tip.literal *= (SubString(parser.buf, parser.pos) * '\n')
+    parser.tip.literal *= (rest(parser) * '\n')
 end
 
 function add_child(parser::Parser, tag::AbstractContainer, offset::Integer)
@@ -231,6 +231,10 @@ function advance_offset(parser::Parser, count::Integer, columns::Bool)
         c = get(buf, parser.pos, '\0')
     end
 end
+
+advance_to_end(parser::Parser) = advance_offset(parser, typemax(Int), false)
+rest_from_nonspace(p::Parser) = SubString(p.buf, p.next_nonspace)
+peek_nonspace(p::Parser, default = '\0') = get(p.buf, p.next_nonspace, default)
 
 function incorporate_line(parser::Parser, ln::AbstractString)
     all_matched = true
@@ -375,13 +379,13 @@ function incorporate_line(parser::Parser, ln::AbstractString)
             add_line(parser)
             # If HtmlBlock, check for end condition.
             if t isa HtmlBlock && container.t.html_block_type in 1:5
-                str = SubString(parser.buf, parser.pos)
+                str = rest(parser)
                 if occursin(reHtmlBlockClose[container.t.html_block_type], str)
                     parser.last_line_length = length(ln)
                     finalize(parser, container, parser.line_number)
                 end
             end
-        elseif parser.pos ≤ length(ln) && !parser.blank
+        elseif !eof(parser) && !parser.blank
             # Create a paragraph container for one line.
             container = add_child(parser, Paragraph(), parser.pos)
             advance_next_nonspace(parser)

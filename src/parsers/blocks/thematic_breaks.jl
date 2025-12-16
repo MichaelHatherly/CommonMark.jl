@@ -9,10 +9,10 @@ finalize(::ThematicBreak, ::Parser, ::Node) = nothing
 can_contain(::ThematicBreak, t) = false
 
 function thematic_break(p::Parser, container::Node)
-    if !p.indented && occursin(reThematicBreak, SubString(p.buf, p.next_nonspace))
+    if !p.indented && occursin(reThematicBreak, rest_from_nonspace(p))
         close_unmatched_blocks(p)
         add_child(p, ThematicBreak(), p.next_nonspace)
-        advance_offset(p, length(p.buf) - p.pos + 1, false)
+        advance_to_end(p)
         return 2
     end
     return 0

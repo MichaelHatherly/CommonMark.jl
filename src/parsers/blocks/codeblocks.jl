@@ -32,7 +32,7 @@ function continue_(::CodeBlock, parser::Parser, container::Node)
         else
             # skip optional spaces of fence offset
             i = container.t.fence_offset
-            while i > 0 && is_space_or_tab(get(ln, parser.pos, nothing))
+            while i > 0 && is_space_or_tab(trypeek(parser, UInt8))
                 advance_offset(parser, 1, true)
                 i -= 1
             end
@@ -74,7 +74,7 @@ can_contain(t) = false
 
 function fenced_code_block(parser::Parser, container::Node)
     if !parser.indented
-        m = Base.match(reCodeFence, SubString(parser.buf, parser.next_nonspace))
+        m = Base.match(reCodeFence, rest_from_nonspace(parser))
         if m !== nothing
             fence_length = length(m.match)
             close_unmatched_blocks(parser)

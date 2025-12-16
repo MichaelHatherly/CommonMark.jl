@@ -17,8 +17,8 @@ end
 can_contain(::HtmlBlock, t) = false
 
 function html_block(parser::Parser, container::Node)
-    if !parser.indented && get(parser.buf, parser.next_nonspace, nothing) == '<'
-        s = SubString(parser.buf, parser.next_nonspace)
+    if !parser.indented && peek_nonspace(parser) == '<'
+        s = rest_from_nonspace(parser)
         for (block_type, regex) in enumerate(reHtmlBlockOpen)
             if occursin(regex, s) && (block_type < 7 || !(container.t isa Paragraph))
                 close_unmatched_blocks(parser)
