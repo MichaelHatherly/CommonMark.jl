@@ -413,6 +413,33 @@ Enabled with:
 enable!(parser, TaskListRule())
 ```
 
+### GitHub Alerts
+
+GitHub-style alert blockquotes for notes, tips, warnings, and other callouts.
+
+```markdown
+> [!NOTE]
+> Useful information that users should know.
+
+> [!TIP]
+> Helpful advice for doing things better.
+
+> [!IMPORTANT]
+> Key information users need to know.
+
+> [!WARNING]
+> Urgent info that needs immediate attention.
+
+> [!CAUTION]
+> Advises about risks or negative outcomes.
+```
+
+Enabled with:
+
+```julia
+enable!(parser, GitHubAlertRule())
+```
+
 ### Reference Links
 
 Preserve reference-style links in the AST instead of resolving them to inline links. Useful for markdown-to-markdown roundtripping.

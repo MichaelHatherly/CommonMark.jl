@@ -1,0 +1,5 @@
+<div class="github-alert note"><p class="github-alert-title">Note</p>
+<p>Line one.
+Line two.
+Line three.</p>
+</div>

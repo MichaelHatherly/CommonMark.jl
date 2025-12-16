@@ -1,0 +1,2 @@
+> [!NOTE]
+> Basic note content.

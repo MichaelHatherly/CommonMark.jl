@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `GitHubAlertRule` extension for GitHub-style alert blockquotes (`> [!NOTE]`, etc.) [#98]
 - Add `ReferenceLinkRule` extension to preserve reference link style in AST [#95]
 - Add `TaskListRule` extension for GitHub-style task lists (`- [ ]`/`- [x]`) [#94]
 - Add `StrikethroughRule` (`~~text~~`), `SubscriptRule` (`~text~`), and `SuperscriptRule` (`^text^`) extensions [#93]
