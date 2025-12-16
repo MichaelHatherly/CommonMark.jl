@@ -59,97 +59,16 @@ function parse_div_attributes(s::AbstractString)
     s = strip(s)
     isempty(s) && return nothing
     if startswith(s, '{')
-        # Full attribute syntax {#id .class key="value"}
-        endswith(s, '}') || return nothing
-        return parse_brace_attributes(s[2:end-1])
+        # Full attribute syntax {#id .class key="value"} - reuse inline parser
+        dict, _ = try_parse_attributes(StringParser(s))
+        return dict
     else
-        # Bare word(s) treated as class names
-        # Must be valid identifier-like strings
+        # Bare word(s) treated as class names (fenced div specific)
         words = split(s)
         all(w -> match(r"^[a-zA-Z_][a-zA-Z0-9_-]*$", w) !== nothing, words) ||
             return nothing
         return Dict{String,Any}("class" => collect(words))
     end
-end
-
-function parse_brace_attributes(s::AbstractString)
-    dict = Dict{String,Any}()
-    s = strip(s)
-    isempty(s) && return dict
-    pos = 1
-    while pos <= length(s)
-        # Skip whitespace
-        while pos <= length(s) && isspace(s[pos])
-            pos += 1
-        end
-        pos > length(s) && break
-        c = s[pos]
-        if c == '#'
-            # ID: #identifier
-            pos += 1
-            start = pos
-            while pos <= length(s) &&
-                (isletter(s[pos]) || isdigit(s[pos]) || s[pos] in "-_")
-                pos += 1
-            end
-            start == pos && return nothing
-            dict["id"] = s[start:pos-1]
-        elseif c == '.'
-            # Class: .classname
-            pos += 1
-            start = pos
-            while pos <= length(s) &&
-                (isletter(s[pos]) || isdigit(s[pos]) || s[pos] in "-_")
-                pos += 1
-            end
-            start == pos && return nothing
-            push!(get!(() -> String[], dict, "class"), s[start:pos-1])
-        elseif isletter(c) || c == '_'
-            # Key or key=value
-            start = pos
-            while pos <= length(s) &&
-                (isletter(s[pos]) || isdigit(s[pos]) || s[pos] in "-_")
-                pos += 1
-            end
-            key = s[start:pos-1]
-            # Skip whitespace
-            while pos <= length(s) && isspace(s[pos])
-                pos += 1
-            end
-            if pos <= length(s) && s[pos] == '='
-                pos += 1
-                # Skip whitespace
-                while pos <= length(s) && isspace(s[pos])
-                    pos += 1
-                end
-                pos > length(s) && return nothing
-                # Parse value (quoted or unquoted)
-                if s[pos] in "\"'"
-                    delim = s[pos]
-                    pos += 1
-                    start = pos
-                    while pos <= length(s) && s[pos] != delim
-                        pos += 1
-                    end
-                    pos > length(s) && return nothing
-                    dict[key] = s[start:pos-1]
-                    pos += 1
-                else
-                    start = pos
-                    while pos <= length(s) && !isspace(s[pos])
-                        pos += 1
-                    end
-                    dict[key] = s[start:pos-1]
-                end
-            else
-                # Bare attribute (no value)
-                dict[key] = ""
-            end
-        else
-            return nothing
-        end
-    end
-    return dict
 end
 
 struct FencedDivRule end
