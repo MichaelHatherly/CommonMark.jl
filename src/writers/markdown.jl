@@ -30,6 +30,10 @@ end
 
 function linebreak(w, node)
     if !isnull(node.nxt)
+        # Skip in tight lists - Item writer handles loose list spacing
+        if node.parent.t isa Item && node.parent.t.list_data.tight
+            return nothing
+        end
         print_margin(w)
         literal(w, "\n")
     end

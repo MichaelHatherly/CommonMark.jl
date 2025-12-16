@@ -1,8 +1,10 @@
 @testitem "referencelinks" tags = [:extensions, :referencelinks] setup = [Utilities] begin
     using CommonMark
     using Test
+    using ReferenceTests
 
     p = create_parser(ReferenceLinkRule())
+    test_reflink = test_all_formats(pwd())
 
     # Full reference style [text][label]
     ast = p("[text][label]\n\n[label]: /url")
@@ -114,4 +116,18 @@
     @test occursin("Title &quot;quoted&quot;", html(ast))  # HTML-escaped
     md = markdown(ast)
     @test occursin("\\\"", md)  # quotes escaped in markdown output
+
+    # Multiple references to same label preserved
+    ast = p("A [cool ref][ref] and [here][ref].\n\n[ref]: https://example.com")
+    md = markdown(ast)
+    @test occursin("[cool ref][ref]", md)
+    @test occursin("[here][ref]", md)
+    @test occursin("[ref]: https://example.com", md)
+    @test markdown(p(md)) == md  # roundtrip stable
+
+    test_reflink(
+        "multiple_refs_same_label",
+        p("A [cool ref][ref] and [here][ref].\n\n[ref]: https://example.com"),
+        "referencelinks",
+    )
 end
