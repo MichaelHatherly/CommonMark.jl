@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add roundtrip stability to markdown writer (opinionated formatting with no trailing whitespace) [#100]
 - Add `FencedDivRule` extension for Pandoc-style fenced divs (`::: class` blocks with nesting) [#99]
 - Add `GitHubAlertRule` extension for GitHub-style alert blockquotes (`> [!NOTE]`, etc.) [#98]
 - Add `ReferenceLinkRule` extension to preserve reference link style in AST [#95]
@@ -328,3 +329,4 @@ Initial release.
 [#97]: https://github.com/MichaelHatherly/CommonMark.jl/issues/97
 [#98]: https://github.com/MichaelHatherly/CommonMark.jl/issues/98
 [#99]: https://github.com/MichaelHatherly/CommonMark.jl/issues/99
+[#100]: https://github.com/MichaelHatherly/CommonMark.jl/issues/100

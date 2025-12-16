@@ -22,6 +22,20 @@ end
 
 escape_markdown_title(s::AbstractString) = replace(s, "\"" => "\\\"")
 
+# Print margin with trailing whitespace stripped (for blank lines)
+function print_margin_rstrip(w)
+    margin = sprint() do io
+        for seg in w.format.margin
+            if seg.count == 0
+                print(io, ' '^seg.width)
+            else
+                print(io, seg.text)
+            end
+        end
+    end
+    literal(w, rstrip(margin))
+end
+
 function write_markdown(writer::Writer, ast::Node)
     for (node, entering) in ast
         write_markdown(node.t, writer, node, entering)
@@ -34,7 +48,7 @@ function linebreak(w, node)
         if node.parent.t isa Item && node.parent.t.list_data.tight
             return nothing
         end
-        print_margin(w)
+        print_margin_rstrip(w)
         literal(w, "\n")
     end
     return nothing
@@ -192,6 +206,9 @@ function write_markdown(::HtmlBlock, w, node, ent)
     for line in eachline(IOBuffer(node.literal); keep = true)
         print_margin(w)
         literal(w, line)
+    end
+    if !isnull(node.nxt)
+        cr(w)
     end
     linebreak(w, node)
 end

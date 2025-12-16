@@ -9,6 +9,16 @@ mutable struct ListData
     ListData(indent = 0) = new(:bullet, true, ' ', 1, "", 0, indent)
 end
 
+function Base.:(==)(a::ListData, b::ListData)
+    a.type == b.type &&
+        a.tight == b.tight &&
+        a.bullet_char == b.bullet_char &&
+        a.start == b.start &&
+        a.delimiter == b.delimiter &&
+        a.padding == b.padding &&
+        a.marker_offset == b.marker_offset
+end
+
 mutable struct Item <: AbstractBlock
     list_data::ListData
     Item() = new(ListData())
