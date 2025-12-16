@@ -105,4 +105,10 @@
     # Escapes.
     test_with_roundtrip("references/markdown/escape_backslash.md", "\\\\")
     test_with_roundtrip("references/markdown/escape_backtick.md", "\\`x\\`")
+
+    # Link title with quotes - must escape for valid markdown output
+    ast = p("[link](/url \"Title \\\"quoted\\\"\")")
+    md = markdown(ast)
+    @test occursin("\\\"", md)  # quotes escaped
+    @test markdown(p(md)) == md  # roundtrip works
 end
