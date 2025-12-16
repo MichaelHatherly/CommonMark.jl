@@ -91,6 +91,34 @@ which all default to `true`.
 enable!(parser, AdmonitionRule())
 ```
 
+### Fenced Divs
+
+Pandoc-style fenced divs for generic block containers:
+
+````markdown
+::: warning
+This is a warning div.
+:::
+
+::: {#myid .note .important}
+Div with id and multiple classes.
+:::
+````
+
+Divs can be nested. Opening fences require attributes (or a bare class name); closing fences are just colons:
+
+````markdown
+::: outer
+::: inner
+Nested content.
+:::
+:::
+````
+
+```julia
+enable!(parser, FencedDivRule())
+```
+
 ### Front matter
 
 Fenced blocks at the start of a file containing structured data.

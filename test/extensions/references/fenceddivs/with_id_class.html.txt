@@ -1,0 +1,3 @@
+<div class="note highlight" id="important">
+<p>Styled content.</p>
+</div>
