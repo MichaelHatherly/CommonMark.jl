@@ -1,0 +1,3 @@
+#block[
+Styled content.
+] <important>

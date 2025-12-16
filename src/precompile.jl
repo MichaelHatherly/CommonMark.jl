@@ -8,14 +8,21 @@ using PrecompileTools
         AutoIdentifierRule,
         CitationRule,
         DollarMathRule,
+        FencedDivRule,
         FootnoteRule,
         FrontMatterRule,
+        GitHubAlertRule,
         MathRule,
         RawContentRule,
+        ReferenceLinkRule,
+        StrikethroughRule,
+        SubscriptRule,
+        SuperscriptRule,
         TableRule,
+        TaskListRule,
         TypographyRule,
     ]
-    writers = [html, latex, term, markdown, notebook]
+    writers = [html, latex, term, markdown, notebook, typst]
     @compile_workload begin
         parser = Parser()
         for rule in extension_rules

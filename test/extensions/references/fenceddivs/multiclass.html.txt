@@ -1,0 +1,3 @@
+<div class="warning important urgent">
+<p>Urgent warning!</p>
+</div>

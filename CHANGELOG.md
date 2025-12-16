@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `FencedDivRule` extension for Pandoc-style fenced divs (`::: class` blocks with nesting) [#99]
 - Add `GitHubAlertRule` extension for GitHub-style alert blockquotes (`> [!NOTE]`, etc.) [#98]
 - Add `ReferenceLinkRule` extension to preserve reference link style in AST [#95]
 - Add `TaskListRule` extension for GitHub-style task lists (`- [ ]`/`- [x]`) [#94]
@@ -325,3 +326,5 @@ Initial release.
 [#94]: https://github.com/MichaelHatherly/CommonMark.jl/issues/94
 [#95]: https://github.com/MichaelHatherly/CommonMark.jl/issues/95
 [#97]: https://github.com/MichaelHatherly/CommonMark.jl/issues/97
+[#98]: https://github.com/MichaelHatherly/CommonMark.jl/issues/98
+[#99]: https://github.com/MichaelHatherly/CommonMark.jl/issues/99

@@ -3,6 +3,14 @@ import Base: peek
 abstract type AbstractParser end
 # .buf, .pos, .len must exist.
 
+# Minimal parser for parsing strings with AbstractParser interface
+mutable struct StringParser <: AbstractParser
+    buf::String
+    pos::Int
+    len::Int
+end
+StringParser(s::AbstractString) = StringParser(String(s), 1, ncodeunits(s))
+
 Base.String(p::AbstractParser) = String(p.buf)
 Base.position(p::AbstractParser) = p.pos
 Base.length(p::AbstractParser) = p.len
