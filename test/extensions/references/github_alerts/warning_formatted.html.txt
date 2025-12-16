@@ -1,0 +1,3 @@
+<div class="github-alert warning"><p class="github-alert-title">Warning</p>
+<p>This has <strong>bold</strong>, <em>italic</em>, and <code>code</code>.</p>
+</div>

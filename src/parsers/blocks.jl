@@ -410,10 +410,24 @@ end
 
 function process_inlines(parser::Parser, block::Node)
     parser.inline_parser.refmap = parser.refmap
-    for (node, entering) in block
+    state = (block, block, true)
+    while true
+        result = iterate(block, state)
+        result === nothing && break
+        (node, entering), state = result
+
         if entering
             for fn in parser.modifiers
                 fn(parser, node)
+            end
+            # If modifier unlinked a child that was next in iteration, fix state
+            next_node = state[2]
+            if !isnull(next_node) && next_node !== block && isnull(next_node.parent)
+                if !isnull(node.first_child)
+                    state = (state[1], node.first_child, true)
+                else
+                    state = (state[1], node, false)
+                end
             end
         else
             if contains_inlines(node.t)

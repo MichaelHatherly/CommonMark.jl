@@ -1,0 +1,3 @@
+<div class="github-alert note"><p class="github-alert-title">Note</p>
+<p>Basic note content.</p>
+</div>

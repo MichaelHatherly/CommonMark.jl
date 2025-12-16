@@ -1,0 +1,4 @@
+<div class="github-alert tip"><p class="github-alert-title">Tip</p>
+<p>Here is some <strong>bold</strong> and <em>italic</em> content.</p>
+<p>And a second paragraph with a <a href="https://example.com">link</a>.</p>
+</div>

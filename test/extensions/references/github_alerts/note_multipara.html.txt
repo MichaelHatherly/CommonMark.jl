@@ -1,0 +1,4 @@
+<div class="github-alert note"><p class="github-alert-title">Note</p>
+<p>First paragraph.</p>
+<p>Second paragraph.</p>
+</div>
