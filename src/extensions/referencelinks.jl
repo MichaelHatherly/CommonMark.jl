@@ -142,7 +142,7 @@ block_rule(::ReferenceLinkRule) =
     Rule(0.5, "[") do parser, container
         parser.indented && return 0
 
-        ln = SubString(parser.buf, parser.next_nonspace)
+        ln = rest_from_nonspace(parser)
 
         # Match [label]: pattern - label can contain anything except unescaped [ or ]
         m = match(r"^\[([^\[\]\\]|\\.){1,999}\]:", ln)

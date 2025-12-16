@@ -15,7 +15,7 @@ can_contain(::Heading, t) = false
 
 function atx_heading(parser::Parser, container::Node)
     if !parser.indented
-        m = Base.match(reATXHeadingMarker, SubString(parser.buf, parser.next_nonspace))
+        m = Base.match(reATXHeadingMarker, rest_from_nonspace(parser))
         if m !== nothing
             advance_next_nonspace(parser)
             advance_offset(parser, length(m.match), false)
@@ -25,10 +25,10 @@ function atx_heading(parser::Parser, container::Node)
             container.t.level = length(strip(m.match))
             # remove trailing ###s
             container.literal = replace(
-                replace(SubString(parser.buf, parser.pos), r"^[ \t]*#+[ \t]*$" => ""),
+                replace(rest(parser), r"^[ \t]*#+[ \t]*$" => ""),
                 r"[ \t]+#+[ \t]*$" => "",
             )
-            advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+            advance_to_end(parser)
             return 2
         end
     end
@@ -40,7 +40,7 @@ block_rule(::AtxHeadingRule) = Rule(atx_heading, 2, "#")
 
 function setext_heading(parser::Parser, container::Node)
     if !parser.indented && container.t isa Paragraph
-        m = Base.match(reSetextHeadingLine, SubString(parser.buf, parser.next_nonspace))
+        m = Base.match(reSetextHeadingLine, rest_from_nonspace(parser))
         if m !== nothing
             close_unmatched_blocks(parser)
             # resolve reference link definitiosn
@@ -59,7 +59,7 @@ function setext_heading(parser::Parser, container::Node)
                 insert_after(container, heading)
                 unlink(container)
                 parser.tip = heading
-                advance_offset(parser, length(parser.buf) - parser.pos + 1, false)
+                advance_to_end(parser)
                 return 2
             else
                 return 0

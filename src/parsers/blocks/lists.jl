@@ -26,7 +26,7 @@ function parse_list_marker(parser::Parser, container::Node)
     if parser.indent ≥ 4
         return nothing
     end
-    rest = SubString(parser.buf, parser.next_nonspace)
+    rest = rest_from_nonspace(parser)
     data = ListData(parser.indent)
     m = Base.match(reBulletListMarker, rest)
     if m !== nothing
@@ -63,20 +63,20 @@ function parse_list_marker(parser::Parser, container::Node)
     spaces_start_offset = parser.pos
     while true
         advance_offset(parser, 1, true)
-        nextc = get(parser.buf, parser.pos, '\0')
+        nextc = trypeek(parser, UInt8, '\0')
         if parser.column - spaces_start_col < 5 && is_space_or_tab(nextc)
             nothing
         else
             break
         end
     end
-    blank_item = get(parser.buf, parser.pos, nothing) === nothing
+    blank_item = eof(parser)
     spaces_after_marker = parser.column - spaces_start_col
     if spaces_after_marker ≥ 5 || spaces_after_marker < 1 || blank_item
         data.padding = length(m.match) + 1
         parser.column = spaces_start_col
         parser.pos = spaces_start_offset
-        if is_space_or_tab(get(parser.buf, parser.pos, '\0'))
+        if is_space_or_tab(trypeek(parser, UInt8, '\0'))
             advance_offset(parser, 1, true)
         end
     else

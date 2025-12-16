@@ -25,7 +25,7 @@ function parse_block_attributes(parser::Parser, container::Node)
             close_unmatched_blocks(parser)
             child = add_child(parser, Attributes(dict, true), parser.next_nonspace)
             child.literal = literal
-            advance_offset(parser, length(parser) - position(parser) + 1, false)
+            advance_to_end(parser)
             return 2
         end
     end
