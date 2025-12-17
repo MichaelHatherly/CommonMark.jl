@@ -12,8 +12,8 @@ This paragraph has **bold text** and *italic text* and ***bold italic*** combine
 Also __double underscore bold__ and _single underscore italic_ and ___triple___.
 Mix them: **bold with *nested italic* inside** and *italic with **nested bold** inside*.
 
-Some `inline code` here and more ``code with `backticks` inside`` there.
-Even ```triple backticks `` with doubles ` and singles``` work.
+Some `inline code` here and more ``x^2 + y^2`` inline math there.
+Even ```code with `` double and ` single backticks``` works.
 
 ## Links and Images
 
@@ -49,6 +49,12 @@ With title: ![Logo](https://example.com/logo.png "Company Logo").
 > And a paragraph after the list.
 
 ## Lists
+
+#### Heading Level 4
+
+##### Heading Level 5
+
+###### Heading Level 6
 
 ### Unordered Lists
 
@@ -92,6 +98,16 @@ With title: ![Logo](https://example.com/logo.png "Company Logo").
       + Another unordered
 
  7. Continue ordered
+
+### Tight Lists
+
+  - Tight item one
+  - Tight item two
+  - Tight item three
+
+ 1. Tight ordered one
+ 2. Tight ordered two
+ 3. Tight ordered three
 
 ### Task Lists
 
@@ -154,7 +170,7 @@ Inline HTML: <strong>bold</strong> and <em>italic</em> and <code>code</code>.
 
 ## Escapes and Special Characters
 
-Escaped characters: \* \_ \` \[ \] \( \) \# \+ \- \. \! \{ \} \|
+Escaped characters: \* \_ \` \[ \] \( \) \# \+ \- \. \! \{ \} \| \\
 
 Backslash line break:\
 This is after a hard break.
@@ -245,6 +261,77 @@ And [another reference][ref2] without title.
 Use “curly quotes” and ‘single quotes’ properly.
 Dashes: en-dash – and em-dash — work.
 Ellipsis… is also handled.
+
+## Setext Headings (normalize to ATX)
+
+# Setext Level 1
+
+## Setext Level 2
+
+## Dollar Math (normalizes to Julia-style)
+
+Inline dollar math: ``x^2 + y^2 = z^2`` in a sentence.
+
+Display math with double dollars:
+
+```math
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+```
+
+## Autolinks
+
+Visit [https://example.com](https://example.com) for more info.
+Email: [user@example.org](mailto:user@example.org) works too.
+
+## Attributes
+
+{#custom-id .highlight}
+### Heading with attributes
+
+A paragraph followed by *emphasized text*{.special} with inline attributes.
+
+{data-value="123" .note}
+> A block quote with attributes.
+
+## Raw Content
+
+Inline raw HTML: <span class="raw"> works.
+
+<div class="special">
+  Raw HTML block content.
+</div>
+
+## Edge Cases
+
+### Empty Elements
+
+>
+
+  -
+
+ 1.
+
+### Links with Special Characters
+
+A [link with parens](https://example.com/path_(with_parens)) in URL.
+
+A [link with spaces](https://example.com/path%20with%20spaces) encoded.
+
+### Empty and Nested Links
+
+A link with [](https://example.com) empty text.
+
+An [![image alt](https://example.com/img.png)](https://example.com) image inside link.
+
+### Deeply Nested Quotes
+
+> Level 1
+>
+> > Level 2
+> >
+> > > Level 3
+> > >
+> > > > Level 4 deeply nested.
 
 ## Final Section
 

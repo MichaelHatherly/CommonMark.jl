@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix table parser not ending on blank lines (consecutive tables merged incorrectly) [#100]
 - Fix markdown writer loose list spacing inconsistency [#100]
 - Fix markdown writer inline code using even backtick counts (conflicted with math syntax) [#100]
+- Fix markdown writer empty list items having trailing whitespace [#100]
 - Fix markdown writer adding unwanted blank lines in tight lists with nested content [#97]
 - Fix markdown writer not escaping quotes in link/image titles [#95]
 - Fix citations author lookup failing for JSON-parsed bibliography data [#93]

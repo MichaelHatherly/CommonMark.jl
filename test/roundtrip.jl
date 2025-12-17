@@ -1,6 +1,7 @@
 @testitem "roundtrip" tags = [:roundtrip] setup = [Utilities] begin
     using CommonMark
     using Test
+    using ReferenceTests
 
     roundtrip_dir = joinpath(@__DIR__, "roundtrip")
 
@@ -27,29 +28,28 @@
     ]
     p = create_parser(extensions)
 
-    for name in readdir(roundtrip_dir)
-        endswith(name, ".md") || continue
-        file = joinpath(roundtrip_dir, name)
+    input_file = joinpath(roundtrip_dir, "input.md")
+    output_file = joinpath(roundtrip_dir, "output.md")
+    ast_file = joinpath(roundtrip_dir, "ast.txt")
 
-        @testset "$name" begin
-            input = read(file, String)
-            input = replace(input, "\r\n" => "\n")
+    input = read(input_file, String)
+    input = replace(input, "\r\n" => "\n")
 
-            ast1 = p(input)
-            output = markdown(ast1)
-            ast2 = p(output)
+    ast_input = p(input)
+    actual_output = markdown(ast_input)
 
-            # Output should match input (file is canonical)
-            @test output == input
+    # Reference test against expected canonical output
+    @test_reference output_file actual_output
 
-            # AST shape should be preserved after roundtrip
-            @test CommonMark.ast_equal(ast1, ast2)
+    # Reference test AST structure
+    @test_reference ast_file sprint(CommonMark.ast_dump, ast_input)
 
-            # No trailing whitespace
-            @test !occursin(r" +\n", output)
+    # Output is stable (already canonical)
+    @test markdown(p(actual_output)) == actual_output
 
-            # No trailing whitespace at end of file (except single newline)
-            @test !occursin(r" +$", output)
-        end
-    end
+    # No trailing whitespace
+    @test !occursin(r" +\n", actual_output)
+
+    # No trailing whitespace at end of file (except single newline)
+    @test !occursin(r" +$", actual_output)
 end

@@ -169,8 +169,8 @@ function write_markdown(item::Item, w, node, enter)
         end
     else
         if isnull(node.first_child)
-            print_margin(w)
-            linebreak(w, node)
+            print_margin_rstrip(w)
+            cr(w)
         end
         pop_margin!(w)
         if !node.parent.t.list_data.tight
