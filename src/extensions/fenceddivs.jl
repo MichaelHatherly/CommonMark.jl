@@ -166,7 +166,7 @@ end
 function write_div_attributes(w, meta)
     classes = get(meta, "class", String[])
     id = get(meta, "id", nothing)
-    other = [(k, v) for (k, v) in meta if k ∉ ("id", "class")]
+    other = sort!([(k, v) for (k, v) in meta if k ∉ ("id", "class")], by = first)
     # Simple case: just classes, no id or other attrs
     if id === nothing && isempty(other) && !isempty(classes)
         if length(classes) == 1
