@@ -8,6 +8,7 @@ makedocs(
         "Home" => "index.md",
         "Core Rules" => "core.md",
         "Extensions" => "extensions.md",
+        "Developing Extensions" => "developing.md",
         "API Reference" => "api.md",
     ],
 )
