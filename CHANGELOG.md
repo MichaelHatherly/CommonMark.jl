@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add internal documentation for writing extension rules [#103]
+- Add AGENTS.md for AI coding assistants [#103]
 - Add Documenter.jl documentation [#102]
 - Add docstrings to all parser rules, writers, and core API [#102]
 - Add roundtrip stability to markdown writer (opinionated formatting with no trailing whitespace) [#100]
@@ -339,3 +341,4 @@ Initial release.
 [#100]: https://github.com/MichaelHatherly/CommonMark.jl/issues/100
 [#101]: https://github.com/MichaelHatherly/CommonMark.jl/issues/101
 [#102]: https://github.com/MichaelHatherly/CommonMark.jl/issues/102
+[#103]: https://github.com/MichaelHatherly/CommonMark.jl/issues/103
