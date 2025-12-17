@@ -27,9 +27,9 @@
     ]
     p = create_parser(extensions)
 
-    for file in readdir(roundtrip_dir; join = true)
-        endswith(file, ".md") || continue
-        name = basename(file)
+    for name in readdir(roundtrip_dir)
+        endswith(name, ".md") || continue
+        file = joinpath(roundtrip_dir, name)
 
         @testset "$name" begin
             input = read(file, String)
