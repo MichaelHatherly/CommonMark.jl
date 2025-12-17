@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add roundtrip stability to markdown writer (opinionated formatting with no trailing whitespace) [#100]
 - Add `FencedDivRule` extension for Pandoc-style fenced divs (`::: class` blocks with nesting) [#99]
 - Add `GitHubAlertRule` extension for GitHub-style alert blockquotes (`> [!NOTE]`, etc.) [#98]
 - Add `ReferenceLinkRule` extension to preserve reference link style in AST [#95]
@@ -19,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix table parser not ending on blank lines (consecutive tables merged incorrectly) [#100]
+- Fix markdown writer loose list spacing inconsistency [#100]
+- Fix markdown writer inline code using even backtick counts (conflicted with math syntax) [#100]
+- Fix markdown writer empty list items having trailing whitespace [#100]
 - Fix markdown writer adding unwanted blank lines in tight lists with nested content [#97]
 - Fix markdown writer not escaping quotes in link/image titles [#95]
 - Fix citations author lookup failing for JSON-parsed bibliography data [#93]
@@ -328,3 +333,4 @@ Initial release.
 [#97]: https://github.com/MichaelHatherly/CommonMark.jl/issues/97
 [#98]: https://github.com/MichaelHatherly/CommonMark.jl/issues/98
 [#99]: https://github.com/MichaelHatherly/CommonMark.jl/issues/99
+[#100]: https://github.com/MichaelHatherly/CommonMark.jl/issues/100

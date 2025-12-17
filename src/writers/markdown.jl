@@ -22,6 +22,20 @@ end
 
 escape_markdown_title(s::AbstractString) = replace(s, "\"" => "\\\"")
 
+# Print margin with trailing whitespace stripped (for blank lines)
+function print_margin_rstrip(w)
+    margin = sprint() do io
+        for seg in w.format.margin
+            if seg.count == 0
+                print(io, ' '^seg.width)
+            else
+                print(io, seg.text)
+            end
+        end
+    end
+    literal(w, rstrip(margin))
+end
+
 function write_markdown(writer::Writer, ast::Node)
     for (node, entering) in ast
         write_markdown(node.t, writer, node, entering)
@@ -31,10 +45,10 @@ end
 function linebreak(w, node)
     if !isnull(node.nxt)
         # Skip in tight lists - Item writer handles loose list spacing
-        if node.parent.t isa Item && node.parent.t.list_data.tight
+        if node.parent.t isa Item && node.parent.parent.t.list_data.tight
             return nothing
         end
-        print_margin(w)
+        print_margin_rstrip(w)
         literal(w, "\n")
     end
     return nothing
@@ -54,12 +68,20 @@ function write_markdown(::Union{SoftBreak,LineBreak}, w, node, ent)
 end
 
 function write_markdown(::Code, w, node, ent)
+    # Find longest consecutive backtick run in content
     num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
         max(a, length(b.match))
     end
-    literal(w, "`"^(num == 1 ? 3 : 1))
-    literal(w, node.literal)
-    literal(w, "`"^(num == 1 ? 3 : 1))
+    # Use next odd number > num (avoid even counts which are math syntax)
+    backticks = num + (isodd(num) ? 2 : 1)
+    content = node.literal
+    # Add space padding if content starts/ends with backtick (avoid merging with delimiter)
+    pad = !isempty(content) && (startswith(content, '`') || endswith(content, '`'))
+    literal(w, "`"^backticks)
+    pad && literal(w, " ")
+    literal(w, content)
+    pad && literal(w, " ")
+    literal(w, "`"^backticks)
 end
 
 write_markdown(::HtmlInline, w, node, ent) = literal(w, node.literal)
@@ -147,11 +169,11 @@ function write_markdown(item::Item, w, node, enter)
         end
     else
         if isnull(node.first_child)
-            print_margin(w)
-            linebreak(w, node)
+            print_margin_rstrip(w)
+            cr(w)
         end
         pop_margin!(w)
-        if !item.list_data.tight
+        if !node.parent.t.list_data.tight
             cr(w)
             linebreak(w, node)
         end
@@ -192,6 +214,9 @@ function write_markdown(::HtmlBlock, w, node, ent)
     for line in eachline(IOBuffer(node.literal); keep = true)
         print_margin(w)
         literal(w, line)
+    end
+    if !isnull(node.nxt)
+        cr(w)
     end
     linebreak(w, node)
 end

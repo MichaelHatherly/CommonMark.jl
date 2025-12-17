@@ -61,7 +61,7 @@ Supported output formats are currently:
 - `latex`
 - `typst`
 - `term`: colourised and Unicode-formatted for display in a terminal.
-- `markdown`
+- `markdown`: roundtrips markdown to a normalized form. Non-configurable formatter in the spirit of `gofmt` and `runic`.
 - `notebook`: [Jupyter](https://jupyter.org/) notebooks.
 
 ## Extensions

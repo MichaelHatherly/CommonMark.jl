@@ -1,0 +1,1 @@
+<table><thead><tr><th align="left">A</th><th align="right">B</th></tr></thead><tbody><tr><td align="left">1</td><td align="right">2</td></tr></tbody></table><table><thead><tr><th align="left">X</th><th align="left">Y</th><th align="left">Z</th></tr></thead><tbody><tr><td align="left">a</td><td align="left">b</td><td align="left">c</td></tr></tbody></table>

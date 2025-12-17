@@ -128,7 +128,7 @@ function write_markdown(a::Admonition, w, node, ent)
             literal(w, " \"$(a.title)\"")
         end
         literal(w, "\n")
-        print_margin(w)
+        print_margin_rstrip(w)
         literal(w, "\n")
     else
         pop_margin!(w)

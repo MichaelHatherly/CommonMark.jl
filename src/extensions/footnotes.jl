@@ -112,6 +112,7 @@ function write_markdown(f::FootnoteDefinition, w, node, ent)
     else
         pop_margin!(w)
         cr(w)
+        linebreak(w, node)
     end
 end
 

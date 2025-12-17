@@ -101,4 +101,23 @@
            """
     ast = p(text)
     test_table("unicode", ast, "tables")
+
+    # Consecutive tables separated by blank line
+    p = create_parser(TableRule())
+    text = """
+           | A | B |
+           |:--|--:|
+           | 1 | 2 |
+
+           | X | Y | Z |
+           |---|---|---|
+           | a | b | c |
+           """
+    ast = p(text)
+    # Should produce two separate tables
+    tables = [n for (n, entering) in ast if entering && n.t isa CommonMark.Table]
+    @test length(tables) == 2
+    @test length(tables[1].t.spec) == 2
+    @test length(tables[2].t.spec) == 3
+    test_table("consecutive", ast, "tables")
 end

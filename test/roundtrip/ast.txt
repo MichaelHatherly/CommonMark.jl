@@ -1,0 +1,1123 @@
+Document
+  Heading
+    Text
+      "Document Title"
+  Heading
+    Text
+      "Introduction"
+  Paragraph
+    Text
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+    Text
+      "."
+    Text
+      " Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+    Text
+      "."
+    Text
+      " Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris"
+    Text
+      "."
+  Paragraph
+    Text
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur"
+    Text
+      "."
+    Text
+      " Excepteur sint occaecat cupidatat non proident"
+    Text
+      "."
+  Heading
+    Text
+      "Text Formatting"
+  Paragraph
+    Text
+      "This paragraph has "
+    Strong
+      Text
+        "bold text"
+    Text
+      " and "
+    Emph
+      Text
+        "italic text"
+    Text
+      " and "
+    Emph
+      Strong
+        Text
+          "bold italic"
+    Text
+      " combined"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "Also "
+    Strong
+      Text
+        "double underscore bold"
+    Text
+      " and "
+    Emph
+      Text
+        "single underscore italic"
+    Text
+      " and "
+    Emph
+      Strong
+        Text
+          "triple"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "Mix them: "
+    Strong
+      Text
+        "bold with "
+      Emph
+        Text
+          "nested italic"
+      Text
+        " inside"
+    Text
+      " and "
+    Emph
+      Text
+        "italic with "
+      Strong
+        Text
+          "nested bold"
+      Text
+        " inside"
+    Text
+      "."
+  Paragraph
+    Text
+      "Some "
+    Code
+      "inline code"
+    Text
+      " here and more "
+    Math
+      "x^2 + y^2"
+    Text
+      " inline math there"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "Even "
+    Code
+      "code with `` double and ` single backticks"
+    Text
+      " works"
+    Text
+      "."
+  Heading
+    Text
+      "Links and Images"
+  Paragraph
+    Text
+      "Here is "
+    Link
+      Text
+        "a simple link"
+    Text
+      " in a sentence"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "And "
+    Link
+      Text
+        "a link with title"
+    Text
+      " too"
+    Text
+      "."
+  Paragraph
+    Text
+      "Images work similarly: "
+    Image
+      Text
+        "Alt text"
+    Text
+      " inline"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "With title: "
+    Image
+      Text
+        "Logo"
+    Text
+      "."
+  Heading
+    Text
+      "Block Quotes"
+  BlockQuote
+    Paragraph
+      Text
+        "This is a simple block quote"
+      Text
+        "."
+      SoftBreak
+        ""
+      Text
+        "It continues on the next line"
+      Text
+        "."
+  BlockQuote
+    Paragraph
+      Text
+        "This block quote has multiple paragraphs"
+      Text
+        "."
+    Paragraph
+      Text
+        "Here is the second paragraph within the quote"
+      Text
+        "."
+    Paragraph
+      Text
+        "And a third for good measure"
+      Text
+        "."
+  BlockQuote
+    Paragraph
+      Text
+        "Nested quotes are possible:"
+    BlockQuote
+      Paragraph
+        Text
+          "This is the inner quote"
+        Text
+          "."
+        SoftBreak
+          ""
+        Text
+          "It can also span lines"
+        Text
+          "."
+    Paragraph
+      Text
+        "Back to outer quote"
+      Text
+        "."
+  BlockQuote
+    Paragraph
+      Text
+        "Block quote with other elements:"
+    List
+      Item
+        Paragraph
+          Text
+            "A list item"
+      Item
+        Paragraph
+          Text
+            "Another item"
+    Paragraph
+      Text
+        "And a paragraph after the list"
+      Text
+        "."
+  Heading
+    Text
+      "Lists"
+  Heading
+    Text
+      "Heading Level 4"
+  Heading
+    Text
+      "Heading Level 5"
+  Heading
+    Text
+      "Heading Level 6"
+  Heading
+    Text
+      "Unordered Lists"
+  List
+    Item
+      Paragraph
+        Text
+          "First item"
+    Item
+      Paragraph
+        Text
+          "Second item"
+    Item
+      Paragraph
+        Text
+          "Third item"
+    Item
+      Paragraph
+        Text
+          "Item with multiple paragraphs"
+        Text
+          "."
+      Paragraph
+        Text
+          "This is the continuation paragraph"
+        Text
+          "."
+    Item
+      Paragraph
+        Text
+          "Another item after that"
+        Text
+          "."
+    Item
+      Paragraph
+        Text
+          "Nested unordered lists:"
+      List
+        Item
+          Paragraph
+            Text
+              "Sub"
+            Text
+              "-"
+            Text
+              "item one"
+        Item
+          Paragraph
+            Text
+              "Sub"
+            Text
+              "-"
+            Text
+              "item two"
+          List
+            Item
+              Paragraph
+                Text
+                  "Deep item one"
+            Item
+              Paragraph
+                Text
+                  "Deep item two"
+        Item
+          Paragraph
+            Text
+              "Back to sub"
+            Text
+              "-"
+            Text
+              "level"
+  Heading
+    Text
+      "Ordered Lists"
+  List
+    Item
+      Paragraph
+        Text
+          "First ordered item"
+    Item
+      Paragraph
+        Text
+          "Second ordered item"
+    Item
+      Paragraph
+        Text
+          "Third ordered item"
+    Item
+      Paragraph
+        Text
+          "Ordered item with paragraph"
+        Text
+          "."
+      Paragraph
+        Text
+          "Continuation of the item"
+        Text
+          "."
+    Item
+      Paragraph
+        Text
+          "Next ordered item"
+        Text
+          "."
+    Item
+      Paragraph
+        Text
+          "Ordered with nested:"
+      List
+        Item
+          Paragraph
+            Text
+              "Unordered inside ordered"
+        Item
+          Paragraph
+            Text
+              "Another unordered"
+    Item
+      Paragraph
+        Text
+          "Continue ordered"
+  Heading
+    Text
+      "Tight Lists"
+  List
+    Item
+      Paragraph
+        Text
+          "Tight item one"
+    Item
+      Paragraph
+        Text
+          "Tight item two"
+    Item
+      Paragraph
+        Text
+          "Tight item three"
+  List
+    Item
+      Paragraph
+        Text
+          "Tight ordered one"
+    Item
+      Paragraph
+        Text
+          "Tight ordered two"
+    Item
+      Paragraph
+        Text
+          "Tight ordered three"
+  Heading
+    Text
+      "Task Lists"
+  List
+    TaskItem
+      Paragraph
+        Text
+          "Unchecked task"
+    TaskItem
+      Paragraph
+        Text
+          "Checked task"
+    TaskItem
+      Paragraph
+        Text
+          "Another unchecked"
+    TaskItem
+      Paragraph
+        Text
+          "Another checked"
+  Heading
+    Text
+      "Code Blocks"
+  Paragraph
+    Text
+      "Indented code block:"
+  CodeBlock
+    "function example()\n    return 42\nend\n"
+  Paragraph
+    Text
+      "Fenced code block with language:"
+  CodeBlock
+    "def hello():\n    print(\"Hello, World!\")\n    return True\n"
+  Paragraph
+    Text
+      "Fenced without language:"
+  CodeBlock
+    "Just plain text\nin a code block.\n"
+  Heading
+    Text
+      "Tables"
+  Table
+    TableHeader
+      TableRow
+        TableCell
+          Text
+            "Name"
+        TableCell
+          Text
+            "Age"
+        TableCell
+          Text
+            "City"
+    TableBody
+      TableRow
+        TableCell
+          Text
+            "Alice"
+        TableCell
+          Text
+            "30"
+        TableCell
+          Text
+            "New York"
+      TableRow
+        TableCell
+          Text
+            "Bob"
+        TableCell
+          Text
+            "25"
+        TableCell
+          Text
+            "Los Angeles"
+      TableRow
+        TableCell
+          Text
+            "Carol"
+        TableCell
+          Text
+            "35"
+        TableCell
+          Text
+            "Chicago"
+  Table
+    TableHeader
+      TableRow
+        TableCell
+          Text
+            "Left"
+        TableCell
+          Text
+            "Center"
+        TableCell
+          Text
+            "Right"
+        TableCell
+          Text
+            "Default"
+    TableBody
+      TableRow
+        TableCell
+          Text
+            "L"
+        TableCell
+          Text
+            "C"
+        TableCell
+          Text
+            "R"
+        TableCell
+          Text
+            "D"
+      TableRow
+        TableCell
+          Text
+            "data"
+        TableCell
+          Text
+            "data"
+        TableCell
+          Text
+            "data"
+        TableCell
+          Text
+            "data"
+  Heading
+    Text
+      "Horizontal Rules"
+  Paragraph
+    Text
+      "Above the rule"
+    Text
+      "."
+  ThematicBreak
+    ""
+  Paragraph
+    Text
+      "Below the rule"
+    Text
+      "."
+  Heading
+    Text
+      "HTML"
+  HtmlBlock
+    "<div class=\"container\">\n<p>Raw HTML paragraph</p>\n</div>"
+  Paragraph
+    Text
+      "Inline HTML: "
+    HtmlInline
+      "<strong>"
+    Text
+      "bold"
+    HtmlInline
+      "</strong>"
+    Text
+      " and "
+    HtmlInline
+      "<em>"
+    Text
+      "italic"
+    HtmlInline
+      "</em>"
+    Text
+      " and "
+    HtmlInline
+      "<code>"
+    Text
+      "code"
+    HtmlInline
+      "</code>"
+    Text
+      "."
+  Heading
+    Text
+      "Escapes and Special Characters"
+  Paragraph
+    Text
+      "Escaped characters: "
+    Backslash
+      ""
+    Text
+      "*"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "_"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "`"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "["
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "]"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "("
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      ")"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "#"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "+"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "-"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "."
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "!"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "{"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "}"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "|"
+    Text
+      " "
+    Backslash
+      ""
+    Text
+      "\\"
+  Paragraph
+    Text
+      "Backslash line break:"
+    Backslash
+      ""
+    LineBreak
+      ""
+    Text
+      "This is after a hard break"
+    Text
+      "."
+  Heading
+    Text
+      "Math"
+  Paragraph
+    Text
+      "Block math:"
+  DisplayMath
+    "\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}"
+  Paragraph
+    Text
+      "Inline math: "
+    Math
+      "E = mc^2"
+    Text
+      " in a sentence"
+    Text
+      "."
+  Heading
+    Text
+      "Admonitions"
+  Admonition
+    Paragraph
+      Text
+        "A simple note admonition"
+      Text
+        "."
+      SoftBreak
+        ""
+      Text
+        "With multiple lines"
+      Text
+        "."
+  Admonition
+    Paragraph
+      Text
+        "Warning with a custom title"
+      Text
+        "."
+  Admonition
+    Paragraph
+      Text
+        "Danger admonition here"
+      Text
+        "."
+    Paragraph
+      Text
+        "With a second paragraph"
+      Text
+        "."
+  Heading
+    Text
+      "Footnotes"
+  Paragraph
+    Text
+      "Here is a sentence with a footnote"
+    FootnoteLink
+      ""
+    Text
+      "."
+  Paragraph
+    Text
+      "Another reference"
+    FootnoteLink
+      ""
+    Text
+      " to a longer note"
+    Text
+      "."
+  FootnoteDefinition
+    Paragraph
+      Text
+        "Simple footnote text"
+      Text
+        "."
+  FootnoteDefinition
+    Paragraph
+      Text
+        "Longer footnote with multiple paragraphs"
+      Text
+        "."
+    Paragraph
+      Text
+        "Second paragraph of the footnote"
+      Text
+        "."
+  Heading
+    Text
+      "GitHub Alerts"
+  GitHubAlert
+    Paragraph
+      Text
+        "This is a note alert"
+      Text
+        "."
+  GitHubAlert
+    Paragraph
+      Text
+        "This is a warning alert"
+      Text
+        "."
+  GitHubAlert
+    Paragraph
+      Text
+        "Helpful tip here"
+      Text
+        "."
+    Paragraph
+      Text
+        "With multiple paragraphs"
+      Text
+        "."
+  Heading
+    Text
+      "Fenced Divs"
+  FencedDiv
+    Paragraph
+      Text
+        "Content inside a fenced div"
+      Text
+        "."
+  FencedDiv
+    Paragraph
+      Text
+        "Multi"
+      Text
+        "-"
+      Text
+        "paragraph div"
+      Text
+        "."
+    Paragraph
+      Text
+        "Second paragraph here"
+      Text
+        "."
+  Heading
+    Text
+      "Strikethrough and Sub/Superscript"
+  Paragraph
+    Text
+      "Text with "
+    Strikethrough
+      Text
+        "strikethrough"
+    Text
+      " words"
+    Text
+      "."
+  Paragraph
+    Text
+      "Water is H"
+    Subscript
+      Text
+        "2"
+    Text
+      "O with subscript"
+    Text
+      "."
+  Paragraph
+    Text
+      "E equals mc"
+    Superscript
+      Text
+        "2"
+    Text
+      " with superscript"
+    Text
+      "."
+  Heading
+    Text
+      "Reference Links"
+  ReferenceDefinition
+    ""
+  ReferenceDefinition
+    ""
+  Paragraph
+    Text
+      "Use "
+    ReferenceLink
+      Text
+        "reference style"
+    Text
+      " links"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "And "
+    ReferenceLink
+      Text
+        "another reference"
+    Text
+      " without title"
+    Text
+      "."
+  Heading
+    Text
+      "Typography"
+  Paragraph
+    Text
+      "Use "
+    Text
+      "“"
+    Text
+      "curly quotes"
+    Text
+      "”"
+    Text
+      " and "
+    Text
+      "‘"
+    Text
+      "single quotes"
+    Text
+      "’"
+    Text
+      " properly"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "Dashes: en"
+    Text
+      "-"
+    Text
+      "dash "
+    Text
+      "–"
+    Text
+      " and em"
+    Text
+      "-"
+    Text
+      "dash "
+    Text
+      "—"
+    Text
+      " work"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "Ellipsis"
+    Text
+      "…"
+    Text
+      " is also handled"
+    Text
+      "."
+  Heading
+    Text
+      "Setext Headings (normalize to ATX)"
+  Heading
+    Text
+      "Setext Level 1"
+  Heading
+    Text
+      "Setext Level 2"
+  Heading
+    Text
+      "Dollar Math (normalizes to Julia"
+    Text
+      "-"
+    Text
+      "style)"
+  Paragraph
+    Text
+      "Inline dollar math: "
+    Math
+      "x^2 + y^2 = z^2"
+    Text
+      " in a sentence"
+    Text
+      "."
+  Paragraph
+    Text
+      "Display math with double dollars:"
+  DisplayMath
+    "\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}"
+  Heading
+    Text
+      "Autolinks"
+  Paragraph
+    Text
+      "Visit "
+    Link
+      Text
+        "https://example.com"
+    Text
+      " for more info"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "Email: "
+    Link
+      Text
+        "user@example.org"
+    Text
+      " works too"
+    Text
+      "."
+  Heading
+    Text
+      "Attributes"
+  Attributes
+    "{#custom-id .highlight}"
+  Heading
+    Text
+      "Heading with attributes"
+  Paragraph
+    Text
+      "A paragraph followed by "
+    Emph
+      Text
+        "emphasized text"
+    Attributes
+      "{.special}"
+    Text
+      " with inline attributes"
+    Text
+      "."
+  Attributes
+    "{data-value=\"123\" .note}"
+  BlockQuote
+    Paragraph
+      Text
+        "A block quote with attributes"
+      Text
+        "."
+  Heading
+    Text
+      "Raw Content"
+  Paragraph
+    Text
+      "Inline raw HTML: "
+    HtmlInline
+      "<span class=\"raw\">"
+    Text
+      " works"
+    Text
+      "."
+  HtmlBlock
+    "<div class=\"special\">\n  Raw HTML block content.\n</div>\n"
+  Heading
+    Text
+      "Edge Cases"
+  Heading
+    Text
+      "Empty Elements"
+  BlockQuote
+  List
+    Item
+  List
+    Item
+  Heading
+    Text
+      "Links with Special Characters"
+  Paragraph
+    Text
+      "A "
+    Link
+      Text
+        "link with parens"
+    Text
+      " in URL"
+    Text
+      "."
+  Paragraph
+    Text
+      "A "
+    Link
+      Text
+        "link with spaces"
+    Text
+      " encoded"
+    Text
+      "."
+  Heading
+    Text
+      "Empty and Nested Links"
+  Paragraph
+    Text
+      "A link with "
+    Link
+    Text
+      " empty text"
+    Text
+      "."
+  Paragraph
+    Text
+      "An "
+    Link
+      Image
+        Text
+          "image alt"
+    Text
+      " image inside link"
+    Text
+      "."
+  Heading
+    Text
+      "Deeply Nested Quotes"
+  BlockQuote
+    Paragraph
+      Text
+        "Level 1"
+    BlockQuote
+      Paragraph
+        Text
+          "Level 2"
+      BlockQuote
+        Paragraph
+          Text
+            "Level 3"
+        BlockQuote
+          Paragraph
+            Text
+              "Level 4 deeply nested"
+            Text
+              "."
+  Heading
+    Text
+      "Final Section"
+  Paragraph
+    Text
+      "This document covers most CommonMark and extension syntax"
+    Text
+      "."
+    SoftBreak
+      ""
+    Text
+      "It serves as a comprehensive roundtrip test file"
+    Text
+      "."
+  Paragraph
+    Text
+      "The end"
+    Text
+      "."

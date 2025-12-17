@@ -76,6 +76,36 @@ copy_tree(root::Node) = copy_tree(identity, root)
 const NULL_NODE = Node()
 isnull(node::Node) = node === NULL_NODE
 
+"""
+    container_equal(a::AbstractContainer, b::AbstractContainer)
+
+Compare two container types for equality, checking type and all fields.
+"""
+container_equal(a::T, b::T) where {T<:AbstractContainer} =
+    all(getfield(a, f) == getfield(b, f) for f in fieldnames(T))
+container_equal(::AbstractContainer, ::AbstractContainer) = false
+
+"""
+    ast_equal(a::Node, b::Node)
+
+Compare two AST nodes for structural equality. Ignores source positions and
+parser state, comparing only the semantic content: container types, literals,
+and tree structure.
+"""
+function ast_equal(a::Node, b::Node)
+    isnull(a) && isnull(b) && return true
+    (isnull(a) || isnull(b)) && return false
+    container_equal(a.t, b.t) || return false
+    a.literal == b.literal || return false
+    # Compare children
+    ca, cb = a.first_child, b.first_child
+    while !isnull(ca) && !isnull(cb)
+        ast_equal(ca, cb) || return false
+        ca, cb = ca.nxt, cb.nxt
+    end
+    isnull(ca) && isnull(cb)
+end
+
 is_container(node::Node) = is_container(node.t)::Bool
 
 Base.show(io::IO, node::Node) = print(io, "Node($(typeof(node.t)))")
