@@ -10,7 +10,7 @@ struct Table <: TableComponent
     Table(spec) = new(spec)
 end
 
-continue_(table::Table, parser::Parser, container::Node) = 0
+continue_(::Table, parser::Parser, ::Node) = parser.blank ? 1 : 0
 
 struct TableHeader <: TableComponent end
 

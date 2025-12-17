@@ -116,4 +116,16 @@
     md = markdown(ast)
     @test occursin("\\\"", md)  # quotes escaped
     @test markdown(p(md)) == md  # roundtrip works
+
+    # Inline code backtick handling - use odd counts to avoid math syntax
+    # No backticks in content → single backtick delimiter
+    @test markdown(p("`simple`")) == "`simple`\n"
+    # Single backtick in content → triple delimiter with padding
+    @test markdown(p("`` `tick` ``")) == "``` `tick` ```\n"
+    # Double backticks in content → triple delimiter (no edge backticks, no padding)
+    @test markdown(p("``` ``ticks`` ```")) == "``` ``ticks`` ```\n"
+    # Triple backticks in content → 5 delimiter with padding
+    @test markdown(p("````` ```ticks``` `````")) == "````` ```ticks``` `````\n"
+    # Mixed single and double → triple (max run is 2), no edge backticks
+    @test markdown(p("``` `` and ` ```")) == "``` `` and ` ```\n"
 end
