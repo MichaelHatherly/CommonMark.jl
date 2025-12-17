@@ -240,7 +240,9 @@ function attributes(r, n, out = [])
         end
     end
     for each in (out, n.meta)
-        for (key, value) in each
+        # Sort Dict keys for deterministic attribute ordering across Julia versions
+        pairs_iter = each isa AbstractDict ? sort!(collect(each), by = first) : each
+        for (key, value) in pairs_iter
             value = isa(value, AbstractString) ? value : join(value, " ")
             if haskey(dict, key)
                 dict[key] = "$(dict[key]) $value"
