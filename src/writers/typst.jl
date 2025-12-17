@@ -5,6 +5,21 @@ function Base.show(io::IO, ::MIME"text/typst", ast::Node, env = Dict{String,Any}
     write_typst(writer, ast)
     return nothing
 end
+"""
+    typst(ast::Node) -> String
+    typst(filename::String, ast::Node)
+    typst(io::IO, ast::Node)
+
+Render a CommonMark AST to Typst markup.
+
+# Examples
+
+```julia
+p = Parser()
+ast = p("# Hello\\n\\nWorld")
+typst(ast)
+```
+"""
 typst(args...) = writer(MIME"text/typst"(), args...)
 
 # Internals.

@@ -1,3 +1,18 @@
+"""
+    AutoIdentifierRule()
+
+Automatically generate IDs for headings.
+
+Not enabled by default. IDs are slugified from heading text. Duplicate IDs
+get numeric suffixes. Headings with explicit IDs (via [`AttributeRule`](@ref))
+are preserved.
+
+```markdown
+# My Heading        → <h1 id="my-heading">
+# My Heading        → <h1 id="my-heading-1"> (duplicate)
+# Custom {#my-id}   → <h1 id="my-id"> (with AttributeRule)
+```
+"""
 struct AutoIdentifierRule
     refs::IdDict{Node,Dict{String,Int}}
     AutoIdentifierRule(refs = IdDict()) = new(refs)

@@ -83,6 +83,25 @@ function parse_table_spec(str)
     end
 end
 
+"""
+    TableRule()
+
+Parse GitHub Flavored Markdown pipe tables.
+
+Not enabled by default. Tables use `|` to separate columns and require a
+header separator row.
+
+```markdown
+| Header 1 | Header 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+```
+
+Alignment can be specified with `:` in the separator row:
+- `:---` left align
+- `:---:` center align
+- `---:` right align
+"""
 struct TableRule
     pipes::Vector{Node}
     TableRule() = new([])

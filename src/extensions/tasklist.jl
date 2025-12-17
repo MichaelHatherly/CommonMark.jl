@@ -11,6 +11,20 @@ is_container(::TaskItem) = true
 accepts_lines(::TaskItem) = false
 can_contain(::TaskItem, t) = !(t isa Item) && !(t isa TaskItem)
 
+"""
+    TaskListRule()
+
+Parse GitHub-style task list items.
+
+Not enabled by default. Converts list items starting with `[ ]` or `[x]` into
+interactive checkboxes in HTML output.
+
+```markdown
+- [ ] Unchecked item
+- [x] Checked item
+- Regular item
+```
+"""
 struct TaskListRule end
 
 block_modifier(::TaskListRule) =

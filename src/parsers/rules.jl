@@ -44,6 +44,27 @@ enable!(p::AbstractParser, fn, rules::Union{Tuple,Vector}) =
     (foreach(r -> enable!(p, fn, r), rules); p)
 enable!(p::AbstractParser, fn, rule) = enable!(p, fn, fn(rule))
 
+"""
+    enable!(parser, rule)
+    enable!(parser, rules)
+
+Enable a parsing rule or collection of rules in the parser.
+
+Rules can be core CommonMark rules (e.g., [`AtxHeadingRule`](@ref)) or extension
+rules (e.g., [`TableRule`](@ref), [`AdmonitionRule`](@ref)).
+
+Returns the parser for method chaining.
+
+# Examples
+
+```julia
+p = Parser()
+enable!(p, TableRule())
+enable!(p, [FootnoteRule(), AdmonitionRule()])
+```
+
+See also: [`disable!`](@ref), [`Parser`](@ref)
+"""
 function enable!(p::AbstractParser, rule)
     if ruleoccursin(rule, p.rules)
         error("$rule is already enabled in the parser")
@@ -78,6 +99,27 @@ get_funcs(p, ::typeof(inline_rule), c) =
 get_funcs(p, ::typeof(block_modifier), _) = p.modifiers
 get_funcs(p, ::typeof(inline_modifier), _) = p.inline_parser.modifiers
 
+"""
+    disable!(parser, rule)
+    disable!(parser, rules)
+
+Disable a parsing rule or collection of rules from the parser.
+
+This removes the specified rules and re-enables all remaining rules.
+Useful for removing default CommonMark behavior.
+
+Returns the parser for method chaining.
+
+# Examples
+
+```julia
+p = Parser()
+disable!(p, SetextHeadingRule())  # Only allow ATX-style headings
+disable!(p, [HtmlBlockRule(), HtmlInlineRule()])  # Disable raw HTML
+```
+
+See also: [`enable!`](@ref), [`Parser`](@ref)
+"""
 function disable!(p::AbstractParser, rules::Union{Tuple,Vector})
     rules_kept = filter(!ruleoccursin(rules), p.rules)
     empty!(p.priorities)

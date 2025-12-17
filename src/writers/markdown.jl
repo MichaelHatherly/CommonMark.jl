@@ -5,6 +5,24 @@ function Base.show(io::IO, ::MIME"text/markdown", ast::Node, env = Dict{String,A
     write_markdown(writer, ast)
     return nothing
 end
+"""
+    markdown(ast::Node) -> String
+    markdown(filename::String, ast::Node)
+    markdown(io::IO, ast::Node)
+
+Render a CommonMark AST back to Markdown text.
+
+Useful for normalizing Markdown formatting or for roundtrip testing.
+Output uses opinionated formatting with no trailing whitespace.
+
+# Examples
+
+```julia
+p = Parser()
+ast = p("# Hello\\n\\nWorld")
+markdown(ast)  # "# Hello\\n\\nWorld\\n"
+```
+"""
 markdown(args...) = writer(MIME"text/markdown"(), args...)
 
 # Internals.

@@ -6,6 +6,17 @@ struct Subscript <: AbstractInline end
 
 is_container(::Subscript) = true
 
+"""
+    SubscriptRule()
+
+Parse subscript text (`~subscript~`).
+
+Not enabled by default. Uses single tildes to mark subscript text.
+
+```markdown
+H~2~O renders as H₂O
+```
+"""
 struct SubscriptRule end
 
 inline_rule(::SubscriptRule) = Rule(parse_tilde, 1, "~")

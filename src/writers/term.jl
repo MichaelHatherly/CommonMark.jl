@@ -9,6 +9,24 @@ function Base.show(io::IO, ::MIME"text/plain", ast::Node, env = Dict{String,Any}
     write(writer.buffer, take!(writer.format.buffer))
     return nothing
 end
+"""
+    term(ast::Node) -> String
+    term(filename::String, ast::Node)
+    term(io::IO, ast::Node)
+
+Render a CommonMark AST for terminal display with ANSI formatting.
+
+Includes colored syntax highlighting for code blocks when a highlighter
+is configured.
+
+# Examples
+
+```julia
+p = Parser()
+ast = p("# Hello\\n\\n**World**")
+term(ast)  # Returns ANSI-formatted string
+```
+"""
 term(args...) = writer(MIME"text/plain"(), args...)
 
 # Internals.

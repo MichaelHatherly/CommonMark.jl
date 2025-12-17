@@ -272,6 +272,17 @@ function process_emphasis(parser::InlineParser, stack_bottom)
 end
 process_emphasis(parser::InlineParser, ::Node) = process_emphasis(parser, nothing)
 
+"""
+    AsteriskEmphasisRule()
+
+Parse emphasis using asterisks (`*` and `**`).
+
+Enabled by default. Single for italic, double for bold.
+
+```markdown
+*italic* and **bold** and ***both***
+```
+"""
 struct AsteriskEmphasisRule end
 inline_rule(::AsteriskEmphasisRule) = Rule(parse_asterisk, 1, "*")
 inline_modifier(::AsteriskEmphasisRule) = Rule(process_emphasis, 1)
@@ -279,6 +290,17 @@ delim_nodes(::AsteriskEmphasisRule) = Dict(('*', 1) => Emph, ('*', 2) => Strong)
 flanking_rule(::AsteriskEmphasisRule) = ('*', :standard)
 uses_odd_match(::AsteriskEmphasisRule) = '*'
 
+"""
+    UnderscoreEmphasisRule()
+
+Parse emphasis using underscores (`_` and `__`).
+
+Enabled by default. Single for italic, double for bold.
+
+```markdown
+_italic_ and __bold__ and ___both___
+```
+"""
 struct UnderscoreEmphasisRule end
 inline_rule(::UnderscoreEmphasisRule) = Rule(parse_underscore, 1, "_")
 inline_modifier(::UnderscoreEmphasisRule) = Rule(process_emphasis, 1)

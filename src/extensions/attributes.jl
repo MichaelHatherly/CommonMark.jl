@@ -1,3 +1,19 @@
+"""
+    AttributeRule()
+
+Parse attribute syntax to attach metadata to elements.
+
+Not enabled by default. Uses `{#id .class key=value}` syntax after elements.
+
+```markdown
+# Heading {#custom-id .highlight}
+
+Paragraph with attributes.
+{.note}
+
+[Link](url){target=_blank}
+```
+"""
 struct AttributeRule
     nodes::Vector{Node}
     AttributeRule() = new([])

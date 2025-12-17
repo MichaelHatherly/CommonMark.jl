@@ -18,5 +18,20 @@ function thematic_break(p::Parser, container::Node)
     return 0
 end
 
+"""
+    ThematicBreakRule()
+
+Parse thematic breaks (horizontal rules).
+
+Enabled by default. Requires 3+ of `*`, `-`, or `_` characters.
+
+```markdown
+***
+
+---
+
+___
+```
+"""
 struct ThematicBreakRule end
 block_rule(::ThematicBreakRule) = Rule(thematic_break, 6, "*-_")

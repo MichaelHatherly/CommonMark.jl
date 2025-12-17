@@ -48,6 +48,25 @@ function parse_front_matter(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    FrontMatterRule(; yaml=identity, toml=identity, json=identity)
+
+Parse YAML, TOML, or JSON front matter at document start.
+
+Not enabled by default. Front matter is delimited by `---` (YAML), `+++` (TOML),
+or `;;;` (JSON). Pass parser functions for each format.
+
+```markdown
+---
+title: My Document
+author: Jane Doe
+---
+
+Document content here.
+```
+
+Use [`frontmatter`](@ref) to extract the parsed data.
+"""
 struct FrontMatterRule
     json::Function
     toml::Function

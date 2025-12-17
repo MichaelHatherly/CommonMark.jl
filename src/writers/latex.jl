@@ -5,6 +5,21 @@ function Base.show(io::IO, ::MIME"text/latex", ast::Node, env = Dict{String,Any}
     write_latex(writer, ast)
     return nothing
 end
+"""
+    latex(ast::Node) -> String
+    latex(filename::String, ast::Node)
+    latex(io::IO, ast::Node)
+
+Render a CommonMark AST to LaTeX.
+
+# Examples
+
+```julia
+p = Parser()
+ast = p("# Hello\\n\\nWorld")
+latex(ast)  # "\\\\section{Hello}\\n\\nWorld\\n"
+```
+"""
 latex(args...) = writer(MIME"text/latex"(), args...)
 
 # Internals.

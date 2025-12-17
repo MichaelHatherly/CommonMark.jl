@@ -268,9 +268,37 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
     return position(parser) - startpos
 end
 
+"""
+    LinkRule()
+
+Parse inline and reference links.
+
+Enabled by default. Supports both inline `[text](url)` and reference `[text][ref]` styles.
+
+```markdown
+[inline link](https://example.com)
+[reference link][ref]
+
+[ref]: https://example.com
+```
+"""
 struct LinkRule end
 inline_rule(::LinkRule) =
     (Rule(parse_open_bracket, 1, "["), Rule(parse_close_bracket, 1, "]"))
 
+"""
+    ImageRule()
+
+Parse inline and reference images.
+
+Enabled by default. Same syntax as links but prefixed with `!`.
+
+```markdown
+![alt text](image.png)
+![alt text][ref]
+
+[ref]: image.png
+```
+"""
 struct ImageRule end
 inline_rule(::ImageRule) = (Rule(parse_bang, 1, "!"), inline_rule(LinkRule())...)

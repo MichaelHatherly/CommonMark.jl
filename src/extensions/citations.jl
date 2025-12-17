@@ -5,6 +5,20 @@ end
 
 struct CitationBracket <: AbstractBlock end
 
+"""
+    CitationRule()
+
+Parse citation references using `@key` or `[@key]` syntax.
+
+Not enabled by default. Citations can be bare (`@smith2020`) or bracketed
+(`[@smith2020]`). Requires a bibliography to be configured for rendering.
+
+```markdown
+According to @smith2020, this is true.
+
+Multiple citations: [@smith2020; @jones2021]
+```
+"""
 struct CitationRule
     cites::Vector{Node}
     CitationRule() = new([])

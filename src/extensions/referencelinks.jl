@@ -1,5 +1,22 @@
 # Extension for preserving reference links in AST
 
+"""
+    ReferenceLinkRule()
+
+Preserve reference link style in the AST.
+
+Not enabled by default. By default, reference links are resolved to inline
+links during parsing. This rule preserves the original reference style
+(full, collapsed, or shortcut) for roundtrip rendering.
+
+```markdown
+[full style][ref]
+[collapsed style][]
+[shortcut style]
+
+[ref]: https://example.com
+```
+"""
 struct ReferenceLinkRule end
 
 # AST types

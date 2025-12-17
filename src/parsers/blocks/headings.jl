@@ -35,6 +35,19 @@ function atx_heading(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    AtxHeadingRule()
+
+Parse ATX-style headings (`# Heading`).
+
+Enabled by default. Supports levels 1-6 with corresponding number of `#` characters.
+
+```markdown
+# Heading 1
+## Heading 2
+### Heading 3
+```
+"""
 struct AtxHeadingRule end
 block_rule(::AtxHeadingRule) = Rule(atx_heading, 2, "#")
 
@@ -69,5 +82,20 @@ function setext_heading(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    SetextHeadingRule()
+
+Parse setext-style headings (underlined with `=` or `-`).
+
+Enabled by default. Only supports levels 1 and 2.
+
+```markdown
+Heading 1
+=========
+
+Heading 2
+---------
+```
+"""
 struct SetextHeadingRule end
 block_rule(::SetextHeadingRule) = Rule(setext_heading, 5, "-=")

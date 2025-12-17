@@ -71,6 +71,26 @@ function parse_div_attributes(s::AbstractString)
     end
 end
 
+"""
+    FencedDivRule()
+
+Parse Pandoc-style fenced divs (`::: class` blocks).
+
+Not enabled by default. Creates generic container elements with CSS classes.
+Divs can be nested by using more colons.
+
+```markdown
+::: warning
+This is a warning div.
+:::
+
+:::: outer
+::: inner
+Nested divs.
+:::
+::::
+```
+"""
 struct FencedDivRule end
 block_rule(::FencedDivRule) = Rule(parse_fenced_div, 0.5, ":")
 

@@ -33,6 +33,22 @@ function parse_admonition(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    AdmonitionRule()
+
+Parse admonition blocks (notes, warnings, tips, etc.).
+
+Not enabled by default. Uses `!!!` syntax with a category and optional title.
+
+```markdown
+!!! note "Custom Title"
+    This is an admonition block.
+    It can contain multiple paragraphs.
+
+!!! warning
+    Default title is the category name.
+```
+"""
 struct AdmonitionRule end
 block_rule(::AdmonitionRule) = Rule(parse_admonition, 0.5, "!")
 

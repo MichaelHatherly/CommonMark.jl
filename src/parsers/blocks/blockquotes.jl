@@ -36,5 +36,18 @@ function block_quote(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    BlockQuoteRule()
+
+Parse block quotes (`> quoted text`).
+
+Enabled by default. Block quotes can be nested and contain other block elements.
+
+```markdown
+> This is a block quote.
+>
+> > Nested quote.
+```
+"""
 struct BlockQuoteRule end
 block_rule(::BlockQuoteRule) = Rule(block_quote, 1, ">")

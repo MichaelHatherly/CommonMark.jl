@@ -21,6 +21,30 @@ const reClosingCodeFence = r"^(?:`{3,}|~{3,})(?= *$)"
 const reSetextHeadingLine = r"^(?:=+|-+)[ \t]*$"
 const reLineEnding = r"\r\n|\n|\r"
 
+"""
+    Parser()
+
+Create a CommonMark parser with default block and inline rules enabled.
+
+The parser can be called directly on a string to produce an AST, which can then
+be rendered to various output formats using [`html`](@ref), [`latex`](@ref),
+[`term`](@ref), [`markdown`](@ref), [`notebook`](@ref), or [`typst`](@ref).
+
+# Examples
+
+```julia
+p = Parser()
+ast = p("# Hello\\n\\nWorld")
+html(ast)  # "<h1>Hello</h1>\\n<p>World</p>\\n"
+```
+
+Use [`enable!`](@ref) and [`disable!`](@ref) to customize which rules are active.
+
+```julia
+p = Parser()
+enable!(p, TableRule())
+```
+"""
 mutable struct Parser <: AbstractParser
     doc::Node
     block_starts::Dict{Char,Vector{Function}}
