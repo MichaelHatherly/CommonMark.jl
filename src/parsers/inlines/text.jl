@@ -37,6 +37,19 @@ end
 struct NewlineRule end
 inline_rule(::NewlineRule) = Rule(parse_newline, 1, "\n")
 
+"""
+    TypographyRule(; double_quotes=true, single_quotes=true, ellipses=true, dashes=true)
+
+Convert ASCII punctuation to typographic equivalents.
+
+Not enabled by default. Converts:
+- `"..."` to "..." (curly double quotes)
+- `'...'` to '...' (curly single quotes)
+- `...` to … (ellipsis)
+- `--` to – and `---` to — (en/em dashes)
+
+Disable specific conversions with keyword arguments.
+"""
 struct TypographyRule
     double_quotes::Bool
     single_quotes::Bool

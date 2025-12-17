@@ -12,6 +12,25 @@ const RAW_CONTENT_DEFAULTS = Dict(
     "typst_block" => TypstBlock,
 )
 
+"""
+    RawContentRule(; formats...)
+
+Parse format-specific raw content blocks.
+
+Not enabled by default. Uses `` `content`{=format} `` syntax for inline and
+fenced blocks with `{=format}` for blocks. The `_inline` or `_block` suffix
+is added automatically based on context.
+
+```markdown
+`<span>html</span>`{=html}
+
+```{=latex}
+\\textbf{LaTeX content}
+```
+```
+
+Default formats: `html`, `latex`, `typst`.
+"""
 struct RawContentRule
     formats::Dict{String,Any}
     function RawContentRule(; formats...)

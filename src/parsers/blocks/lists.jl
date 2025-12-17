@@ -175,5 +175,20 @@ function list_item(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    ListItemRule()
+
+Parse list items (bulleted and ordered lists).
+
+Enabled by default. Supports `-`, `+`, `*` for bullets and `1.`, `1)` for ordered.
+
+```markdown
+- Item one
+- Item two
+
+1. First
+2. Second
+```
+"""
 struct ListItemRule end
 block_rule(::ListItemRule) = Rule(list_item, 7, "1234567890-+*")

@@ -91,6 +91,19 @@ function fenced_code_block(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    FencedCodeBlockRule()
+
+Parse fenced code blocks (triple backticks or tildes).
+
+Enabled by default. Supports optional language identifier.
+
+````markdown
+```julia
+println("Hello")
+```
+````
+"""
 struct FencedCodeBlockRule end
 block_rule(::FencedCodeBlockRule) = Rule(fenced_code_block, 3, "`~")
 
@@ -105,5 +118,17 @@ function indented_code_block(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    IndentedCodeBlockRule()
+
+Parse indented code blocks (4 spaces or 1 tab).
+
+Enabled by default.
+
+```markdown
+    code here
+    more code
+```
+"""
 struct IndentedCodeBlockRule end
 block_rule(::IndentedCodeBlockRule) = Rule(indented_code_block, 8, "")

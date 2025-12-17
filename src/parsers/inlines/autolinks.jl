@@ -23,5 +23,17 @@ function parse_autolink(parser::InlineParser, block::Node)
     return false
 end
 
+"""
+    AutolinkRule()
+
+Parse autolinks (`<url>` and `<email@example.com>`).
+
+Enabled by default. URLs must include a scheme.
+
+```markdown
+<https://example.com>
+<user@example.com>
+```
+"""
 struct AutolinkRule end
 inline_rule(::AutolinkRule) = Rule(parse_autolink, 1, "<")

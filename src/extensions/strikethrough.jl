@@ -6,6 +6,17 @@ struct Strikethrough <: AbstractInline end
 
 is_container(::Strikethrough) = true
 
+"""
+    StrikethroughRule()
+
+Parse strikethrough text (`~~deleted~~`).
+
+Not enabled by default. Uses double tildes to mark deleted text.
+
+```markdown
+~~This text is struck through.~~
+```
+"""
 struct StrikethroughRule end
 
 parse_tilde(parser, block) = handle_delim(parser, '~', block)

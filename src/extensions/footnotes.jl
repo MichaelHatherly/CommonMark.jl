@@ -1,3 +1,16 @@
+"""
+    FootnoteRule()
+
+Parse footnote definitions and references.
+
+Not enabled by default. Define footnotes with `[^id]:` and reference with `[^id]`.
+
+```markdown
+Here is a footnote reference[^1].
+
+[^1]: This is the footnote content.
+```
+"""
 struct FootnoteRule
     cache::Dict{String,Node}
     FootnoteRule() = new(Dict())

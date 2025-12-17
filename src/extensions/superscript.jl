@@ -6,6 +6,17 @@ struct Superscript <: AbstractInline end
 
 is_container(::Superscript) = true
 
+"""
+    SuperscriptRule()
+
+Parse superscript text (`^superscript^`).
+
+Not enabled by default. Uses carets to mark superscript text.
+
+```markdown
+x^2^ renders as x²
+```
+"""
 struct SuperscriptRule end
 
 parse_caret(parser, block) = handle_delim(parser, '^', block)

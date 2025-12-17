@@ -20,6 +20,22 @@ const GITHUB_ALERT_TYPES = Dict(
     "caution" => "Caution",
 )
 
+"""
+    GitHubAlertRule()
+
+Parse GitHub-style alert blockquotes.
+
+Not enabled by default. Converts blockquotes starting with `[!TYPE]` into
+styled alert boxes. Supported types: NOTE, TIP, IMPORTANT, WARNING, CAUTION.
+
+```markdown
+> [!NOTE]
+> This is a note alert.
+
+> [!WARNING]
+> This is a warning alert.
+```
+"""
 struct GitHubAlertRule end
 
 block_modifier(::GitHubAlertRule) =

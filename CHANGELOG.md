@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add Documenter.jl documentation [#102]
+- Add docstrings to all parser rules, writers, and core API [#102]
 - Add roundtrip stability to markdown writer (opinionated formatting with no trailing whitespace) [#100]
 - Add `FencedDivRule` extension for Pandoc-style fenced divs (`::: class` blocks with nesting) [#99]
 - Add `GitHubAlertRule` extension for GitHub-style alert blockquotes (`> [!NOTE]`, etc.) [#98]
@@ -336,3 +338,4 @@ Initial release.
 [#99]: https://github.com/MichaelHatherly/CommonMark.jl/issues/99
 [#100]: https://github.com/MichaelHatherly/CommonMark.jl/issues/100
 [#101]: https://github.com/MichaelHatherly/CommonMark.jl/issues/101
+[#102]: https://github.com/MichaelHatherly/CommonMark.jl/issues/102

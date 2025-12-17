@@ -58,6 +58,30 @@ const TEMPLATES = Dict{String,String}()
 recursive_merge(ds::AbstractDict...) = merge(recursive_merge, ds...)
 recursive_merge(args...) = last(args)
 
+"""
+    frontmatter(ast::Node) -> Dict{String,Any}
+
+Extract front matter data from a parsed document.
+
+Returns an empty dictionary if no front matter is present. Requires
+[`FrontMatterRule`](@ref) to be enabled during parsing. Supports YAML (`---`),
+TOML (`+++`), and JSON (`;;;`) delimiters.
+
+# Examples
+
+```julia
+p = Parser()
+enable!(p, FrontMatterRule(yaml=YAML.load))
+ast = p(\"\"\"
+---
+title: My Document
+author: Jane Doe
+---
+# Content
+\"\"\")
+frontmatter(ast)  # Dict("title" => "My Document", "author" => "Jane Doe")
+```
+"""
 frontmatter(n::Node) = has_frontmatter(n) ? n.first_child.t.data : Dict{String,Any}()
 has_frontmatter(n::Node) = !isnull(n.first_child) && n.first_child.t isa FrontMatter
 

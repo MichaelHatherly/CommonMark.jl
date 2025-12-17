@@ -38,5 +38,16 @@ function normalize_inline_code(str::AbstractString)
     return str
 end
 
+"""
+    InlineCodeRule()
+
+Parse inline code spans (backtick-delimited).
+
+Enabled by default. Uses matching backtick counts for nesting.
+
+```markdown
+Use `code` inline or `` `backticks` `` inside.
+```
+"""
 struct InlineCodeRule end
 inline_rule(::InlineCodeRule) = Rule(parse_backticks, 1, "`")

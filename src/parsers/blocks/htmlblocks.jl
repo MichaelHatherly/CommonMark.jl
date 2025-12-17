@@ -32,5 +32,18 @@ function html_block(parser::Parser, container::Node)
     return 0
 end
 
+"""
+    HtmlBlockRule()
+
+Parse raw HTML blocks.
+
+Enabled by default. Recognizes common HTML tags and passes them through unchanged.
+
+```markdown
+<div class="warning">
+  <p>Raw HTML content</p>
+</div>
+```
+"""
 struct HtmlBlockRule end
 block_rule(::HtmlBlockRule) = Rule(html_block, 4, "<>")

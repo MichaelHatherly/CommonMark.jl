@@ -40,6 +40,23 @@ function handle_fenced_math_block(node::Node, info, source)
     node.literal = strip(source, '\n')
 end
 
+"""
+    MathRule()
+
+Parse LaTeX math in double-backtick code spans and fenced code blocks.
+
+Not enabled by default. Inline math uses double backticks (``` ``...`` ```),
+display math uses ``` ```math ``` fenced blocks.
+
+````markdown
+Inline: ``E = mc^2``
+
+Display:
+```math
+\\int_0^\\infty e^{-x^2} dx
+```
+````
+"""
 struct MathRule end
 block_modifier(::MathRule) =
     Rule(1.5) do parser, node
@@ -55,6 +72,22 @@ inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
 # Dollar math
 #
 
+"""
+    DollarMathRule()
+
+Parse LaTeX math with dollar sign delimiters (without backticks).
+
+Not enabled by default. Inline math uses `\$...\$`, display math uses `\$\$...\$\$`.
+
+```markdown
+Inline: \$E = mc^2\$
+
+Display:
+\$\$
+\\int_0^\\infty e^{-x^2} dx
+\$\$
+```
+"""
 struct DollarMathRule end
 
 function parse_block_dollar_math(p::Parser, node::Node)

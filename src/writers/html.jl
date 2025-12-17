@@ -5,6 +5,27 @@ function Base.show(io::IO, ::MIME"text/html", ast::Node, env = Dict{String,Any}(
     write_html(writer, ast)
     return nothing
 end
+"""
+    html(ast::Node) -> String
+    html(filename::String, ast::Node)
+    html(io::IO, ast::Node)
+
+Render a CommonMark AST to HTML.
+
+# Keyword Arguments
+
+- `softbreak::String = "\\n"`: String to use for soft line breaks
+- `safe::Bool = false`: Escape potentially unsafe HTML content
+- `sourcepos::Bool = false`: Include source position data attributes
+
+# Examples
+
+```julia
+p = Parser()
+ast = p("# Hello\\n\\nWorld")
+html(ast)  # "<h1>Hello</h1>\\n<p>World</p>\\n"
+```
+"""
 html(args...; kws...) = writer(MIME"text/html"(), args...; kws...)
 
 # Internals.

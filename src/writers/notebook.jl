@@ -30,6 +30,24 @@ function Base.show(
     _json(io, json)
     return nothing
 end
+"""
+    notebook(ast::Node) -> String
+    notebook(filename::String, ast::Node)
+    notebook(io::IO, ast::Node)
+
+Render a CommonMark AST to a Jupyter notebook (`.ipynb` format).
+
+Code blocks are converted to code cells, and other content becomes
+Markdown cells.
+
+# Examples
+
+```julia
+p = Parser()
+ast = p("# Title\\n\\n```julia\\nprintln(\\"Hello\\")\\n```")
+notebook("output.ipynb", ast)
+```
+"""
 notebook(args...) = writer(MIME"application/x-ipynb+json"(), args...)
 
 # Internal.
