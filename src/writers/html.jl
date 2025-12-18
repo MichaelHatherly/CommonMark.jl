@@ -155,10 +155,10 @@ function write_html(::Heading, r, n, ent)
         tag(r, tagname, attrs)
         # Insert auto-generated anchor Links for all Headings with IDs.
         # The Link is not added to the document's AST.
-        if haskey(n.meta, "id")
+        if hasmeta(n, "id")
             anchor = Node(Link())
-            anchor.t.destination = "#" * n.meta["id"]
-            anchor.meta["class"] = ["anchor"]
+            anchor.t.destination = "#" * getmeta(n, "id", "")
+            setmeta!(anchor, "class", ["anchor"])
             write_html(r, anchor)
         end
     else
@@ -260,7 +260,7 @@ function attributes(r, n, out = [])
             end
         end
     end
-    for each in (out, n.meta)
+    for each in (out, something(n.meta, ()))
         # Sort Dict keys for deterministic attribute ordering across Julia versions
         pairs_iter = each isa AbstractDict ? sort!(collect(each), by = first) : each
         for (key, value) in pairs_iter

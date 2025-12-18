@@ -77,7 +77,7 @@ struct References <: AbstractBlock end
 block_modifier(::CitationRule) =
     Rule(10) do parser, b
         if !isnull(b.parent) && b.parent.t isa Document
-            if haskey(b.meta, "id") && b.meta["id"] == "refs"
+            if hasmeta(b, "id") && getmeta(b, "id", "") == "refs"
                 insert_after(b, Node(References()))
             end
         end
@@ -160,7 +160,7 @@ build_references(::Nothing) = Node(ReferenceList())
 
 function build_reference(item::AbstractDict)
     paragraph = Node(Paragraph())
-    paragraph.meta["id"] = "ref-$(get(item, "id", ""))"
+    setmeta!(paragraph, "id", "ref-$(get(item, "id", ""))")
     # Authors.
     authors = CSL.authors_long(item)
     authors === nothing || append_child(paragraph, text("$authors. "))

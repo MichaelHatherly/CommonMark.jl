@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Lazy initialization for Node.meta to reduce memory allocations during parsing [#107]
+
 - Require JSON.jl v1 (drop support for 0.20, 0.21) [#93]
 
 ## [v0.9.0] - 2025-03-06
@@ -347,3 +349,5 @@ Initial release.
 [#103]: https://github.com/MichaelHatherly/CommonMark.jl/issues/103
 [#104]: https://github.com/MichaelHatherly/CommonMark.jl/issues/104
 [#105]: https://github.com/MichaelHatherly/CommonMark.jl/issues/105
+[#106]: https://github.com/MichaelHatherly/CommonMark.jl/issues/106
+[#107]: https://github.com/MichaelHatherly/CommonMark.jl/issues/107

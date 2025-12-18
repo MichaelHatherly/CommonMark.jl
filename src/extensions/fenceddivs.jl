@@ -110,7 +110,7 @@ function write_html(::FencedDiv, rend, node, enter)
 end
 
 function write_latex(::FencedDiv, w, node, enter)
-    classes = get(node.meta, "class", String[])
+    classes = getmeta(node, "class", String[])
     env = isempty(classes) ? "fenceddiv" : "fenceddiv@$(first(classes))"
     if enter
         cr(w)
@@ -128,7 +128,7 @@ function write_typst(::FencedDiv, w, node, enter)
         cr(w)
     else
         literal(w, "]")
-        id = get(node.meta, "id", nothing)
+        id = getmeta(node, "id", nothing)
         if id !== nothing
             literal(w, " <", id, ">")
         end
@@ -137,7 +137,7 @@ function write_typst(::FencedDiv, w, node, enter)
 end
 
 function write_term(::FencedDiv, rend, node, enter)
-    classes = get(node.meta, "class", String[])
+    classes = getmeta(node, "class", String[])
     label = isempty(classes) ? "div" : first(classes)
     style = crayon"default bold"
     if enter
@@ -170,7 +170,7 @@ function write_markdown(::FencedDiv, w, node, enter)
         print_margin(w)
         literal(w, fence)
         # Write attributes
-        if !isempty(node.meta)
+        if !isnothing(node.meta) && !isempty(node.meta)
             literal(w, " ")
             write_div_attributes(w, node.meta)
         end

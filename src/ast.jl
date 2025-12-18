@@ -18,7 +18,7 @@ mutable struct Node
     last_line_checked::Bool
     is_open::Bool
     literal::String
-    meta::Dict{String,Any}
+    meta::Union{Nothing,Dict{String,Any}}
 
     Node() = new()
 
@@ -35,9 +35,28 @@ mutable struct Node
         node.last_line_checked = false
         node.is_open = true
         node.literal = ""
-        node.meta = Dict{String,Any}()
+        node.meta = nothing
         return node
     end
+end
+
+"""Get meta value without allocating if meta is nothing."""
+getmeta(node::Node, key, default) =
+    isnothing(node.meta) ? default : get(node.meta, key, default)
+
+"""Check if meta has key without allocating if meta is nothing."""
+hasmeta(node::Node, key) = !isnothing(node.meta) && haskey(node.meta, key)
+
+"""Set meta value, initializing dict if needed."""
+function setmeta!(node::Node, key, value)
+    isnothing(node.meta) && (node.meta = Dict{String,Any}())
+    node.meta[key] = value
+end
+
+"""Merge dict into meta, initializing if needed."""
+function mergemeta!(node::Node, d::AbstractDict)
+    isnothing(node.meta) && (node.meta = Dict{String,Any}())
+    merge!(node.meta, d)
 end
 
 function copy_tree(func::Function, root::Node)
@@ -66,7 +85,7 @@ function copy_tree(func::Function, root::Node)
             new.is_open = old.is_open
             new.literal = old.literal
 
-            new.meta = copy(old.meta)
+            new.meta = isnothing(old.meta) ? nothing : copy(old.meta)
         end
     end
     return lookup[root]
