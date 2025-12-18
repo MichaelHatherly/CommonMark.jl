@@ -90,8 +90,14 @@ function compare_and_report(baseline_path, current_path, output_path)
     # Summary table
     println(io, "### Summary")
     println(io)
-    println(io, "| Benchmark | Time | Memory | Allocs | Status |")
-    println(io, "|-----------|------|--------|--------|--------|")
+    println(
+        io,
+        "| Benchmark | Base Time | Cur Time | Δ | Base Mem | Cur Mem | Δ | Base Alloc | Cur Alloc | Δ | Status |",
+    )
+    println(
+        io,
+        "|-----------|-----------|----------|---|----------|---------|---|------------|-----------|---|--------|",
+    )
 
     regressions = String[]
     improvements = String[]
@@ -136,7 +142,7 @@ function compare_and_report(baseline_path, current_path, output_path)
 
         println(
             io,
-            "| $name | $(format_time(curr_time)) ($time_change) | $(format_memory(curr_mem)) ($mem_change) | $curr_alloc ($alloc_change) | $status |",
+            "| $name | $(format_time(base_time)) | $(format_time(curr_time)) | $time_change | $(format_memory(base_mem)) | $(format_memory(curr_mem)) | $mem_change | $base_alloc | $curr_alloc | $alloc_change | $status |",
         )
     end
 
