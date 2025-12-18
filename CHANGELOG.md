@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replace regex with character check in table spec validation [#111]
+- Eliminate redundant dictionary lookup in auto-identifier rule [#111]
 - Use BitVector trigger table for O(1) inline parser character lookups [#110]
 - Replace regex NUL check with character membership test [#110]
 - Remove dead code in fenced code block parser (regex called twice) [#110]

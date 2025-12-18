@@ -30,8 +30,8 @@ block_modifier(rule::AutoIdentifierRule) =
         if hasmeta(block, "id")
             counter = get!(() -> Dict{String,Int}(), rule.refs, parser.doc)
             id = getmeta(block, "id", "")
-            counter[id] = get!(counter, id, 0) + 1
-            setmeta!(block, "id", counter[id] == 1 ? id : "$id-$(counter[id] - 1)")
+            n = counter[id] = get!(counter, id, 0) + 1
+            setmeta!(block, "id", n == 1 ? id : "$id-$(n - 1)")
         end
         return nothing
     end
