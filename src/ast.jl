@@ -35,9 +35,18 @@ mutable struct Node
         node.last_line_checked = false
         node.is_open = true
         node.literal = ""
-        node.meta = Dict{String,Any}()
+        # node.meta left uninitialized - lazy init via getproperty
         return node
     end
+end
+
+# Lazy initialization for meta field - only allocate Dict when accessed
+function Base.getproperty(node::Node, name::Symbol)
+    if name === :meta
+        isdefined(node, :meta) || setfield!(node, :meta, Dict{String,Any}())
+        return getfield(node, :meta)
+    end
+    getfield(node, name)
 end
 
 function copy_tree(func::Function, root::Node)
@@ -66,7 +75,8 @@ function copy_tree(func::Function, root::Node)
             new.is_open = old.is_open
             new.literal = old.literal
 
-            new.meta = copy(old.meta)
+            # Only copy meta if it was initialized (bypass getproperty lazy init)
+            isdefined(old, :meta) && setfield!(new, :meta, copy(getfield(old, :meta)))
         end
     end
     return lookup[root]
