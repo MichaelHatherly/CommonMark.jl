@@ -27,6 +27,7 @@ function continue_(frontmatter::FrontMatter, parser::Parser, container::Node)
 end
 
 function finalize(frontmatter::FrontMatter, parser::Parser, block::Node)
+    finalize_literal!(block)
     _, rest = split(block.literal, '\n'; limit = 2)
     block.literal = rest
     return nothing

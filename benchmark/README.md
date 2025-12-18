@@ -5,11 +5,17 @@ Continuous benchmarking tracks performance over time. Results stored in `benchma
 ## Running locally
 
 ```bash
-# Run all benchmarks and output JSON
-julia --project=benchmark benchmark/run.jl output.json
+# Run benchmarks (terminal output)
+just bench
 
-# Or just see results in terminal
-julia --project=benchmark benchmark/run.jl
+# Save baseline before making changes
+just bench-save baseline
+
+# Make changes, then save current
+just bench-save current
+
+# Compare results
+just bench-compare baseline current
 ```
 
 ## Benchmark suite

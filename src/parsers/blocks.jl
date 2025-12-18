@@ -163,14 +163,20 @@ const COMMONMARK_BLOCK_RULES = [
 ]
 
 function add_line(parser::Parser)
-    if parser.partially_consumed_tab
-        # Skip over tab.
-        parser.pos += 1
-        # Add space characters.
-        chars_to_tab = 4 - (parser.column % 4)
-        parser.tip.literal *= (' '^chars_to_tab)
+    node = parser.tip
+    buf = node.literal_buffer
+    if buf === nothing
+        buf = node.literal_buffer = IOBuffer()
     end
-    parser.tip.literal *= (rest(parser) * '\n')
+    if parser.partially_consumed_tab
+        parser.pos += 1
+        chars_to_tab = 4 - (parser.column % 4)
+        for _ = 1:chars_to_tab
+            write(buf, ' ')
+        end
+    end
+    write(buf, SubString(parser.buf, parser.pos))
+    write(buf, '\n')
 end
 
 function add_child(parser::Parser, tag::AbstractContainer, offset::Integer)

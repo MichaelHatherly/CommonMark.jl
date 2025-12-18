@@ -25,3 +25,16 @@ test-all:
 # Run specific test item
 test-item item:
     just julia "@run_package_tests filter=ti->ti.name == String(:{{item}})"
+
+# Run benchmarks (output to terminal)
+bench:
+    julia --project=benchmark benchmark/run.jl
+
+# Run benchmarks and save to file
+bench-save name:
+    julia --project=benchmark benchmark/run.jl benchmark/results/{{name}}.json
+
+# Compare two benchmark results
+bench-compare baseline current:
+    julia --project=benchmark -e 'include("benchmark/compare.jl"); compare_and_report("benchmark/results/{{baseline}}.json", "benchmark/results/{{current}}.json", "benchmark/comparison.md")'
+    cat benchmark/comparison.md

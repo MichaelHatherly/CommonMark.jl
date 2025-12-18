@@ -18,6 +18,7 @@ mutable struct Node
     last_line_checked::Bool
     is_open::Bool
     literal::String
+    literal_buffer::Union{Nothing,IOBuffer}
     meta::Union{Nothing,Dict{String,Any}}
 
     Node() = new()
@@ -35,8 +36,17 @@ mutable struct Node
         node.last_line_checked = false
         node.is_open = true
         node.literal = ""
+        node.literal_buffer = nothing
         node.meta = nothing
         return node
+    end
+end
+
+"""Finalize literal from buffer, converting IOBuffer to String."""
+function finalize_literal!(node::Node)
+    if node.literal_buffer !== nothing
+        node.literal = String(take!(node.literal_buffer))
+        node.literal_buffer = nothing
     end
 end
 
@@ -84,6 +94,7 @@ function copy_tree(func::Function, root::Node)
             new.last_line_checked = old.last_line_checked
             new.is_open = old.is_open
             new.literal = old.literal
+            new.literal_buffer = nothing
 
             new.meta = isnothing(old.meta) ? nothing : copy(old.meta)
         end

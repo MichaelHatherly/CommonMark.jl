@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Use IOBuffer for literal accumulation and pre-allocate delimiter strings to reduce allocations [#108]
 - Lazy initialization for Node.meta to reduce memory allocations during parsing [#107]
 
 - Require JSON.jl v1 (drop support for 0.20, 0.21) [#93]
@@ -351,3 +352,4 @@ Initial release.
 [#105]: https://github.com/MichaelHatherly/CommonMark.jl/issues/105
 [#106]: https://github.com/MichaelHatherly/CommonMark.jl/issues/106
 [#107]: https://github.com/MichaelHatherly/CommonMark.jl/issues/107
+[#108]: https://github.com/MichaelHatherly/CommonMark.jl/issues/108

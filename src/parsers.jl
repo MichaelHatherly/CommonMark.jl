@@ -24,7 +24,7 @@ Base.peek(p::AbstractParser, ::Type{Char}) = String(p.buf)[position(p)]
 trypeek(p::AbstractParser, ::Type{UInt8}, default = nothing) =
     get(p.buf, position(p), default)
 trypeek(p::AbstractParser, ::Type{Char}, default = nothing) =
-    get(String(p.buf), thisind(p), default) # TODO thisind
+    get(String(p.buf), thisind(p), default)
 
 function Base.read(p::AbstractParser, ::Type{T}) where {T<:Union{Char,UInt8}}
     obj = peek(p, T)
@@ -32,7 +32,7 @@ function Base.read(p::AbstractParser, ::Type{T}) where {T<:Union{Char,UInt8}}
     return obj
 end
 
-rest(p::AbstractParser) = SubString(String(p), thisind(p)) # TODO thisind, ALLOCATES lots.
+rest(p::AbstractParser) = SubString(String(p), thisind(p))
 
 buffer(p::AbstractParser) = _buffer(p.buf)
 _buffer(s::AbstractString) = codeunits(s)

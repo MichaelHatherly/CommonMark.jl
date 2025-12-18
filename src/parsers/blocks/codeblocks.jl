@@ -57,6 +57,7 @@ function split_info_line(str)
 end
 
 function finalize(::CodeBlock, parser::Parser, block::Node)
+    finalize_literal!(block)
     if block.t.is_fenced
         # first line becomes info string
         first_line, rest = split(block.literal, '\n'; limit = 2)

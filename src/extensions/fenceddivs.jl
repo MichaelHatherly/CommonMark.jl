@@ -14,6 +14,10 @@ function continue_(::FencedDiv, parser::Parser, container::Node)
     if m !== nothing && length(m[1]) >= container.t.fence_length
         # Only close if no open child fenced divs (innermost closes first)
         if !has_open_child_fenced_div(container)
+            # Close any open children before closing this container
+            while parser.tip !== container
+                finalize(parser, parser.tip, parser.line_number)
+            end
             finalize(parser, container, parser.line_number)
             return 2
         end

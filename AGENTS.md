@@ -30,6 +30,13 @@ julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 julia --project=docs -e 'include("docs/make.jl")'  # Build docs locally
 ```
 
+### Benchmarking
+```bash
+just bench                           # Run benchmarks (terminal output)
+just bench-save <name>               # Save results to benchmark/results/<name>.json
+just bench-compare <baseline> <cur>  # Compare two saved results
+```
+
 ## Key Entry Points
 
 - `src/CommonMark.jl` - main module, exports
