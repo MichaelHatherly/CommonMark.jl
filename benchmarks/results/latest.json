@@ -1,0 +1,365 @@
+{
+    "git": {
+        "branch": "master",
+        "commit": "06cd922752d646a1715072d780f954a27e989db4",
+        "dirty": false
+    },
+    "julia_version": "1.12.3",
+    "arch": "x86_64",
+    "timestamp": "2025-12-18T09:14:30Z",
+    "benchmarks": {
+        "roundtrip/markdown_all_ext": {
+            "time_ns": {
+                "minimum": 145842,
+                "median": 175307,
+                "mean": 176490.3691,
+                "maximum": 440743,
+                "std": 24410.035871214706
+            },
+            "memory_bytes": 105920,
+            "allocations": 1605,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "latex/simple": {
+            "time_ns": {
+                "minimum": 5156.333333333333,
+                "median": 5520.25,
+                "mean": 5594.721,
+                "maximum": 13877.666666666666,
+                "std": 408.1547831774019
+            },
+            "memory_bytes": 1560,
+            "allocations": 21,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "roundtrip/parse_all_ext": {
+            "time_ns": {
+                "minimum": 869374,
+                "median": 937731.5,
+                "mean": 1.1783694893566698e6,
+                "maximum": 824362447,
+                "std": 1.2663200268157395e7
+            },
+            "memory_bytes": 495056,
+            "allocations": 7384,
+            "gc_time_ns": 194625.61825922423,
+            "samples": 4228
+        },
+        "markdown/simple": {
+            "time_ns": {
+                "minimum": 5745.666666666667,
+                "median": 6594,
+                "mean": 6726.356083333334,
+                "maximum": 45570,
+                "std": 1327.413614256851
+            },
+            "memory_bytes": 4848,
+            "allocations": 73,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "term/simple": {
+            "time_ns": {
+                "minimum": 20138,
+                "median": 21100,
+                "mean": 21678.3309,
+                "maximum": 83374,
+                "std": 2152.197017237337
+            },
+            "memory_bytes": 8720,
+            "allocations": 141,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "html/complex": {
+            "time_ns": {
+                "minimum": 39724,
+                "median": 43241,
+                "mean": 44014.8626,
+                "maximum": 186658,
+                "std": 4019.6830770255024
+            },
+            "memory_bytes": 12256,
+            "allocations": 258,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "typst/complex": {
+            "time_ns": {
+                "minimum": 14657,
+                "median": 15750,
+                "mean": 16231.3533,
+                "maximum": 130804,
+                "std": 2176.785905909703
+            },
+            "memory_bytes": 8736,
+            "allocations": 123,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "notebook/complex": {
+            "time_ns": {
+                "minimum": 120826,
+                "median": 138844.5,
+                "mean": 140357.3902,
+                "maximum": 389808,
+                "std": 14104.285374414978
+            },
+            "memory_bytes": 60416,
+            "allocations": 993,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "term/complex": {
+            "time_ns": {
+                "minimum": 55895,
+                "median": 60082,
+                "mean": 63381.4634,
+                "maximum": 468505,
+                "std": 15608.752879243908
+            },
+            "memory_bytes": 24960,
+            "allocations": 412,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "parse/simple": {
+            "time_ns": {
+                "minimum": 24706,
+                "median": 29144,
+                "mean": 30004.3483,
+                "maximum": 147125,
+                "std": 4091.924621776181
+            },
+            "memory_bytes": 17968,
+            "allocations": 270,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "allocations/html_spec": {
+            "time_ns": {
+                "minimum": 6384631,
+                "median": 6512289,
+                "mean": 6.5181899e6,
+                "maximum": 6775510,
+                "std": 119788.08427427162
+            },
+            "memory_bytes": 2192800,
+            "allocations": 32226,
+            "gc_time_ns": 0,
+            "samples": 10
+        },
+        "html/simple": {
+            "time_ns": {
+                "minimum": 18384,
+                "median": 20389,
+                "mean": 20823.0791,
+                "maximum": 156412,
+                "std": 2728.992413364759
+            },
+            "memory_bytes": 6288,
+            "allocations": 135,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "markdown/complex": {
+            "time_ns": {
+                "minimum": 18504,
+                "median": 22432,
+                "mean": 22697.298,
+                "maximum": 123981,
+                "std": 2697.1794007199383
+            },
+            "memory_bytes": 12768,
+            "allocations": 217,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "notebook/spec_md": {
+            "time_ns": {
+                "minimum": 19507110,
+                "median": 22667943,
+                "mean": 2.324844875462963e7,
+                "maximum": 206701882,
+                "std": 1.26102836139265e7
+            },
+            "memory_bytes": 10724808,
+            "allocations": 162975,
+            "gc_time_ns": 846022.0555555555,
+            "samples": 216
+        },
+        "html/spec_md": {
+            "time_ns": {
+                "minimum": 6445617,
+                "median": 7021252,
+                "mean": 7.006744618513324e6,
+                "maximum": 7797932,
+                "std": 249470.73014023624
+            },
+            "memory_bytes": 2192800,
+            "allocations": 32226,
+            "gc_time_ns": 0,
+            "samples": 713
+        },
+        "latex/spec_md": {
+            "time_ns": {
+                "minimum": 2725941,
+                "median": 2962252,
+                "mean": 2.922128252631579e6,
+                "maximum": 26993961,
+                "std": 603585.6543779075
+            },
+            "memory_bytes": 783880,
+            "allocations": 2108,
+            "gc_time_ns": 13827.009356725146,
+            "samples": 1710
+        },
+        "term/spec_md": {
+            "time_ns": {
+                "minimum": 12823202,
+                "median": 1.37708695e7,
+                "mean": 1.3844102616022099e7,
+                "maximum": 17138281,
+                "std": 974604.2623131291
+            },
+            "memory_bytes": 2891680,
+            "allocations": 42184,
+            "gc_time_ns": 0,
+            "samples": 362
+        },
+        "notebook/simple": {
+            "time_ns": {
+                "minimum": 45164,
+                "median": 49392,
+                "mean": 50738.2474,
+                "maximum": 194994,
+                "std": 4918.843964915777
+            },
+            "memory_bytes": 26416,
+            "allocations": 397,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "typst/spec_md": {
+            "time_ns": {
+                "minimum": 2653326,
+                "median": 2914203,
+                "mean": 3.0592631022657687e6,
+                "maximum": 111834389,
+                "std": 3.752242318221026e6
+            },
+            "memory_bytes": 1771184,
+            "allocations": 20450,
+            "gc_time_ns": 130391.1200244948,
+            "samples": 1633
+        },
+        "allocations/parse_spec": {
+            "time_ns": {
+                "minimum": 13417202,
+                "median": 1.36066855e7,
+                "mean": 1.37223885e7,
+                "maximum": 14191978,
+                "std": 314897.45088882156
+            },
+            "memory_bytes": 7234720,
+            "allocations": 114842,
+            "gc_time_ns": 0,
+            "samples": 10
+        },
+        "markdown/spec_md": {
+            "time_ns": {
+                "minimum": 1536229,
+                "median": 1751390,
+                "mean": 1.9461345270955167e6,
+                "maximum": 216900634,
+                "std": 5.404587955253318e6
+            },
+            "memory_bytes": 1768192,
+            "allocations": 20304,
+            "gc_time_ns": 149392.58908382067,
+            "samples": 2565
+        },
+        "parse/spec_cases_all": {
+            "time_ns": {
+                "minimum": 4089807,
+                "median": 5265357,
+                "mean": 5.563148981069042e6,
+                "maximum": 413807041,
+                "std": 1.3647221152672062e7
+            },
+            "memory_bytes": 3207680,
+            "allocations": 47278,
+            "gc_time_ns": 454494.8797327394,
+            "samples": 898
+        },
+        "latex/complex": {
+            "time_ns": {
+                "minimum": 13855,
+                "median": 14717,
+                "mean": 15006.7077,
+                "maximum": 89977,
+                "std": 1992.5353940621405
+            },
+            "memory_bytes": 3672,
+            "allocations": 40,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "roundtrip/full": {
+            "time_ns": {
+                "minimum": 1108510,
+                "median": 1.2936305e6,
+                "mean": 1.430606966704937e6,
+                "maximum": 466373995,
+                "std": 7.8796332168955095e6
+            },
+            "memory_bytes": 600976,
+            "allocations": 8989,
+            "gc_time_ns": 133335.83352468428,
+            "samples": 3484
+        },
+        "parse/spec_md": {
+            "time_ns": {
+                "minimum": 11487210,
+                "median": 12654971,
+                "mean": 1.3806465375690607e7,
+                "maximum": 383411729,
+                "std": 1.9502012595640965e7
+            },
+            "memory_bytes": 7234720,
+            "allocations": 114842,
+            "gc_time_ns": 1.0253704281767956e6,
+            "samples": 362
+        },
+        "typst/simple": {
+            "time_ns": {
+                "minimum": 5877.666666666667,
+                "median": 6956.333333333333,
+                "mean": 6917.864583333334,
+                "maximum": 40285.166666666664,
+                "std": 924.9239844456432
+            },
+            "memory_bytes": 4848,
+            "allocations": 71,
+            "gc_time_ns": 0,
+            "samples": 10000
+        },
+        "parse/complex": {
+            "time_ns": {
+                "minimum": 60914,
+                "median": 73848,
+                "mean": 75345.9906,
+                "maximum": 298488,
+                "std": 13164.783004032615
+            },
+            "memory_bytes": 41136,
+            "allocations": 623,
+            "gc_time_ns": 0,
+            "samples": 10000
+        }
+    },
+    "os": "Linux",
+    "cpu_threads": 4
+}
