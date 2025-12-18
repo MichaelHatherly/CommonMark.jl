@@ -5,8 +5,13 @@ function parse_string(parser::InlineParser, block::Node)
     start = position(parser)
     while true
         char = trypeek(parser, Char, '\0')
-        if char === '\0' || haskey(parser.inline_parsers, char)
-            # Stop scanning once we've hit a trigger character.
+        # Fast path for ASCII triggers, fallback to dict for non-ASCII
+        is_trigger = if char <= '\x7f'
+            @inbounds parser.trigger_table[Int(char)+1]
+        else
+            haskey(parser.inline_parsers, char)
+        end
+        if is_trigger
             break
         end
         read(parser, Char)

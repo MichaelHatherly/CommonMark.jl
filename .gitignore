@@ -8,3 +8,4 @@ Manifest.toml
 docs/build/
 benchmark/results/
 benchmark/comparison.md
+benchmark/profile.txt

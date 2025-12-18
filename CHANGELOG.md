@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Use BitVector trigger table for O(1) inline parser character lookups [#110]
+- Replace regex NUL check with character membership test [#110]
+- Remove dead code in fenced code block parser (regex called twice) [#110]
 - Precompute emphasis delimiter lookups to avoid repeated iteration in hot path [#109]
 - Use IOBuffer for literal accumulation and pre-allocate delimiter strings to reduce allocations [#108]
 - Lazy initialization for Node.meta to reduce memory allocations during parsing [#107]
@@ -355,3 +358,4 @@ Initial release.
 [#107]: https://github.com/MichaelHatherly/CommonMark.jl/issues/107
 [#108]: https://github.com/MichaelHatherly/CommonMark.jl/issues/108
 [#109]: https://github.com/MichaelHatherly/CommonMark.jl/issues/109
+[#110]: https://github.com/MichaelHatherly/CommonMark.jl/issues/110

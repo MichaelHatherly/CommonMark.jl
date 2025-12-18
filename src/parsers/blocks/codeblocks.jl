@@ -13,18 +13,14 @@ function continue_(::CodeBlock, parser::Parser, container::Node)
     ln = parser.buf
     indent = parser.indent
     if container.t.is_fenced
-        match =
-            indent <= 3 &&
-            length(ln) >= parser.next_nonspace + 1 &&
-            ln[parser.next_nonspace] == container.t.fence_char &&
-            Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace))
-        t =
-            indent <= 3 &&
-            length(ln) >= parser.next_nonspace + 1 &&
-            ln[parser.next_nonspace] == container.t.fence_char
         m =
-            t ? Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace)) :
-            nothing
+            if indent <= 3 &&
+               length(ln) >= parser.next_nonspace + 1 &&
+               ln[parser.next_nonspace] == container.t.fence_char
+                Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace))
+            else
+                nothing
+            end
         if m !== nothing && length(m.match) >= container.t.fence_length
             # closing fence - we're at end of line, so we can return
             finalize(parser, container, parser.line_number)

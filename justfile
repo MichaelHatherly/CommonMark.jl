@@ -30,6 +30,14 @@ test-item item:
 bench:
     julia --project=benchmark benchmark/run.jl
 
+# Quick benchmark for iteration
+bench-quick:
+    julia --project=benchmark benchmark/quick.jl
+
+# Profile to find hot spots
+bench-profile:
+    julia --project=benchmark benchmark/profile.jl
+
 # Run benchmarks and save to file
 bench-save name:
     julia --project=benchmark benchmark/run.jl benchmark/results/{{name}}.json

@@ -63,6 +63,9 @@ mutable struct InlineParser <: AbstractParser
     delim_chars::Set{Char}
     delim_counts::Dict{Char,Vector{Int}}
     delim_max::Dict{Char,Int}
+    # Fast lookup for ASCII trigger characters (indexed by codepoint+1)
+    # Non-ASCII triggers fall back to haskey on inline_parsers
+    trigger_table::BitVector
 
     function InlineParser()
         parser = new()
@@ -80,6 +83,7 @@ mutable struct InlineParser <: AbstractParser
         parser.delim_chars = Set{Char}()
         parser.delim_counts = Dict{Char,Vector{Int}}()
         parser.delim_max = Dict{Char,Int}()
+        parser.trigger_table = falses(128)
         return parser
     end
 end
@@ -122,25 +126,16 @@ const COMMONMARK_INLINE_RULES = [
     NewlineRule(),
 ]
 
-function parse_inline(parser::InlineParser, block::Node)
+function parse_inline(parser::InlineParser, block::Node, fallback::Vector{Function})
     c = trypeek(parser, Char)
     c === nothing && return false
-    res = false
-    if haskey(parser.inline_parsers, c)
-        for λ in parser.inline_parsers[c]
-            res = λ(parser, block)
-            res && break
-        end
-    else
-        for λ in parser.inline_parsers['\0']
-            res = λ(parser, block)
-            res && break
+    for λ in get(parser.inline_parsers, c, fallback)
+        if λ(parser, block)
+            return true
         end
     end
-    if !res
-        read(parser, Char)
-        append_child(block, text(c))
-    end
+    read(parser, Char)
+    append_child(block, text(c))
     return true
 end
 
@@ -151,7 +146,8 @@ function parse_inlines(parser::InlineParser, block::Node)
     parser.len = ncodeunits(parser.buf)
     parser.delimiters = nothing
     parser.brackets = nothing
-    while (parse_inline(parser, block))
+    fallback = parser.inline_parsers['\0']
+    while parse_inline(parser, block, fallback)
         nothing
     end
     for fn in parser.modifiers
