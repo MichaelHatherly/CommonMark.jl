@@ -59,6 +59,10 @@ mutable struct InlineParser <: AbstractParser
     delim_nodes::Dict{Tuple{Char,Int},Type{<:AbstractInline}}
     flanking_rules::Dict{Char,Symbol}
     odd_match_chars::Set{Char}
+    # Precomputed emphasis lookups (derived from delim_nodes)
+    delim_chars::Set{Char}
+    delim_counts::Dict{Char,Vector{Int}}
+    delim_max::Dict{Char,Int}
 
     function InlineParser()
         parser = new()
@@ -73,7 +77,26 @@ mutable struct InlineParser <: AbstractParser
         parser.delim_nodes = Dict{Tuple{Char,Int},Type{<:AbstractInline}}()
         parser.flanking_rules = Dict{Char,Symbol}()
         parser.odd_match_chars = Set{Char}()
+        parser.delim_chars = Set{Char}()
+        parser.delim_counts = Dict{Char,Vector{Int}}()
+        parser.delim_max = Dict{Char,Int}()
         return parser
+    end
+end
+
+# Rebuild precomputed emphasis lookups from delim_nodes
+function rebuild_delim_lookups!(ip::InlineParser)
+    empty!(ip.delim_chars)
+    empty!(ip.delim_counts)
+    empty!(ip.delim_max)
+    for (char, count) in keys(ip.delim_nodes)
+        push!(ip.delim_chars, char)
+        counts = get!(ip.delim_counts, char, Int[])
+        push!(counts, count)
+    end
+    for (char, counts) in ip.delim_counts
+        sort!(counts, rev = true)
+        ip.delim_max[char] = first(counts)
     end
 end
 
