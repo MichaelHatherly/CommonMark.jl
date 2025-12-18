@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix benchmark CI failing on gh-pages branch (missing project files) [#105]
 - Fix HTML attribute ordering for Julia 1.12+ compatibility (dict iteration order changed) [#101]
 - Fix table parser not ending on blank lines (consecutive tables merged incorrectly) [#100]
 - Fix markdown writer loose list spacing inconsistency [#100]
@@ -344,3 +345,4 @@ Initial release.
 [#102]: https://github.com/MichaelHatherly/CommonMark.jl/issues/102
 [#103]: https://github.com/MichaelHatherly/CommonMark.jl/issues/103
 [#104]: https://github.com/MichaelHatherly/CommonMark.jl/issues/104
+[#105]: https://github.com/MichaelHatherly/CommonMark.jl/issues/105

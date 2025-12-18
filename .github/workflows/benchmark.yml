@@ -148,7 +148,7 @@ jobs:
           TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
 
           # Save files before switching branches
-          cp -r benchmark/visualization /tmp/visualization
+          cp -r benchmark /tmp/benchmark
           cp benchmark-output/results.json /tmp/results.json
 
           # Checkout gh-pages
@@ -159,15 +159,15 @@ jobs:
           mkdir -p benchmarks/results
 
           # Copy visualization
-          cp /tmp/visualization/index.html benchmarks/
+          cp /tmp/benchmark/visualization/index.html benchmarks/
 
           # Copy new results
           cp /tmp/results.json "benchmarks/results/${TIMESTAMP}-${COMMIT_SHORT}.json"
           cp /tmp/results.json benchmarks/results/latest.json
 
           # Update index
-          julia --project=benchmark -e '
-            using JSON3, Dates
+          julia --project=/tmp/benchmark -e '
+            import JSON3
 
             results_dir = "benchmarks/results"
             files = filter(f -> endswith(f, ".json") && f != "latest.json" && f != "index.json", readdir(results_dir))
@@ -184,7 +184,9 @@ jobs:
             end
 
             sort!(index, by=x->x["timestamp"], rev=true)
-            write(joinpath(results_dir, "index.json"), JSON3.pretty(index))
+            open(joinpath(results_dir, "index.json"), "w") do io
+              JSON3.pretty(io, index)
+            end
           '
 
           # Commit and push
