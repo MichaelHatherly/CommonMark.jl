@@ -77,7 +77,7 @@ struct References <: AbstractBlock end
 block_modifier(::CitationRule) =
     Rule(10) do parser, b
         if !isnull(b.parent) && b.parent.t isa Document
-            if haskey(b.meta, "id") && b.meta["id"] == "refs"
+            if hasmeta(b, "id") && b.meta["id"] == "refs"
                 insert_after(b, Node(References()))
             end
         end

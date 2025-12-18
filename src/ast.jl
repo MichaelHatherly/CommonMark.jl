@@ -49,6 +49,13 @@ function Base.getproperty(node::Node, name::Symbol)
     getfield(node, name)
 end
 
+"""Get meta value without allocating if meta uninitialized."""
+getmeta(node::Node, key, default) =
+    isdefined(node, :meta) ? get(getfield(node, :meta), key, default) : default
+
+"""Check if meta has key without allocating if meta uninitialized."""
+hasmeta(node::Node, key) = isdefined(node, :meta) && haskey(getfield(node, :meta), key)
+
 function copy_tree(func::Function, root::Node)
     lookup = Dict{Node,Node}()
     for (old, enter) in root

@@ -470,7 +470,7 @@ function parse(parser::Parser, my_input::IO; kws...)
     isempty(kws) || (merge!(parser.doc.meta, Dict(string(k) => v for (k, v) in kws)))
     parser.tip = parser.doc
     parser.refmap = Dict{String,Tuple{String,String}}()
-    parser.line_number = get(parser.doc.meta, "line", 1) - 1
+    parser.line_number = getmeta(parser.doc, "line", 1) - 1
     parser.last_line_length = 0
     parser.pos = 1
     parser.column = 0

@@ -155,7 +155,7 @@ function write_html(::Heading, r, n, ent)
         tag(r, tagname, attrs)
         # Insert auto-generated anchor Links for all Headings with IDs.
         # The Link is not added to the document's AST.
-        if haskey(n.meta, "id")
+        if hasmeta(n, "id")
             anchor = Node(Link())
             anchor.t.destination = "#" * n.meta["id"]
             anchor.meta["class"] = ["anchor"]

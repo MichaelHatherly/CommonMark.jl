@@ -23,11 +23,11 @@ reset_rule!(r::AutoIdentifierRule) = (empty!(r.refs); nothing)
 block_modifier(rule::AutoIdentifierRule) =
     Rule(100) do parser, block
         # Add heading IDs to those without any preset by AttributeRule.
-        if block.t isa Heading && !haskey(block.meta, "id")
+        if block.t isa Heading && !hasmeta(block, "id")
             block.meta["id"] = slugify(block.literal)
         end
         # Then make sure all IDs for the current AutoIdentifierRule are unique using a counter.
-        if haskey(block.meta, "id")
+        if hasmeta(block, "id")
             counter = get!(() -> Dict{String,Int}(), rule.refs, parser.doc)
             id = block.meta["id"]
             counter[id] = get!(counter, id, 0) + 1
