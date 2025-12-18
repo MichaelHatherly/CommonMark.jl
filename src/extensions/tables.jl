@@ -72,7 +72,7 @@ function gfm_table(parser::Parser, container::Node)
 end
 
 valid_table_row(str) = startswith(str, '|')
-valid_table_spec(str) = !occursin(r"[^\|:\- ]", str)
+valid_table_spec(str) = all(c -> c in "|-: ", str)
 
 function parse_table_spec(str)
     map(eachmatch(r"\|([ ]*[: ]?[-]+[ :]?[ ]*)\|", str; overlap = true)) do match
