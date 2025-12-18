@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CommonMark.jl Benchmarks</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --red: #f85149;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h2 { color: var(--text-muted); font-size: 1.2em; margin-top: 30px; }
+        .controls {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        select, button {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        select:hover, button:hover { border-color: var(--accent); }
+        .chart-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-wrapper { position: relative; height: 300px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+        }
+        .stat-label { color: var(--text-muted); font-size: 0.9em; }
+        .stat-value { font-size: 1.5em; font-weight: 600; }
+        .stat-change { font-size: 0.9em; }
+        .stat-change.improved { color: var(--green); }
+        .stat-change.regressed { color: var(--red); }
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+        .error { color: var(--red); padding: 20px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        th { color: var(--text-muted); font-weight: 500; }
+        .commit-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-family: monospace;
+        }
+        .commit-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 CommonMark.jl Benchmarks</h1>
+
+        <div class="controls">
+            <label>
+                Benchmark:
+                <select id="benchmark-select"></select>
+            </label>
+            <label>
+                Metric:
+                <select id="metric-select">
+                    <option value="time">Time (median)</option>
+                    <option value="memory">Memory</option>
+                    <option value="allocations">Allocations</option>
+                </select>
+            </label>
+            <label>
+                Range:
+                <select id="range-select">
+                    <option value="30">Last 30</option>
+                    <option value="100">Last 100</option>
+                    <option value="all">All</option>
+                </select>
+            </label>
+            <button onclick="refreshData()">Refresh</button>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="loading">Loading...</div>
+        </div>
+
+        <div class="chart-container">
+            <h2>Performance Over Time</h2>
+            <div class="chart-wrapper">
+                <canvas id="main-chart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2>Recent Results</h2>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Commit</th>
+                        <th>Time</th>
+                        <th>Memory</th>
+                        <th>Allocs</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let allData = [];
+        let chart = null;
+        const repoUrl = 'https://github.com/MichaelHatherly/CommonMark.jl';
+        const dataBaseUrl = './results';
+
+        async function loadIndex() {
+            try {
+                const resp = await fetch(`${dataBaseUrl}/index.json`);
+                if (!resp.ok) throw new Error('Failed to load index');
+                return await resp.json();
+            } catch (e) {
+                console.error('Error loading index:', e);
+                return [];
+            }
+        }
+
+        async function loadResult(file) {
+            try {
+                const resp = await fetch(`${dataBaseUrl}/${file}`);
+                if (!resp.ok) throw new Error(`Failed to load ${file}`);
+                return await resp.json();
+            } catch (e) {
+                console.error(`Error loading ${file}:`, e);
+                return null;
+            }
+        }
+
+        function formatTime(ns) {
+            if (ns < 1000) return `${ns.toFixed(1)} ns`;
+            if (ns < 1e6) return `${(ns/1000).toFixed(2)} μs`;
+            if (ns < 1e9) return `${(ns/1e6).toFixed(2)} ms`;
+            return `${(ns/1e9).toFixed(2)} s`;
+        }
+
+        function formatMemory(bytes) {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024**2) return `${(bytes/1024).toFixed(1)} KiB`;
+            if (bytes < 1024**3) return `${(bytes/1024**2).toFixed(1)} MiB`;
+            return `${(bytes/1024**3).toFixed(1)} GiB`;
+        }
+
+        function populateBenchmarkSelect(data) {
+            const select = document.getElementById('benchmark-select');
+            const benchmarks = new Set();
+            data.forEach(d => {
+                if (d.benchmarks) {
+                    Object.keys(d.benchmarks).forEach(k => benchmarks.add(k));
+                }
+            });
+            select.innerHTML = Array.from(benchmarks).sort().map(b =>
+                `<option value="${b}">${b}</option>`
+            ).join('');
+        }
+
+        function getMetricValue(benchmark, metric) {
+            if (!benchmark) return null;
+            switch (metric) {
+                case 'time': return benchmark.time_ns?.median;
+                case 'memory': return benchmark.memory_bytes;
+                case 'allocations': return benchmark.allocations;
+            }
+        }
+
+        function formatMetricValue(value, metric) {
+            if (value === null || value === undefined) return 'N/A';
+            switch (metric) {
+                case 'time': return formatTime(value);
+                case 'memory': return formatMemory(value);
+                case 'allocations': return value.toLocaleString();
+            }
+        }
+
+        function updateStats(data, benchmarkName, metric) {
+            const grid = document.getElementById('stats-grid');
+            if (data.length === 0) {
+                grid.innerHTML = '<div class="loading">No data available</div>';
+                return;
+            }
+
+            const latest = data[0];
+            const previous = data[1];
+            const oldest = data[data.length - 1];
+
+            const latestValue = getMetricValue(latest?.benchmarks?.[benchmarkName], metric);
+            const previousValue = getMetricValue(previous?.benchmarks?.[benchmarkName], metric);
+            const oldestValue = getMetricValue(oldest?.benchmarks?.[benchmarkName], metric);
+
+            function changeHtml(current, baseline) {
+                if (!current || !baseline) return '';
+                const pct = ((current - baseline) / baseline * 100);
+                const cls = pct < -5 ? 'improved' : pct > 5 ? 'regressed' : '';
+                const sign = pct > 0 ? '+' : '';
+                return `<div class="stat-change ${cls}">${sign}${pct.toFixed(1)}% vs previous</div>`;
+            }
+
+            grid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Latest</div>
+                    <div class="stat-value">${formatMetricValue(latestValue, metric)}</div>
+                    ${changeHtml(latestValue, previousValue)}
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Runs</div>
+                    <div class="stat-value">${data.length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Change from First</div>
+                    <div class="stat-value">${latestValue && oldestValue
+                        ? `${((latestValue - oldestValue) / oldestValue * 100).toFixed(1)}%`
+                        : 'N/A'}</div>
+                </div>
+            `;
+        }
+
+        function updateChart(data, benchmarkName, metric) {
+            const ctx = document.getElementById('main-chart').getContext('2d');
+
+            const chartData = data.map(d => ({
+                x: new Date(d.timestamp),
+                y: getMetricValue(d.benchmarks?.[benchmarkName], metric),
+                commit: d.git?.commit?.slice(0, 7) || 'unknown'
+            })).filter(d => d.y !== null).reverse();
+
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: benchmarkName,
+                        data: chartData,
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: 'day' },
+                            grid: { color: '#30363d' },
+                            ticks: { color: '#8b949e' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#30363d' },
+                            ticks: {
+                                color: '#8b949e',
+                                callback: v => formatMetricValue(v, metric)
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${formatMetricValue(ctx.raw.y, metric)} (${ctx.raw.commit})`
+                            }
+                        },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateTable(data, benchmarkName, metric) {
+            const tbody = document.getElementById('results-body');
+            tbody.innerHTML = data.slice(0, 20).map(d => {
+                const b = d.benchmarks?.[benchmarkName];
+                const commit = d.git?.commit || 'unknown';
+                const shortCommit = commit.slice(0, 7);
+                return `
+                    <tr>
+                        <td>${new Date(d.timestamp).toLocaleDateString()}</td>
+                        <td><a class="commit-link" href="${repoUrl}/commit/${commit}" target="_blank">${shortCommit}</a></td>
+                        <td>${formatMetricValue(getMetricValue(b, 'time'), 'time')}</td>
+                        <td>${formatMetricValue(getMetricValue(b, 'memory'), 'memory')}</td>
+                        <td>${b?.allocations?.toLocaleString() || 'N/A'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateView() {
+            const benchmarkName = document.getElementById('benchmark-select').value;
+            const metric = document.getElementById('metric-select').value;
+            const range = document.getElementById('range-select').value;
+
+            let data = allData;
+            if (range !== 'all') {
+                data = data.slice(0, parseInt(range));
+            }
+
+            updateStats(data, benchmarkName, metric);
+            updateChart(data, benchmarkName, metric);
+            updateTable(data, benchmarkName, metric);
+        }
+
+        async function refreshData() {
+            document.getElementById('stats-grid').innerHTML = '<div class="loading">Loading...</div>';
+
+            const index = await loadIndex();
+            const results = await Promise.all(
+                index.slice(0, 100).map(entry => loadResult(entry.file))
+            );
+
+            allData = results.filter(r => r !== null);
+            populateBenchmarkSelect(allData);
+            updateView();
+        }
+
+        document.getElementById('benchmark-select').addEventListener('change', updateView);
+        document.getElementById('metric-select').addEventListener('change', updateView);
+        document.getElementById('range-select').addEventListener('change', updateView);
+
+        refreshData();
+    </script>
+</body>
+</html>

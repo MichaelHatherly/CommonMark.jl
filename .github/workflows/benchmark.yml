@@ -1,0 +1,200 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: benchmark-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'
+
+      - uses: julia-actions/cache@v2
+        with:
+          cache-name: benchmark
+
+      - name: Install benchmark dependencies
+        run: |
+          julia --project=benchmark -e '
+            using Pkg
+            Pkg.instantiate()
+            Pkg.develop(path=".")
+          '
+
+      - name: Run benchmarks
+        id: benchmark
+        run: |
+          mkdir -p benchmark-output
+          julia --project=benchmark benchmark/run.jl benchmark-output/results.json
+
+      - name: Fetch baseline (for PRs)
+        if: github.event_name == 'pull_request'
+        run: |
+          # Try to get the latest baseline from gh-pages branch
+          git fetch origin gh-pages 2>/dev/null || true
+          if git show origin/gh-pages:benchmarks/results/latest.json > benchmark-output/baseline.json 2>/dev/null; then
+            echo "BASELINE_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "BASELINE_EXISTS=false" >> $GITHUB_ENV
+            echo "No baseline found"
+          fi
+
+      - name: Compare results (for PRs)
+        if: github.event_name == 'pull_request' && env.BASELINE_EXISTS == 'true'
+        id: compare
+        run: |
+          julia --project=benchmark -e '
+            include("benchmark/compare.jl")
+            compare_and_report(
+              "benchmark-output/baseline.json",
+              "benchmark-output/results.json",
+              "benchmark-output/comparison.md"
+            )
+          '
+
+      - name: Write job summary
+        run: |
+          echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f benchmark-output/comparison.md ]; then
+            cat benchmark-output/comparison.md >> $GITHUB_STEP_SUMMARY
+          else
+            julia --project=benchmark -e '
+              import JSON3
+              results = JSON3.read(read("benchmark-output/results.json", String))
+              benchmarks = results.benchmarks
+
+              format_time(ns) = ns < 1000 ? "$(round(Int, ns)) ns" :
+                                ns < 1e6 ? "$(round(ns/1e3, digits=1)) μs" :
+                                ns < 1e9 ? "$(round(ns/1e6, digits=2)) ms" :
+                                "$(round(ns/1e9, digits=2)) s"
+              format_mem(b) = b < 1024 ? "$b B" :
+                              b < 1024^2 ? "$(round(b/1024, digits=1)) KiB" :
+                              "$(round(b/1024^2, digits=1)) MiB"
+
+              println("_No baseline available. Results stored after merge._\n")
+              println("| Benchmark | Time (median) | Memory | Allocs |")
+              println("|-----------|---------------|--------|--------|")
+              for name in sort(collect(keys(benchmarks)))
+                b = benchmarks[Symbol(name)]
+                println("| $name | $(format_time(b.time_ns.median)) | $(format_mem(b.memory_bytes)) | $(b.allocations) |")
+              end
+            ' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment PR with link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = `📊 [Benchmark results](${runUrl})`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Benchmark results')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Store results (master only)
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Get commit info
+          COMMIT_SHA=$(git rev-parse HEAD)
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+
+          # Save files before switching branches
+          cp -r benchmark/visualization /tmp/visualization
+          cp benchmark-output/results.json /tmp/results.json
+
+          # Checkout gh-pages
+          git fetch origin gh-pages
+          git checkout -B gh-pages origin/gh-pages
+
+          # Create benchmarks directory structure
+          mkdir -p benchmarks/results
+
+          # Copy visualization
+          cp /tmp/visualization/index.html benchmarks/
+
+          # Copy new results
+          cp /tmp/results.json "benchmarks/results/${TIMESTAMP}-${COMMIT_SHORT}.json"
+          cp /tmp/results.json benchmarks/results/latest.json
+
+          # Update index
+          julia --project=benchmark -e '
+            using JSON3, Dates
+
+            results_dir = "benchmarks/results"
+            files = filter(f -> endswith(f, ".json") && f != "latest.json" && f != "index.json", readdir(results_dir))
+
+            index = []
+            for f in files
+              data = JSON3.read(read(joinpath(results_dir, f), String))
+              push!(index, Dict(
+                "file" => f,
+                "timestamp" => get(data, :timestamp, "unknown"),
+                "commit" => get(get(data, :git, Dict()), :commit, "unknown"),
+                "branch" => get(get(data, :git, Dict()), :branch, "unknown"),
+              ))
+            end
+
+            sort!(index, by=x->x["timestamp"], rev=true)
+            write(joinpath(results_dir, "index.json"), JSON3.pretty(index))
+          '
+
+          # Commit and push
+          git add benchmarks/
+          git commit -m "Benchmark results for ${COMMIT_SHORT}" || echo "No changes"
+          git push origin gh-pages
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-output/
+          retention-days: 30

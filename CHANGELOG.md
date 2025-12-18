@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add continuous benchmarking CI with historical tracking and PR comparisons [#104]
 - Add internal documentation for writing extension rules [#103]
 - Add AGENTS.md for AI coding assistants [#103]
 - Add Documenter.jl documentation [#102]
@@ -342,3 +343,4 @@ Initial release.
 [#101]: https://github.com/MichaelHatherly/CommonMark.jl/issues/101
 [#102]: https://github.com/MichaelHatherly/CommonMark.jl/issues/102
 [#103]: https://github.com/MichaelHatherly/CommonMark.jl/issues/103
+[#104]: https://github.com/MichaelHatherly/CommonMark.jl/issues/104
