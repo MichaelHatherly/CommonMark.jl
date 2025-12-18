@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix benchmark select dropdowns rendering inconsistently in webkit browsers [#106]
 - Fix benchmark CI failing on gh-pages branch (missing project files) [#105]
 - Fix HTML attribute ordering for Julia 1.12+ compatibility (dict iteration order changed) [#101]
 - Fix table parser not ending on blank lines (consecutive tables merged incorrectly) [#100]
