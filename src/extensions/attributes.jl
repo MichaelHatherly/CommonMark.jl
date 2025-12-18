@@ -158,6 +158,7 @@ block_modifier(::AttributeRule) =
         end
         return nothing
     end
+target_type(::AttributeRule) = Attributes
 
 inline_modifier(rule::AttributeRule) =
     Rule(1) do parser, block

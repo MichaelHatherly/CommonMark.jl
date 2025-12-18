@@ -66,6 +66,7 @@ block_modifier(::MathRule) =
         end
         return nothing
     end
+target_type(::MathRule) = CodeBlock
 inline_rule(::MathRule) = Rule(parse_inline_math_backticks, 0, "`")
 
 #
@@ -105,6 +106,7 @@ function parse_block_dollar_math(p::Parser, node::Node)
 end
 
 block_modifier(::DollarMathRule) = Rule(parse_block_dollar_math, 0)
+target_type(::DollarMathRule) = Paragraph
 
 const reDollarsHere = r"^\$+"
 const reDollars = r"\$+"

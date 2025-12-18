@@ -3,6 +3,9 @@ block_modifier(::Any) = nothing
 inline_rule(::Any) = nothing
 inline_modifier(::Any) = nothing
 
+# Target type for type-keyed modifier dispatch
+target_type(::Any) = nothing
+
 # Delimiter-based inline hooks
 delim_nodes(::Any) = nothing
 flanking_rule(::Any) = nothing
@@ -77,6 +80,17 @@ function enable!(p::AbstractParser, rule)
     enable!(p, inline_modifier, rule)
     enable!(p, block_rule, rule)
     enable!(p, block_modifier, rule)
+    # Register type-keyed modifier dispatch
+    mod = block_modifier(rule)
+    if mod !== nothing
+        target = target_type(rule)
+        key = target === nothing ? Nothing : target
+        fns = get!(() -> Function[], p.typed_modifiers, key)
+        if mod.fn ∉ fns
+            push!(fns, mod.fn)
+            sort!(fns; by = fn -> p.priorities[fn])
+        end
+    end
     # Register delimiter-based inline hooks
     nodes = delim_nodes(rule)
     if nodes !== nothing
@@ -132,6 +146,7 @@ function disable!(p::AbstractParser, rules::Union{Tuple,Vector})
     empty!(p.priorities)
     empty!(p.block_starts)
     empty!(p.modifiers)
+    empty!(p.typed_modifiers)
     empty!(p.inline_parser.inline_parsers)
     empty!(p.inline_parser.modifiers)
     empty!(p.inline_parser.delim_nodes)

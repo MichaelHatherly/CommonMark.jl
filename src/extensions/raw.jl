@@ -67,6 +67,7 @@ block_modifier(rule::RawContentRule) =
         end
         return nothing
     end
+target_type(::RawContentRule) = CodeBlock
 
 # Raw LaTeX doesn't get displayed in HTML documents.
 write_html(::LaTeXBlock, w, n, en) = nothing

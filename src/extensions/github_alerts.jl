@@ -60,6 +60,7 @@ block_modifier(::GitHubAlertRule) =
         end
         return nothing
     end
+target_type(::GitHubAlertRule) = BlockQuote
 
 #
 # Writers

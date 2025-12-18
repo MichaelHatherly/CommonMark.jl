@@ -93,6 +93,7 @@ block_modifier(f::FrontMatterRule) =
         end
         return nothing
     end
+target_type(::FrontMatterRule) = FrontMatter
 
 # Frontmatter isn't displayed in the resulting output.
 

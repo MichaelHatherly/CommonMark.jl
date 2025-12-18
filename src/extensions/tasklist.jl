@@ -41,6 +41,7 @@ block_modifier(::TaskListRule) =
         end
         return nothing
     end
+target_type(::TaskListRule) = Item
 
 #
 # Writers

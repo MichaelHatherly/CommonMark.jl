@@ -20,6 +20,7 @@ const reCodeFence = r"^`{3,}(?!.*`)|^~{3,}"
 const reClosingCodeFence = r"^(?:`{3,}|~{3,})(?= *$)"
 const reSetextHeadingLine = r"^(?:=+|-+)[ \t]*$"
 const reLineEnding = r"\r\n|\n|\r"
+const EMPTY_FN_VEC = Function[]
 
 """
     Parser()
@@ -68,6 +69,7 @@ mutable struct Parser <: AbstractParser
     inline_parser::InlineParser
     rules::Vector{Any}
     modifiers::Vector{Function}
+    typed_modifiers::Dict{DataType,Vector{Function}}
     priorities::IdDict{Function,Float64}
 
     function Parser()
@@ -94,6 +96,7 @@ mutable struct Parser <: AbstractParser
         parser.inline_parser = InlineParser()
         parser.rules = []
         parser.modifiers = Function[]
+        parser.typed_modifiers = Dict{DataType,Vector{Function}}()
         parser.priorities = IdDict{Function,Float64}()
 
         # Enable the standard CommonMark rule set.
@@ -447,7 +450,12 @@ function process_inlines(parser::Parser, block::Node)
         (node, entering), state = result
 
         if entering
-            for fn in parser.modifiers
+            # Type-keyed modifier dispatch
+            node_type = typeof(node.t)
+            for fn in get(parser.typed_modifiers, node_type, EMPTY_FN_VEC)
+                fn(parser, node)
+            end
+            for fn in get(parser.typed_modifiers, Nothing, EMPTY_FN_VEC)
                 fn(parser, node)
             end
             # If modifier unlinked a child that was next in iteration, fix state
