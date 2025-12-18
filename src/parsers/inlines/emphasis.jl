@@ -6,6 +6,20 @@ struct Strong <: AbstractInline end
 
 is_container(::Strong) = true
 
+# Pre-allocated delimiter strings to avoid repeat() allocations
+function delim_string(c::Char, n::Int)
+    c == '*' && n == 1 && return "*"
+    c == '*' && n == 2 && return "**"
+    c == '*' && n == 3 && return "***"
+    c == '_' && n == 1 && return "_"
+    c == '_' && n == 2 && return "__"
+    c == '_' && n == 3 && return "___"
+    c == '~' && n == 1 && return "~"
+    c == '~' && n == 2 && return "~~"
+    c == '^' && n == 1 && return "^"
+    return c^n
+end
+
 parse_asterisk(parser, block) = handle_delim(parser, '*', block)
 parse_underscore(parser, block) = handle_delim(parser, '_', block)
 
@@ -61,7 +75,7 @@ function handle_delim(parser::InlineParser, cc::AbstractChar, block::Node)
     startpos = position(parser)
 
     seek(parser, position(parser) + numdelims) # `cc` is ASCII.
-    contents = cc == ''' ? "\u2019" : cc == '"' ? "\u201C" : cc^numdelims
+    contents = cc == ''' ? "\u2019" : cc == '"' ? "\u201C" : delim_string(cc, numdelims)
 
     node = text(contents)
     append_child(block, node)
@@ -219,7 +233,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
 
                     # Build container node
                     container = Node(NodeType())
-                    container.literal = closercc^use_delims
+                    container.literal = delim_string(closercc, use_delims)
 
                     tmp = opener_inl.nxt
                     while !isnull(tmp) && tmp !== closer_inl

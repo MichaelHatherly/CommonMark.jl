@@ -6,3 +6,5 @@ Manifest.toml
 /dev/
 .vscode/settings.json
 docs/build/
+benchmark/results/
+benchmark/comparison.md

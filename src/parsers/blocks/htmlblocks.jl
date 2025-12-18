@@ -10,6 +10,7 @@ function continue_(::HtmlBlock, parser::Parser, container::Node)
 end
 
 function finalize(::HtmlBlock, parser::Parser, block::Node)
+    finalize_literal!(block)
     block.literal = replace(block.literal, r"(\n *)+$" => "")
     return nothing
 end

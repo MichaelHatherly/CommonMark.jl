@@ -7,6 +7,7 @@ accepts_lines(::Paragraph) = true
 continue_(::Paragraph, parser::Parser, ::Node) = parser.blank ? 1 : 0
 
 function finalize(::Paragraph, p::Parser, block::Node)
+    finalize_literal!(block)
     has_reference_defs = false
     # Try parsing the beginning as link reference definitions.
     while get(block.literal, 1, nothing) === '['

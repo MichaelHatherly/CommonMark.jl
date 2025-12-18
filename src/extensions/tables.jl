@@ -33,6 +33,7 @@ contains_inlines(::TableCell) = true
 function gfm_table(parser::Parser, container::Node)
     if !parser.indented
         if container.t isa Paragraph
+            finalize_literal!(container)
             header = container.literal
             spec_str = rest_from_nonspace(parser)
             if valid_table_spec(spec_str)

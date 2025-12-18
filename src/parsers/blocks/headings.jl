@@ -56,6 +56,7 @@ function setext_heading(parser::Parser, container::Node)
         m = Base.match(reSetextHeadingLine, rest_from_nonspace(parser))
         if m !== nothing
             close_unmatched_blocks(parser)
+            finalize_literal!(container)
             # resolve reference link definitiosn
             while get(container.literal, 1, nothing) == '['
                 pos =
