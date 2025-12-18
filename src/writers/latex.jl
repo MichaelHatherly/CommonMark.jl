@@ -35,9 +35,8 @@ end
 function write_latex(writer::Writer, ast::Node)
     for (node, entering) in ast
         if entering
-            meta = node.meta
-            if haskey(meta, "id")
-                literal(writer, "\\protect\\hypertarget{", meta["id"], "}{}")
+            if hasmeta(node, "id")
+                literal(writer, "\\protect\\hypertarget{", getmeta(node, "id", ""), "}{}")
             end
         end
         write_latex(node.t, writer, node, entering)

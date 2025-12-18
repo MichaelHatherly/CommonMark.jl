@@ -170,7 +170,7 @@ function write_markdown(::FencedDiv, w, node, enter)
         print_margin(w)
         literal(w, fence)
         # Write attributes
-        if !isempty(node.meta)
+        if !isnothing(node.meta) && !isempty(node.meta)
             literal(w, " ")
             write_div_attributes(w, node.meta)
         end

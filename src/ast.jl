@@ -18,7 +18,7 @@ mutable struct Node
     last_line_checked::Bool
     is_open::Bool
     literal::String
-    meta::Dict{String,Any}
+    meta::Union{Nothing,Dict{String,Any}}
 
     Node() = new()
 
@@ -35,26 +35,29 @@ mutable struct Node
         node.last_line_checked = false
         node.is_open = true
         node.literal = ""
-        # node.meta left uninitialized - lazy init via getproperty
+        node.meta = nothing
         return node
     end
 end
 
-# Lazy initialization for meta field - only allocate Dict when accessed
-function Base.getproperty(node::Node, name::Symbol)
-    if name === :meta
-        isdefined(node, :meta) || setfield!(node, :meta, Dict{String,Any}())
-        return getfield(node, :meta)
-    end
-    getfield(node, name)
+"""Get meta value without allocating if meta is nothing."""
+getmeta(node::Node, key, default) =
+    isnothing(node.meta) ? default : get(node.meta, key, default)
+
+"""Check if meta has key without allocating if meta is nothing."""
+hasmeta(node::Node, key) = !isnothing(node.meta) && haskey(node.meta, key)
+
+"""Set meta value, initializing dict if needed."""
+function setmeta!(node::Node, key, value)
+    isnothing(node.meta) && (node.meta = Dict{String,Any}())
+    node.meta[key] = value
 end
 
-"""Get meta value without allocating if meta uninitialized."""
-getmeta(node::Node, key, default) =
-    isdefined(node, :meta) ? get(getfield(node, :meta), key, default) : default
-
-"""Check if meta has key without allocating if meta uninitialized."""
-hasmeta(node::Node, key) = isdefined(node, :meta) && haskey(getfield(node, :meta), key)
+"""Merge dict into meta, initializing if needed."""
+function mergemeta!(node::Node, d::AbstractDict)
+    isnothing(node.meta) && (node.meta = Dict{String,Any}())
+    merge!(node.meta, d)
+end
 
 function copy_tree(func::Function, root::Node)
     lookup = Dict{Node,Node}()
@@ -82,8 +85,7 @@ function copy_tree(func::Function, root::Node)
             new.is_open = old.is_open
             new.literal = old.literal
 
-            # Only copy meta if it was initialized (bypass getproperty lazy init)
-            isdefined(old, :meta) && setfield!(new, :meta, copy(getfield(old, :meta)))
+            new.meta = isnothing(old.meta) ? nothing : copy(old.meta)
         end
     end
     return lookup[root]

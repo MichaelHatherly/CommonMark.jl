@@ -467,7 +467,7 @@ contains_inlines(::Heading) = true
 
 function parse(parser::Parser, my_input::IO; kws...)
     parser.doc = Node(Document(), ((1, 1), (0, 0)))
-    isempty(kws) || (merge!(parser.doc.meta, Dict(string(k) => v for (k, v) in kws)))
+    isempty(kws) || mergemeta!(parser.doc, Dict(string(k) => v for (k, v) in kws))
     parser.tip = parser.doc
     parser.refmap = Dict{String,Tuple{String,String}}()
     parser.line_number = getmeta(parser.doc, "line", 1) - 1

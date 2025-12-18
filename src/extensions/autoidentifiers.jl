@@ -24,14 +24,14 @@ block_modifier(rule::AutoIdentifierRule) =
     Rule(100) do parser, block
         # Add heading IDs to those without any preset by AttributeRule.
         if block.t isa Heading && !hasmeta(block, "id")
-            block.meta["id"] = slugify(block.literal)
+            setmeta!(block, "id", slugify(block.literal))
         end
         # Then make sure all IDs for the current AutoIdentifierRule are unique using a counter.
         if hasmeta(block, "id")
             counter = get!(() -> Dict{String,Int}(), rule.refs, parser.doc)
-            id = block.meta["id"]
+            id = getmeta(block, "id", "")
             counter[id] = get!(counter, id, 0) + 1
-            block.meta["id"] = counter[id] == 1 ? id : "$id-$(counter[id] - 1)"
+            setmeta!(block, "id", counter[id] == 1 ? id : "$id-$(counter[id] - 1)")
         end
         return nothing
     end

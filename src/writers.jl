@@ -11,7 +11,12 @@ end
 
 function writer(io::IO, mime::MIME, ast::Node, env::Dict; kws...)
     # Merge all metadata provided, priority is right-to-left.
-    env = recursive_merge(default_config(), env, frontmatter(ast), ast.meta)
+    env = recursive_merge(
+        default_config(),
+        env,
+        frontmatter(ast),
+        something(ast.meta, Dict{String,Any}()),
+    )
     if haskey(env, "template-engine")
         temp = template(env, mime_to_str(mime))
         # Empty templates will skip the template rendering step.
