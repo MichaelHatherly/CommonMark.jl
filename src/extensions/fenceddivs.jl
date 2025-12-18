@@ -69,8 +69,7 @@ function parse_div_attributes(s::AbstractString)
     else
         # Bare word(s) treated as class names (fenced div specific)
         words = split(s)
-        all(w -> match(r"^[a-zA-Z_][a-zA-Z0-9_-]*$", w) !== nothing, words) ||
-            return nothing
+        all(w -> occursin(r"^[a-zA-Z_][a-zA-Z0-9_-]*$", w), words) || return nothing
         return Dict{String,Any}("class" => collect(words))
     end
 end

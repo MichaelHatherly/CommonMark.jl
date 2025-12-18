@@ -36,6 +36,10 @@ function enable!(p::AbstractParser, fn, rule::Rule)
             push!(λs, rule.fn)
             sort!(λs; by = λ -> p.priorities[λ])
         end
+        # Update ASCII trigger lookup table for inline rules
+        if fn === inline_rule && trigger <= '\x7f'
+            p.inline_parser.trigger_table[Int(trigger)+1] = true
+        end
     end
     return p
 end
@@ -136,6 +140,7 @@ function disable!(p::AbstractParser, rules::Union{Tuple,Vector})
     empty!(p.inline_parser.delim_chars)
     empty!(p.inline_parser.delim_counts)
     empty!(p.inline_parser.delim_max)
+    fill!(p.inline_parser.trigger_table, false)
     empty!(p.rules)
     return enable!(p, rules_kept)
 end

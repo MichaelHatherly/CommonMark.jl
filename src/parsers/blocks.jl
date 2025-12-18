@@ -278,7 +278,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
     parser.line_number += 1
 
     # Replace NUL characters for security.
-    ln = occursin(r"\u0000", ln) ? replace(ln, '\0' => '\uFFFD') : ln
+    ln = ('\0' in ln) ? replace(ln, '\0' => '\uFFFD') : ln
 
     parser.buf = ln
     parser.len = length(ln)
