@@ -6,6 +6,8 @@ struct Strong <: AbstractInline end
 
 is_container(::Strong) = true
 
+const EMPTY_INT_VECTOR = Int[]
+
 # Pre-allocated delimiter strings to avoid repeat() allocations
 function delim_string(c::Char, n::Int)
     c == '*' && n == 1 && return "*"
@@ -145,7 +147,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
             closer = closer.next
         else
             closercc = closer.cc
-            has_nodes = any(k -> k[1] == closercc, keys(parser.delim_nodes))
+            has_nodes = closercc in parser.delim_chars
 
             # Skip unknown delimiters (except smart quotes handled below)
             if !has_nodes && closercc ∉ (''', '"')
@@ -158,10 +160,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
             opener_found = false
 
             # For chars with multiple registered counts, require compatible counts
-            registered_counts = sort(
-                [k[2] for k in keys(parser.delim_nodes) if k[1] == closercc],
-                rev = true,
-            )
+            registered_counts = get(parser.delim_counts, closercc, EMPTY_INT_VECTOR)
             multi_count = length(registered_counts) > 1
 
             # For smart quotes, use count 0; otherwise use actual count
@@ -203,8 +202,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
                     closer = closer.next
                 else
                     # Calculate use_delims - find max registered for this char
-                    max_delims =
-                        maximum(k[2] for k in keys(parser.delim_nodes) if k[1] == closercc)
+                    max_delims = parser.delim_max[closercc]
                     use_delims = min(closer.numdelims, opener.numdelims, max_delims)
 
                     # Find matching node type, trying smaller counts if needed

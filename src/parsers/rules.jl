@@ -75,7 +75,10 @@ function enable!(p::AbstractParser, rule)
     enable!(p, block_modifier, rule)
     # Register delimiter-based inline hooks
     nodes = delim_nodes(rule)
-    nodes !== nothing && merge!(p.inline_parser.delim_nodes, nodes)
+    if nodes !== nothing
+        merge!(p.inline_parser.delim_nodes, nodes)
+        rebuild_delim_lookups!(p.inline_parser)
+    end
     flank = flanking_rule(rule)
     if flank !== nothing
         char, mode = flank
@@ -130,6 +133,9 @@ function disable!(p::AbstractParser, rules::Union{Tuple,Vector})
     empty!(p.inline_parser.delim_nodes)
     empty!(p.inline_parser.flanking_rules)
     empty!(p.inline_parser.odd_match_chars)
+    empty!(p.inline_parser.delim_chars)
+    empty!(p.inline_parser.delim_counts)
+    empty!(p.inline_parser.delim_max)
     empty!(p.rules)
     return enable!(p, rules_kept)
 end
