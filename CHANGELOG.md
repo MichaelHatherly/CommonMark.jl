@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix entity regex allowing 8 decimal digits instead of spec-mandated 7 [#114]
 - Fix benchmark select dropdowns rendering inconsistently in webkit browsers [#106]
 - Fix benchmark CI failing on gh-pages branch (missing project files) [#105]
 - Fix HTML attribute ordering for Julia 1.12+ compatibility (dict iteration order changed) [#101]
@@ -364,3 +365,4 @@ Initial release.
 [#110]: https://github.com/MichaelHatherly/CommonMark.jl/issues/110
 [#111]: https://github.com/MichaelHatherly/CommonMark.jl/issues/111
 [#113]: https://github.com/MichaelHatherly/CommonMark.jl/issues/113
+[#114]: https://github.com/MichaelHatherly/CommonMark.jl/issues/114
