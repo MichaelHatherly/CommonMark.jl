@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add stdlib compatibility tests covering 30 Julia Markdown issues [#113]
 - Add continuous benchmarking CI with historical tracking and PR comparisons [#104]
 - Add internal documentation for writing extension rules [#103]
 - Add AGENTS.md for AI coding assistants [#103]
@@ -361,3 +362,5 @@ Initial release.
 [#108]: https://github.com/MichaelHatherly/CommonMark.jl/issues/108
 [#109]: https://github.com/MichaelHatherly/CommonMark.jl/issues/109
 [#110]: https://github.com/MichaelHatherly/CommonMark.jl/issues/110
+[#111]: https://github.com/MichaelHatherly/CommonMark.jl/issues/111
+[#113]: https://github.com/MichaelHatherly/CommonMark.jl/issues/113
