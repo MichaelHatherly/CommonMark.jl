@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Update to CommonMark spec 0.31.2 (649 → 655 test cases) [#115]
+- Fix Unicode punctuation check for emphasis flanking (include Symbol category) [#115]
+- Fix Unicode case folding for reference link matching (ẞ → ss) [#115]
 - Fix entity regex allowing 8 decimal digits instead of spec-mandated 7 [#114]
 - Fix benchmark select dropdowns rendering inconsistently in webkit browsers [#106]
 - Fix benchmark CI failing on gh-pages branch (missing project files) [#105]
@@ -366,3 +369,4 @@ Initial release.
 [#111]: https://github.com/MichaelHatherly/CommonMark.jl/issues/111
 [#113]: https://github.com/MichaelHatherly/CommonMark.jl/issues/113
 [#114]: https://github.com/MichaelHatherly/CommonMark.jl/issues/114
+[#115]: https://github.com/MichaelHatherly/CommonMark.jl/issues/115

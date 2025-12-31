@@ -3,7 +3,7 @@
     using Test
     using JSON
 
-    # Do we pass the CommonMark spec -- version 0.29.0.
+    # Do we pass the CommonMark spec -- version 0.31.2.
     for case in JSON.parsefile(joinpath(@__DIR__, "spec.json"))
         p = Parser()
         ast = p(case["markdown"])
