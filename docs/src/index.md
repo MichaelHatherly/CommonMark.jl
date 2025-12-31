@@ -76,7 +76,8 @@ markdown(ast)
 ```
 
 Other formats include `typst()` for Typst documents, `term()` for
-terminal output with ANSI colors, and `notebook()` for Jupyter notebooks.
+terminal output with ANSI colors, `notebook()` for Jupyter notebooks,
+and `json()` for Pandoc AST JSON (enables export to docx, epub, rst, etc.).
 
 All writer functions accept a filename or IO as the first argument:
 

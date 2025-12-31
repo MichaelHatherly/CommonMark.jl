@@ -1,0 +1,47 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "$$"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": "E"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "="
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "t": "Str",
+          "c": "mc^2"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "t": "Str",
+          "c": "$$"
+        }
+      ]
+    }
+  ]
+}

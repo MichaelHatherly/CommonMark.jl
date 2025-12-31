@@ -157,3 +157,14 @@ function write_markdown(a::GitHubAlert, w, node, ent)
         linebreak(w, node)
     end
 end
+
+function write_json(a::GitHubAlert, ctx, node, enter)
+    if enter
+        blocks = Any[]
+        push_container!(ctx, blocks)
+    else
+        blocks = pop_container!(ctx)
+        attr = Any["", String["alert", "alert-$(a.category)"], Any[]]
+        push_element!(ctx, json_el(ctx, "Div", Any[attr, blocks]))
+    end
+end

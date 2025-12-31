@@ -181,3 +181,22 @@ function write_term(f::FootnoteLink, rend, node, enter)
 end
 
 write_markdown(f::FootnoteLink, w, node, ent) = literal(w, "[^", f.id, "]")
+
+# Footnote definitions are skipped; their content is inlined at the link.
+write_json(::FootnoteDefinition, ctx, node, enter) = nothing
+
+function write_json(f::FootnoteLink, ctx, node, enter)
+    enter || return
+    haskey(f.rule.cache, f.id) || return
+    def = f.rule.cache[f.id]
+    # Collect blocks from the footnote definition.
+    blocks = Any[]
+    push_container!(ctx, blocks)
+    for (child, child_enter) in def
+        isnull(child) && continue
+        child === def && continue
+        write_json(child.t, ctx, child, child_enter)
+    end
+    blocks = pop_container!(ctx)
+    push_element!(ctx, json_el(ctx, "Note", blocks))
+end

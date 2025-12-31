@@ -364,3 +364,29 @@ write_html(::ReferenceDefinition, r, n, ent) = nothing
 write_latex(::ReferenceDefinition, w, n, ent) = nothing
 write_term(::ReferenceDefinition, r, n, ent) = nothing
 write_typst(::ReferenceDefinition, w, n, ent) = nothing
+
+# JSON - same as regular Link/Image
+
+function write_json(ref::ReferenceLink, ctx, node, enter)
+    if enter
+        inlines = Any[]
+        push_container!(ctx, inlines)
+    else
+        inlines = pop_container!(ctx)
+        target = Any[ref.destination, ref.title]
+        push_element!(ctx, json_el(ctx, "Link", Any[node_attr(node), inlines, target]))
+    end
+end
+
+function write_json(ref::ReferenceImage, ctx, node, enter)
+    if enter
+        inlines = Any[]
+        push_container!(ctx, inlines)
+    else
+        inlines = pop_container!(ctx)
+        target = Any[ref.destination, ref.title]
+        push_element!(ctx, json_el(ctx, "Image", Any[node_attr(node), inlines, target]))
+    end
+end
+
+write_json(::ReferenceDefinition, ctx, node, enter) = nothing

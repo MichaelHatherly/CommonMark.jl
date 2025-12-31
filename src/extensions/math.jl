@@ -214,3 +214,20 @@ function write_markdown(::DisplayMath, w, node, ent)
     cr(w)
     linebreak(w, node)
 end
+
+function write_json(::Math, ctx, node, enter)
+    enter || return
+    push_element!(ctx, json_el(ctx, "Math", Any[json_el(ctx, "InlineMath"), node.literal]))
+end
+
+function write_json(::DisplayMath, ctx, node, enter)
+    enter || return
+    push_element!(
+        ctx,
+        json_el(
+            ctx,
+            "Para",
+            Any[json_el(ctx, "Math", Any[json_el(ctx, "DisplayMath"), node.literal])],
+        ),
+    )
+end

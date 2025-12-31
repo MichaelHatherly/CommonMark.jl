@@ -1,0 +1,41 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "my-heading-text",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "My"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Heading"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Text"
+          }
+        ]
+      ]
+    }
+  ]
+}

@@ -129,6 +129,25 @@ write_markdown(::CitationBracket, w, n, ent) = literal(w, n.literal)
 write_typst(::CitationBracket, w, n, ent) = literal(w, n.literal)
 write_term(::CitationBracket, w, n, ent) = print_literal(w, n.literal == "[" ? "(" : ")")
 
+function write_json(c::Citation, ctx, node, enter)
+    enter || return
+    D = dicttype(ctx)
+    citation = D(
+        "citationId" => c.id,
+        "citationPrefix" => Any[],
+        "citationSuffix" => Any[],
+        "citationMode" => json_el(ctx, "NormalCitation"),
+        "citationNoteNum" => 0,
+        "citationHash" => 0,
+    )
+    push_element!(
+        ctx,
+        json_el(ctx, "Cite", Any[Any[citation], text_to_inlines(ctx, "@" * c.id)]),
+    )
+end
+
+write_json(::CitationBracket, ctx, node, enter) = nothing
+
 write_markdown(::References, w, n, ent) = nothing
 write_html(::References, w, n, ent) = write_references(write_html, w)
 write_latex(::References, w, n, ent) = write_references(write_latex, w)
@@ -148,6 +167,9 @@ write_markdown(::ReferenceList, w, n, ent) = nothing
 write_html(::ReferenceList, w, n, ent) = nothing
 write_latex(::ReferenceList, w, n, ent) = nothing
 write_term(::ReferenceList, w, n, ent) = nothing
+
+write_json(::References, ctx, node, enter) = nothing
+write_json(::ReferenceList, ctx, node, enter) = nothing
 
 function build_references(items::AbstractVector)
     block = Node(ReferenceList())

@@ -222,3 +222,13 @@ function write_div_attributes(w, meta)
         literal(w, "}")
     end
 end
+
+function write_json(::FencedDiv, ctx, node, enter)
+    if enter
+        blocks = Any[]
+        push_container!(ctx, blocks)
+    else
+        blocks = pop_container!(ctx)
+        push_element!(ctx, json_el(ctx, "Div", Any[node_attr(node), blocks]))
+    end
+end
