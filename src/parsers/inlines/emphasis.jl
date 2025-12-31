@@ -22,6 +22,10 @@ function delim_string(c::Char, n::Int)
     return c^n
 end
 
+# CommonMark spec: Unicode punctuation = P (Punctuation) + S (Symbol) categories
+# Julia's ispunct only checks P, so we check category codes 12-22 (P=12-18, S=19-22)
+is_unicode_punct(c::AbstractChar) = 12 <= Base.Unicode.category_code(c) <= 22
+
 parse_asterisk(parser, block) = handle_delim(parser, '*', block)
 parse_underscore(parser, block) = handle_delim(parser, '_', block)
 
@@ -45,9 +49,9 @@ function scan_delims(parser::InlineParser, c::AbstractChar)
     c_after = trypeek(parser, Char, '\n')
 
     ws_after = Base.Unicode.isspace(c_after)
-    punct_after = Base.Unicode.ispunct(c_after)
+    punct_after = is_unicode_punct(c_after)
     ws_before = Base.Unicode.isspace(c_before)
-    punct_before = Base.Unicode.ispunct(c_before)
+    punct_before = is_unicode_punct(c_before)
 
     left_flanking = !ws_after && (!punct_after || ws_before || punct_before)
     right_flanking = !ws_before && (!punct_before || ws_after || punct_after)
