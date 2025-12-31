@@ -8,7 +8,8 @@ include("extensions.jl")
 include("precompile.jl")
 
 # Interface
-export Parser, enable!, disable!, html, latex, term, markdown, notebook, typst, frontmatter
+export Parser,
+    enable!, disable!, html, latex, term, markdown, notebook, typst, json, frontmatter
 
 # Core block rules
 export AtxHeadingRule,

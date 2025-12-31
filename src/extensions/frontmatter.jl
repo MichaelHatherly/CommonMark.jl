@@ -108,3 +108,6 @@ function write_markdown(f::FrontMatter, w, node, ent)
     literal(w, f.fence, "\n")
     linebreak(w, node)
 end
+
+# Frontmatter is handled at the top-level in JSON writer (populates meta).
+write_json(::FrontMatter, ctx, node, enter) = nothing

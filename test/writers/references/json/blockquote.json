@@ -1,0 +1,24 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "BlockQuote",
+      "c": [
+        {
+          "t": "Para",
+          "c": [
+            {
+              "t": "Str",
+              "c": "quote"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

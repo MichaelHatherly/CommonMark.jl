@@ -240,3 +240,11 @@ end
 # expression rather than it's value.
 write_markdown(jv::Union{JuliaExpression,JuliaValue}, rend, node, ent) =
     print(rend.buffer, '$', "($(jv.ex))")
+
+# Render evaluated values as text.
+function write_json(jv::JuliaValue, ctx, node, enter)
+    enter || return
+    append!(current(ctx), text_to_inlines(string(jv.ref)))
+end
+
+write_json(::JuliaExpression, ctx, node, enter) = nothing

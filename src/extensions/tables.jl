@@ -400,6 +400,77 @@ function write_markdown(cell::TableCell, w, node, enter)
     return nothing
 end
 
+# JSON
+
+function write_json(table::Table, ctx, node, enter)
+    if enter
+        # Build colspecs from table alignment spec.
+        colspecs = Any[]
+        for align in table.spec
+            a =
+                align === :left ? json_el(ctx, "AlignLeft") :
+                align === :right ? json_el(ctx, "AlignRight") :
+                align === :center ? json_el(ctx, "AlignCenter") :
+                json_el(ctx, "AlignDefault")
+            push!(colspecs, Any[a, json_el(ctx, "ColWidthDefault")])
+        end
+        push_container!(ctx, colspecs)
+        push_container!(ctx, Any[])  # head rows
+        push_container!(ctx, Any[])  # body rows
+    else
+        body_rows = pop_container!(ctx)
+        head_rows = pop_container!(ctx)
+        colspecs = pop_container!(ctx)
+
+        caption = Any[nothing, Any[]]  # [short_caption, long_caption_blocks]
+        head = Any[empty_attr(), head_rows]
+        body = Any[Any[empty_attr(), 0, Any[], body_rows]]
+        foot = Any[empty_attr(), Any[]]
+        push_element!(
+            ctx,
+            json_el(ctx, "Table", Any[empty_attr(), caption, colspecs, head, body, foot]),
+        )
+    end
+end
+
+write_json(::TableHeader, ctx, node, enter) = nothing
+write_json(::TableBody, ctx, node, enter) = nothing
+
+function write_json(::TableRow, ctx, node, enter)
+    if enter
+        cells = Any[]
+        push_container!(ctx, cells)
+    else
+        cells = pop_container!(ctx)
+        row = Any[empty_attr(), cells]
+        # Stack is: [blocks, colspecs, head_rows, body_rows]
+        # head_rows = end-1, body_rows = end
+        if node.parent.t isa TableHeader
+            push!(ctx.stack[end-1], row)
+        else
+            push!(ctx.stack[end], row)
+        end
+    end
+end
+
+function write_json(cell::TableCell, ctx, node, enter)
+    if enter
+        inlines = Any[]
+        push_container!(ctx, inlines)
+    else
+        inlines = pop_container!(ctx)
+        a =
+            cell.align === :left ? json_el(ctx, "AlignLeft") :
+            cell.align === :right ? json_el(ctx, "AlignRight") :
+            cell.align === :center ? json_el(ctx, "AlignCenter") :
+            json_el(ctx, "AlignDefault")
+        blocks = isempty(inlines) ? Any[] : Any[json_el(ctx, "Plain", inlines)]
+        push_element!(ctx, Any[empty_attr(), a, 1, 1, blocks])
+    end
+end
+
+write_json(::TablePipe, ctx, node, enter) = nothing
+
 # Utilities.
 
 function calculate_columns_widths(width_func, table, node)

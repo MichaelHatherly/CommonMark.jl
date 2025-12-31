@@ -182,3 +182,5 @@ function write_markdown(at::Attributes, w, n, ent)
         literal(w, n.literal, at.block ? "\n" : "")
     end
 end
+
+write_json(::Attributes, ctx, node, enter) = nothing

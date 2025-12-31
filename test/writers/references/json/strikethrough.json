@@ -1,0 +1,24 @@
+{
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ],
+  "meta": {},
+  "blocks": [
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Strikethrough",
+          "c": [
+            {
+              "t": "Str",
+              "c": "deleted"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
