@@ -1,0 +1,51 @@
+{
+  "blocks": [
+    {
+      "c": [
+        [
+          {
+            "c": [
+              {
+                "c": "item",
+                "t": "Str"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "c": "1",
+                "t": "Str"
+              }
+            ],
+            "t": "Plain"
+          }
+        ],
+        [
+          {
+            "c": [
+              {
+                "c": "item",
+                "t": "Str"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "c": "2",
+                "t": "Str"
+              }
+            ],
+            "t": "Plain"
+          }
+        ]
+      ],
+      "t": "BulletList"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

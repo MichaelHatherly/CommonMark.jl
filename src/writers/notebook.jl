@@ -93,36 +93,57 @@ end
 
 Base.write(io::StringContext, byte::UInt8) = write(io.io, ESCAPED_ARRAY[byte+1])
 
-function _json(io::IO, str::AbstractString)
-    write(io, STRING_DELIM)
-    print(StringContext(io), str)
-    write(io, STRING_DELIM)
+# JSON writer context with formatting options.
+struct JSONWriter{T<:IO}
+    io::T
+    indent::Int
+    sorted::Bool
+    depth::Int
 end
-_json(io::IO, ::Nothing) = print(io, "null")
-_json(io::IO, num::Real) = print(io, num)
+JSONWriter(io::IO; indent::Int = 0, sorted::Bool = true) = JSONWriter(io, indent, sorted, 0)
+deeper(w::JSONWriter) = JSONWriter(w.io, w.indent, w.sorted, w.depth + 1)
 
-function _json(io::IO, dict::AbstractDict)
-    print(io, "{")
-    for (nth, (key, value)) in enumerate(dict)
-        if nth > 1
-            print(io, ",")
-        end
-        _json(io, key)
-        print(io, ":")
-        _json(io, value)
+# Entry point.
+_json(io::IO, x; indent::Int = 0, sorted::Bool = true) =
+    _json(JSONWriter(io; indent = indent, sorted = sorted), x)
+
+function _json(w::JSONWriter, str::AbstractString)
+    write(w.io, STRING_DELIM)
+    print(StringContext(w.io), str)
+    write(w.io, STRING_DELIM)
+end
+_json(w::JSONWriter, ::Nothing) = print(w.io, "null")
+_json(w::JSONWriter, num::Real) = print(w.io, num)
+
+function _json(w::JSONWriter, dict::AbstractDict)
+    print(w.io, "{")
+    ks = w.sorted ? sort!(collect(keys(dict))) : collect(keys(dict))
+    inner = deeper(w)
+    for (nth, key) in enumerate(ks)
+        nth > 1 && print(w.io, ",")
+        w.indent > 0 && print(w.io, "\n", " "^(w.indent * inner.depth))
+        _json(inner, key)
+        print(w.io, w.indent > 0 ? ": " : ":")
+        _json(inner, dict[key])
     end
-    print(io, "}")
+    if !isempty(ks) && w.indent > 0
+        print(w.io, "\n", " "^(w.indent * w.depth))
+    end
+    print(w.io, "}")
 end
 
-function _json(io::IO, vec::AbstractVector)
-    print(io, "[")
+function _json(w::JSONWriter, vec::AbstractVector)
+    print(w.io, "[")
+    inner = deeper(w)
     for (nth, value) in enumerate(vec)
-        if nth > 1
-            print(io, ",")
-        end
-        _json(io, value)
+        nth > 1 && print(w.io, ",")
+        w.indent > 0 && print(w.io, "\n", " "^(w.indent * inner.depth))
+        _json(inner, value)
     end
-    print(io, "]")
+    if !isempty(vec) && w.indent > 0
+        print(w.io, "\n", " "^(w.indent * w.depth))
+    end
+    print(w.io, "]")
 end
 
 # The following bytes have significant meaning in JSON

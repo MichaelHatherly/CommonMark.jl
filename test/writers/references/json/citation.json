@@ -1,0 +1,49 @@
+{
+  "blocks": [
+    {
+      "c": [
+        {
+          "c": "See",
+          "t": "Str"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "c": [
+            [
+              {
+                "citationHash": 0,
+                "citationId": "smith2020",
+                "citationMode": {
+                  "t": "NormalCitation"
+                },
+                "citationNoteNum": 0,
+                "citationPrefix": [],
+                "citationSuffix": []
+              }
+            ],
+            [
+              {
+                "c": "@smith2020",
+                "t": "Str"
+              }
+            ]
+          ],
+          "t": "Cite"
+        },
+        {
+          "c": ".",
+          "t": "Str"
+        }
+      ],
+      "t": "Para"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

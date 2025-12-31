@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "c": [
+        {
+          "c": "line1",
+          "t": "Str"
+        },
+        {
+          "t": "SoftBreak"
+        },
+        {
+          "c": "line2",
+          "t": "Str"
+        }
+      ],
+      "t": "Para"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

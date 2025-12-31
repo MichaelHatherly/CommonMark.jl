@@ -193,6 +193,7 @@ This allows generating opening/closing tags for containers.
 | `write_typst` | Typst |
 | `write_term` | Terminal (ANSI) |
 | `write_markdown` | Markdown (roundtrip) |
+| `write_json` | Pandoc AST JSON |
 
 ### Writer Utilities
 

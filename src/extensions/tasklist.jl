@@ -123,3 +123,23 @@ function write_markdown(t::TaskItem, w, node, enter)
         pop_margin!(w)
     end
 end
+
+# TaskItem is like Item but with checkbox prepended to first paragraph.
+function write_json(t::TaskItem, ctx, node, enter)
+    if enter
+        blocks = Any[]
+        push_container!(ctx, blocks)
+    else
+        blocks = pop_container!(ctx)
+        # Prepend checkbox Unicode + Space to first Plain/Para block.
+        checkbox = t.checked ? "☒" : "☐"
+        if !isempty(blocks) && haskey(first(blocks), "t")
+            block = first(blocks)
+            if block["t"] in ("Plain", "Para")
+                pushfirst!(block["c"], json_el(ctx, "Space"))
+                pushfirst!(block["c"], json_el(ctx, "Str", checkbox))
+            end
+        end
+        push_element!(ctx, blocks)
+    end
+end

@@ -1,0 +1,13 @@
+{
+  "blocks": [
+    {
+      "t": "HorizontalRule"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

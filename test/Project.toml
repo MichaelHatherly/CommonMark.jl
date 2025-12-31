@@ -1,8 +1,10 @@
 [deps]
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Mustache = "ffc61752-8dc7-55ee-8c37-f3e9cdd09e70"
+OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 ReferenceTests = "324d217c-45ce-50fc-942e-d289b448e8cf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
+pandoc_jll = "c5432543-76ad-5c9d-82bf-db097047a5e2"

@@ -130,3 +130,23 @@ _raw_tag(::LaTeXInline) = "latex"
 _raw_tag(::LaTeXBlock) = "latex"
 _raw_tag(::TypstInline) = "typst"
 _raw_tag(::TypstBlock) = "typst"
+
+function write_json(::LaTeXBlock, ctx, node, enter)
+    enter || return
+    push_element!(ctx, json_el(ctx, "RawBlock", Any["latex", node.literal]))
+end
+
+function write_json(::LaTeXInline, ctx, node, enter)
+    enter || return
+    push_element!(ctx, json_el(ctx, "RawInline", Any["latex", node.literal]))
+end
+
+function write_json(::TypstBlock, ctx, node, enter)
+    enter || return
+    push_element!(ctx, json_el(ctx, "RawBlock", Any["typst", node.literal]))
+end
+
+function write_json(::TypstInline, ctx, node, enter)
+    enter || return
+    push_element!(ctx, json_el(ctx, "RawInline", Any["typst", node.literal]))
+end

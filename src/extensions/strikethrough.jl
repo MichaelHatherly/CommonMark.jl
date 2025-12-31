@@ -56,3 +56,13 @@ end
 function write_markdown(::Strikethrough, w, n, ent)
     literal(w, "~~")
 end
+
+function write_json(::Strikethrough, ctx, node, enter)
+    if enter
+        inlines = Any[]
+        push_container!(ctx, inlines)
+    else
+        inlines = pop_container!(ctx)
+        push_element!(ctx, json_el(ctx, "Strikethrough", inlines))
+    end
+end

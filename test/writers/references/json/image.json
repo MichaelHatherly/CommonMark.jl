@@ -1,0 +1,35 @@
+{
+  "blocks": [
+    {
+      "c": [
+        {
+          "c": [
+            [
+              "",
+              [],
+              []
+            ],
+            [
+              {
+                "c": "alt",
+                "t": "Str"
+              }
+            ],
+            [
+              "http://example.com/img.png",
+              ""
+            ]
+          ],
+          "t": "Image"
+        }
+      ],
+      "t": "Para"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}
