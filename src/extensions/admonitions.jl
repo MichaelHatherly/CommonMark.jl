@@ -152,3 +152,23 @@ function write_markdown(a::Admonition, w, node, ent)
         linebreak(w, node)
     end
 end
+
+function write_json(a::Admonition, ctx, node, enter)
+    if enter
+        blocks = Any[]
+        push_container!(ctx, blocks)
+    else
+        blocks = pop_container!(ctx)
+        # Prepend title as strong paragraph.
+        if !isempty(a.title)
+            title_para = json_el(
+                ctx,
+                "Para",
+                Any[json_el(ctx, "Strong", text_to_inlines(ctx, a.title))],
+            )
+            pushfirst!(blocks, title_para)
+        end
+        attr = Any["", String[a.category], Any[]]
+        push_element!(ctx, json_el(ctx, "Div", Any[attr, blocks]))
+    end
+end

@@ -1,0 +1,56 @@
+{
+  "blocks": [
+    {
+      "c": [
+        {
+          "c": "Text",
+          "t": "Str"
+        },
+        {
+          "c": [
+            {
+              "c": [
+                {
+                  "c": "Footnote",
+                  "t": "Str"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "c": "content.",
+                  "t": "Str"
+                }
+              ],
+              "t": "Para"
+            }
+          ],
+          "t": "Note"
+        }
+      ],
+      "t": "Para"
+    },
+    {
+      "c": [
+        {
+          "c": "Footnote",
+          "t": "Str"
+        },
+        {
+          "t": "Space"
+        },
+        {
+          "c": "content.",
+          "t": "Str"
+        }
+      ],
+      "t": "Para"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

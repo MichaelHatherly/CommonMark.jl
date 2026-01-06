@@ -1,0 +1,35 @@
+{
+  "blocks": [
+    {
+      "c": [
+        {
+          "c": [
+            [
+              "",
+              [],
+              []
+            ],
+            [
+              {
+                "c": "link",
+                "t": "Str"
+              }
+            ],
+            [
+              "http://example.com",
+              ""
+            ]
+          ],
+          "t": "Link"
+        }
+      ],
+      "t": "Para"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

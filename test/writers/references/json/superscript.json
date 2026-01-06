@@ -1,0 +1,28 @@
+{
+  "blocks": [
+    {
+      "c": [
+        {
+          "c": "x",
+          "t": "Str"
+        },
+        {
+          "c": [
+            {
+              "c": "2",
+              "t": "Str"
+            }
+          ],
+          "t": "Superscript"
+        }
+      ],
+      "t": "Para"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

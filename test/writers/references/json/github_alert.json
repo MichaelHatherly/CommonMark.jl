@@ -1,0 +1,55 @@
+{
+  "blocks": [
+    {
+      "c": [
+        [
+          "",
+          [
+            "alert",
+            "alert-note"
+          ],
+          []
+        ],
+        [
+          {
+            "c": [
+              {
+                "c": "This",
+                "t": "Str"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "c": "is",
+                "t": "Str"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "c": "a",
+                "t": "Str"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "c": "note.",
+                "t": "Str"
+              }
+            ],
+            "t": "Para"
+          }
+        ]
+      ],
+      "t": "Div"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "blocks": [
+    {
+      "c": [
+        "latex",
+        "\\textbf{bold}\n"
+      ],
+      "t": "RawBlock"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

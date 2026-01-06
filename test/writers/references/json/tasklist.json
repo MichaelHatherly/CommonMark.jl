@@ -1,0 +1,51 @@
+{
+  "blocks": [
+    {
+      "c": [
+        [
+          {
+            "c": [
+              {
+                "c": "☐",
+                "t": "Str"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "c": "Unchecked",
+                "t": "Str"
+              }
+            ],
+            "t": "Plain"
+          }
+        ],
+        [
+          {
+            "c": [
+              {
+                "c": "☒",
+                "t": "Str"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "c": "Checked",
+                "t": "Str"
+              }
+            ],
+            "t": "Plain"
+          }
+        ]
+      ],
+      "t": "BulletList"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

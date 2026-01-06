@@ -48,3 +48,13 @@ end
 function write_markdown(::Superscript, w, n, ent)
     literal(w, "^")
 end
+
+function write_json(::Superscript, ctx, node, enter)
+    if enter
+        inlines = Any[]
+        push_container!(ctx, inlines)
+    else
+        inlines = pop_container!(ctx)
+        push_element!(ctx, json_el(ctx, "Superscript", inlines))
+    end
+end
