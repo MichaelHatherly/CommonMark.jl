@@ -63,6 +63,6 @@ function write_json(::Strikethrough, ctx, node, enter)
         push_container!(ctx, inlines)
     else
         inlines = pop_container!(ctx)
-        push_element!(ctx, json_el(ctx, "Strikethrough", inlines))
+        push_element!(ctx, json_el(ctx, "Strikeout", inlines))
     end
 end

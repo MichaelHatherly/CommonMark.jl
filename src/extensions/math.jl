@@ -222,12 +222,12 @@ end
 
 function write_json(::DisplayMath, ctx, node, enter)
     enter || return
-    push_element!(
-        ctx,
-        json_el(
-            ctx,
-            "Para",
-            Any[json_el(ctx, "Math", Any[json_el(ctx, "DisplayMath"), node.literal])],
-        ),
-    )
+    math_el = json_el(ctx, "Math", Any[json_el(ctx, "DisplayMath"), node.literal])
+    # Only wrap in Para when DisplayMath is a top-level block.
+    # If already inside a Paragraph, emit the Math inline directly.
+    if node.parent.t isa Paragraph
+        push_element!(ctx, math_el)
+    else
+        push_element!(ctx, json_el(ctx, "Para", Any[math_el]))
+    end
 end
