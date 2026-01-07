@@ -93,19 +93,16 @@ during rendering. Use transforms for URL rewriting, syntax highlighting, or
 wrapping output in templates:
 
 ```@example index
-function my_transform(::MIME"text/html", link::CommonMark.Link, node, entering, writer)
-    if entering
-        dest = replace(link.destination, ".md" => ".html")
-        (CommonMark.Node(CommonMark.Link; dest = dest, title = link.title), entering)
-    else
-        (node, entering)
-    end
+# Rewrite .md links to .html for static sites
+function rewrite_links(::MIME"text/html", link::CommonMark.Link, node, entering, writer)
+    entering || return (node, entering)
+    dest = replace(link.destination, ".md" => ".html")
+    (CommonMark.Node(CommonMark.Link; dest, title=link.title), entering)
 end
-my_transform(mime, ::CommonMark.AbstractContainer, node, entering, writer) =
-    (node, entering)
+rewrite_links(mime, ::CommonMark.AbstractContainer, node, entering, writer) = (node, entering)
 
 ast = parser("[Guide](guide.md)")
-html(ast; transform = my_transform)
+html(ast; transform = rewrite_links)
 ```
 
 See the [Transforms](@ref transforms-page) page for full documentation.
