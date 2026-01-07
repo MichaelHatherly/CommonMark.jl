@@ -1,3 +1,6 @@
+"""
+Heading with level 1-6. Build with `Node(Heading, level, children...)`.
+"""
 mutable struct Heading <: AbstractBlock
     level::Int
     Heading() = new(0)
@@ -12,6 +15,12 @@ continue_(::Heading, ::Parser, ::Node) = 1
 finalize(::Heading, ::Parser, ::Node) = nothing
 
 can_contain(::Heading, t) = false
+
+function Node(::Type{Heading}, level::Int, children...)
+    h = Heading()
+    h.level = level
+    _build(h, children)
+end
 
 function atx_heading(parser::Parser, container::Node)
     if !parser.indented

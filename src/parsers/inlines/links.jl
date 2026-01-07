@@ -1,3 +1,4 @@
+"""Hyperlink. Build with `Node(Link, children...; dest="url", title="optional")`."""
 mutable struct Link <: AbstractInline
     destination::String
     title::String
@@ -6,6 +7,14 @@ end
 
 is_container(::Link) = true
 
+function Node(::Type{Link}, children...; dest::AbstractString, title::AbstractString = "")
+    l = Link()
+    l.destination = dest
+    l.title = title
+    _build(l, children)
+end
+
+"""Image. Build with `Node(Image; dest="url", alt="text", title="optional")`."""
 mutable struct Image <: AbstractInline
     destination::String
     title::String
@@ -13,6 +22,20 @@ mutable struct Image <: AbstractInline
 end
 
 is_container(::Image) = true
+
+function Node(
+    ::Type{Image};
+    dest::AbstractString,
+    alt::AbstractString = "",
+    title::AbstractString = "",
+)
+    img = Image()
+    img.destination = dest
+    img.title = title
+    node = Node(img)
+    node.literal = alt
+    node
+end
 
 chomp_ws(parser::InlineParser) = (consume(parser, match(reSpnl, parser)); true)
 

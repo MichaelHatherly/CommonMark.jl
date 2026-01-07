@@ -1,3 +1,4 @@
+"""Block quote containing other block elements."""
 struct BlockQuote <: AbstractBlock end
 
 is_container(::BlockQuote) = true
@@ -20,6 +21,8 @@ end
 finalize(::BlockQuote, ::Parser, ::Node) = nothing
 
 can_contain(::BlockQuote, t) = !(t isa Item)
+
+Node(::Type{BlockQuote}, children...) = _build(BlockQuote(), children)
 
 function block_quote(parser::Parser, container::Node)
     if !parser.indented && peek_nonspace(parser) == '>'

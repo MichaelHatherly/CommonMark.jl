@@ -1,7 +1,38 @@
+"""Raw LaTeX inline content. Build with `Node(LaTeXInline, "\\\\command")`."""
 struct LaTeXInline <: AbstractInline end
+
+"""Raw LaTeX block content. Build with `Node(LaTeXBlock, "\\\\begin{...}")`."""
 struct LaTeXBlock <: AbstractBlock end
+
+"""Raw Typst inline content. Build with `Node(TypstInline, "#command")`."""
 struct TypstInline <: AbstractInline end
+
+"""Raw Typst block content. Build with `Node(TypstBlock, "#figure[]")`."""
 struct TypstBlock <: AbstractBlock end
+
+function Node(::Type{LaTeXInline}, s::AbstractString)
+    node = Node(LaTeXInline())
+    node.literal = s
+    node
+end
+
+function Node(::Type{LaTeXBlock}, s::AbstractString)
+    node = Node(LaTeXBlock())
+    node.literal = s
+    node
+end
+
+function Node(::Type{TypstInline}, s::AbstractString)
+    node = Node(TypstInline())
+    node.literal = s
+    node
+end
+
+function Node(::Type{TypstBlock}, s::AbstractString)
+    node = Node(TypstBlock())
+    node.literal = s
+    node
+end
 
 const RAW_CONTENT_DEFAULTS = Dict(
     "html_inline" => HtmlInline,

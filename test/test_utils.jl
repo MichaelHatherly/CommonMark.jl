@@ -31,7 +31,7 @@
             filename =
                 joinpath(test_dir, "references", reference_dir, "$(base_name).$(ext)")
             output = isnothing(env) ? func(ast) : func(ast, env)
-            @test_reference filename Text(output)
+            @test_reference filename ReferenceTests.Text(output)
         end
     end
 
@@ -52,7 +52,7 @@
         ast = parser(text)
         output = format_func(ast)
         full_path = joinpath(test_dir, filename)
-        @test_reference full_path Text(output)
+        @test_reference full_path ReferenceTests.Text(output)
     end
 
     # Reference test with custom processing
@@ -68,7 +68,7 @@
         output = format_func(ast)
         processed = processor(output)
         full_path = joinpath(test_dir, filename)
-        @test_reference full_path Text(processed)
+        @test_reference full_path ReferenceTests.Text(processed)
     end
 
     # Parser creation helpers

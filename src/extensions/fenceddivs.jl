@@ -1,3 +1,6 @@
+"""
+Generic div container. Build with `Node(FencedDiv, children...; class="name", id="id")`.
+"""
 mutable struct FencedDiv <: AbstractBlock
     fence_length::Int
 end
@@ -6,6 +9,23 @@ is_container(::FencedDiv) = true
 accepts_lines(::FencedDiv) = false
 can_contain(::FencedDiv, t) = !(t isa Item)
 finalize(::FencedDiv, ::Parser, ::Node) = nothing
+
+function Node(
+    ::Type{FencedDiv},
+    children...;
+    class::Union{AbstractString,Vector{String}} = String[],
+    id::Union{AbstractString,Nothing} = nothing,
+)
+    fd = FencedDiv(3)
+    node = _build(fd, children)
+    classes = class isa AbstractString ? [class] : class
+    if !isempty(classes) || id !== nothing
+        node.meta = Dict{String,Any}()
+        !isempty(classes) && (node.meta["class"] = classes)
+        id !== nothing && (node.meta["id"] = id)
+    end
+    node
+end
 
 function continue_(::FencedDiv, parser::Parser, container::Node)
     ln = rest_from_nonspace(parser)

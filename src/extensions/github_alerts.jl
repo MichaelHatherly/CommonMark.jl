@@ -2,9 +2,24 @@
 # GitHub-style alerts: > [!NOTE], > [!TIP], etc.
 #
 
+"""
+GitHub-style alert. Build with `Node(GitHubAlert, category, children...; title="optional")`.
+Categories: note, tip, important, warning, caution.
+"""
 struct GitHubAlert <: AbstractBlock
     category::String
     title::String
+end
+
+function Node(
+    ::Type{GitHubAlert},
+    category::AbstractString,
+    children...;
+    title::Union{AbstractString,Nothing} = nothing,
+)
+    cat = lowercase(category)
+    t = title === nothing ? get(GITHUB_ALERT_TYPES, cat, titlecase(cat)) : title
+    _build(GitHubAlert(cat, t), children)
 end
 
 is_container(::GitHubAlert) = true

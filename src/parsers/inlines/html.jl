@@ -1,4 +1,11 @@
+"""Raw inline HTML. Build with `Node(HtmlInline, "<tag>")`."""
 struct HtmlInline <: AbstractInline end
+
+function Node(::Type{HtmlInline}, html::AbstractString)
+    node = Node(HtmlInline())
+    node.literal = html
+    node
+end
 
 function parse_html_tag(parser::InlineParser, block::Node)
     m = consume(parser, match(reHtmlTag, parser))

@@ -1,3 +1,6 @@
+"""
+Code block (fenced or indented). Build with `Node(CodeBlock, code; info="language")`.
+"""
 mutable struct CodeBlock <: AbstractBlock
     info::String
     is_fenced::Bool
@@ -68,6 +71,15 @@ function finalize(::CodeBlock, parser::Parser, block::Node)
 end
 
 can_contain(t) = false
+
+function Node(::Type{CodeBlock}, code::AbstractString; info::AbstractString = "")
+    cb = CodeBlock()
+    cb.info = info
+    cb.is_fenced = true
+    node = Node(cb)
+    node.literal = code
+    node
+end
 
 function fenced_code_block(parser::Parser, container::Node)
     if !parser.indented

@@ -18,7 +18,7 @@
     # Helper: test reference with pretty JSON
     function test_json(filename, text, parser = p)
         full_path = joinpath(pwd(), filename)
-        @test_reference full_path Text(pretty_json(text, parser))
+        @test_reference full_path ReferenceTests.Text(pretty_json(text, parser))
     end
 
     # Helper: roundtrip through pandoc binary

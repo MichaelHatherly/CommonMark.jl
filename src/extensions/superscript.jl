@@ -2,9 +2,12 @@
 # Superscript extension: ^text^
 #
 
+"""Superscript text. Contains inline children."""
 struct Superscript <: AbstractInline end
 
 is_container(::Superscript) = true
+
+Node(::Type{Superscript}, children...) = _build(Superscript(), children)
 
 """
     SuperscriptRule()

@@ -2,9 +2,12 @@
 # Subscript extension: ~text~
 #
 
+"""Subscript text. Contains inline children."""
 struct Subscript <: AbstractInline end
 
 is_container(::Subscript) = true
+
+Node(::Type{Subscript}, children...) = _build(Subscript(), children)
 
 """
     SubscriptRule()

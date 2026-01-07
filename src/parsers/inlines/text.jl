@@ -1,5 +1,11 @@
+"""Soft line break (rendered as space or newline depending on output format)."""
 struct SoftBreak <: AbstractInline end
+
+"""Hard line break (rendered as `<br>` in HTML)."""
 struct LineBreak <: AbstractInline end
+
+Node(::Type{SoftBreak}) = Node(SoftBreak())
+Node(::Type{LineBreak}) = Node(LineBreak())
 
 function parse_string(parser::InlineParser, block::Node)
     start = position(parser)
@@ -118,8 +124,14 @@ function smart_dashes(chars::AbstractString)
     return '\u2014'^em_count * '\u2013'^en_count
 end
 
+"""Plain text content."""
 struct Text <: AbstractInline end
 
+"""
+    text(s::AbstractString) -> Node
+
+Create a Text node containing the given string.
+"""
 function text(s::AbstractString)
     node = Node(Text())
     node.literal = s

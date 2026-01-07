@@ -5,6 +5,7 @@ accepts_lines(::TableComponent) = false
 finalize(table::TableComponent, parser::Parser, node::Node) = nothing
 can_contain(::TableComponent, ::Any) = false
 
+"""Table container. Build with `Node(Table, header, body_rows...; align=[:left, :center, :right])`."""
 struct Table <: TableComponent
     spec::Vector{Symbol}
     Table(spec) = new(spec)
@@ -12,16 +13,63 @@ end
 
 continue_(::Table, parser::Parser, ::Node) = parser.blank ? 1 : 0
 
+function Node(
+    ::Type{Table},
+    header::Node,
+    body_rows::Node...;
+    align::Vector{Symbol} = Symbol[],
+)
+    spec =
+        isempty(align) ?
+        fill(
+            :left,
+            length(header.first_child.first_child === nothing ? 0 : count_cells(header)),
+        ) : align
+    t = Table(spec)
+    node = Node(t)
+    append_child(node, header)
+    body = Node(TableBody())
+    for row in body_rows
+        append_child(body, row)
+    end
+    append_child(node, body)
+    node
+end
+
+function count_cells(header::Node)
+    count = 0
+    cell = header.first_child.first_child
+    while !isnull(cell)
+        count += 1
+        cell = cell.nxt
+    end
+    count
+end
+
+"""Table header section containing one row."""
 struct TableHeader <: TableComponent end
 
+function Node(::Type{TableHeader}, row::Node)
+    node = Node(TableHeader())
+    append_child(node, row)
+    node
+end
+
+"""Table body section containing data rows."""
 struct TableBody <: TableComponent end
+
+Node(::Type{TableBody}, rows::Node...) = _build(TableBody(), rows)
 
 continue_(table::TableBody, parser::Parser, container::Node) = 1
 
+"""Table row containing cells."""
 struct TableRow <: TableComponent end
+
+Node(::Type{TableRow}, cells::Node...) = _build(TableRow(), cells)
 
 contains_inlines(::TableRow) = true
 
+"""Table cell. Build with `Node(TableCell, children...; align=:left, header=false, column=1)`."""
 struct TableCell <: TableComponent
     align::Symbol
     header::Bool
@@ -29,6 +77,17 @@ struct TableCell <: TableComponent
 end
 
 contains_inlines(::TableCell) = true
+
+function Node(
+    ::Type{TableCell},
+    children...;
+    align::Symbol = :left,
+    header::Bool = false,
+    column::Int = 1,
+)
+    tc = TableCell(align, header, column)
+    _build(tc, children)
+end
 
 function gfm_table(parser::Parser, container::Node)
     if !parser.indented

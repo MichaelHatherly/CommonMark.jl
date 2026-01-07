@@ -1,3 +1,4 @@
+"""Raw HTML block. Build with `Node(HtmlBlock, html_string)`."""
 mutable struct HtmlBlock <: AbstractBlock
     html_block_type::Int
     HtmlBlock() = new(0)
@@ -16,6 +17,12 @@ function finalize(::HtmlBlock, parser::Parser, block::Node)
 end
 
 can_contain(::HtmlBlock, t) = false
+
+function Node(::Type{HtmlBlock}, html::AbstractString)
+    node = Node(HtmlBlock())
+    node.literal = html
+    node
+end
 
 function html_block(parser::Parser, container::Node)
     if !parser.indented && peek_nonspace(parser) == '<'
