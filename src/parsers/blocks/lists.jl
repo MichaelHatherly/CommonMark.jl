@@ -110,18 +110,19 @@ accepts_lines(::List) = false
 continue_(::List, ::Parser, ::Node) = 0
 
 function finalize(::List, parser::Parser, block::Node)
+    list = block.t::List
     item = block.first_child
     while !isnull(item)
         # Check for non-final list item ending with blank line.
         if ends_with_blank_line(item) && !isnull(item.nxt)
-            block.t.list_data.tight = false
+            list.list_data.tight = false
             break
         end
         # Recurse into children of list item, to see if there are spaces between any.
         subitem = item.first_child
         while !isnull(subitem)
             if ends_with_blank_line(subitem) && (!isnull(item.nxt) || !isnull(subitem.nxt))
-                block.t.list_data.tight = false
+                list.list_data.tight = false
                 break
             end
             subitem = subitem.nxt
@@ -163,6 +164,7 @@ end
 accepts_lines(::Item) = false
 
 function continue_(::Item, parser::Parser, container::Node)
+    item = container.t::Item
     if parser.blank
         if isnull(container.first_child)
             # Blank line after empty list item.
@@ -170,13 +172,8 @@ function continue_(::Item, parser::Parser, container::Node)
         else
             advance_next_nonspace(parser)
         end
-    elseif parser.indent ≥
-           (container.t.list_data.marker_offset + container.t.list_data.padding)
-        advance_offset(
-            parser,
-            container.t.list_data.marker_offset + container.t.list_data.padding,
-            true,
-        )
+    elseif parser.indent ≥ (item.list_data.marker_offset + item.list_data.padding)
+        advance_offset(parser, item.list_data.marker_offset + item.list_data.padding, true)
     else
         return 1
     end

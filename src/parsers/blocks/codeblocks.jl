@@ -13,24 +13,25 @@ end
 accepts_lines(::CodeBlock) = true
 
 function continue_(::CodeBlock, parser::Parser, container::Node)
+    cb = container.t::CodeBlock
     ln = parser.buf
     indent = parser.indent
-    if container.t.is_fenced
+    if cb.is_fenced
         m =
             if indent <= 3 &&
                length(ln) >= parser.next_nonspace + 1 &&
-               ln[parser.next_nonspace] == container.t.fence_char
+               ln[parser.next_nonspace] == cb.fence_char
                 Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace))
             else
                 nothing
             end
-        if m !== nothing && length(m.match) >= container.t.fence_length
+        if m !== nothing && length(m.match) >= cb.fence_length
             # closing fence - we're at end of line, so we can return
             finalize(parser, container, parser.line_number)
             return 2
         else
             # skip optional spaces of fence offset
-            i = container.t.fence_offset
+            i = cb.fence_offset
             while i > 0 && is_space_or_tab(trypeek(parser, UInt8))
                 advance_offset(parser, 1, true)
                 i -= 1
@@ -56,12 +57,13 @@ function split_info_line(str)
 end
 
 function finalize(::CodeBlock, parser::Parser, block::Node)
+    cb = block.t::CodeBlock
     finalize_literal!(block)
-    if block.t.is_fenced
+    if cb.is_fenced
         # first line becomes info string
         first_line, rest = split(block.literal, '\n'; limit = 2)
         info = unescape_string(strip(first_line))
-        block.t.info = info
+        cb.info = info
         block.literal = rest
     else
         # indented
