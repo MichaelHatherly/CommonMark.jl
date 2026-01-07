@@ -281,17 +281,26 @@ Pass the appropriate parser function for each format you want to support.
 ## Citations
 
 Academic-style citations with Pandoc syntax. Requires bibliography data
-to be passed to the writer.
+in CSL-JSON format passed to the writer.
 
-```julia
+```@example ext
+parser = Parser()
 enable!(parser, CitationRule())
+
+ast = parser("According to @doe2020, this is true.")
+
+# Bibliography as CSL-JSON array
+bib = [Dict(
+    "id" => "doe2020",
+    "author" => [Dict("family" => "Doe", "given" => "Jane")],
+    "title" => "Example Article",
+    "issued" => Dict("date-parts" => [[2020]])
+)]
+html(ast, Dict{String,Any}("references" => bib))
 ```
 
-```markdown
-According to @smith2020, this is true.
-
-Bracketed: [@smith2020; @jones2021]
-```
+Bracketed syntax groups multiple citations: `[@doe2020; @smith2021]`.
+Brackets render as parentheses in the output.
 
 ## Auto Identifiers
 
@@ -356,21 +365,24 @@ end
 Pass format-specific content through unchanged. Useful for embedding LaTeX
 commands, HTML widgets, or other content that shouldn't be processed.
 
-```julia
+````@example ext
+parser = Parser()
 enable!(parser, RawContentRule())
+
+ast = parser("Inline: `\\textbf{bold}`{=latex}\n\n```{=latex}\n\\begin{center}\nCentered\n\\end{center}\n```")
+nothing # hide
+````
+
+Raw content only appears in its target format:
+
+```@example ext
+latex(ast)
+```
+
+```@example ext
+html(ast)  # LaTeX content omitted
 ```
 
 The format name (`html`, `latex`, `typst`) is specified in the attribute.
-The parser automatically determines inline vs block from context.
-
-````markdown
-Inline: `<span>html</span>`{=html}
-
-Block:
-```{=latex}
-\textbf{LaTeX}
-```
-````
-
-Default formats: `html`, `latex`, `typst`. Custom formats can be added by
-passing type mappings to `RawContentRule`.
+The parser automatically determines inline vs block from context. Custom
+formats can be added by passing type mappings to `RawContentRule`.

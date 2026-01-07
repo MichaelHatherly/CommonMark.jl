@@ -176,6 +176,9 @@ html(ast, env; transform = xform)
 
 ## Migration from Previous API
 
+!!! note "For existing users"
+    Skip this section if you're new to CommonMark.jl.
+
 If you were using the previous env-based hooks, here's how to migrate:
 
 | Previous | New |
