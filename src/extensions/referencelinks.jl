@@ -16,6 +16,37 @@ links during parsing. This rule preserves the original reference style
 
 [ref]: https://example.com
 ```
+
+## AST Node Types
+
+When enabled, this rule produces these node types:
+
+- `ReferenceLink` / `ReferenceImage` - resolved reference links with fields:
+  - `destination::String` - the URL
+  - `title::String` - optional title
+  - `label::String` - the reference label
+  - `style::Symbol` - `:full`, `:collapsed`, or `:shortcut`
+
+- `ReferenceDefinition` - block node for `[label]: url` definitions
+
+- `UnresolvedReference` - references with undefined labels:
+  - `label::String` - the reference label
+  - `style::Symbol` - `:full`, `:collapsed`, or `:shortcut`
+  - `image::Bool` - true for `![...]` syntax
+
+## Finding Undefined References
+
+The `UnresolvedReference` type enables programmatic detection of broken links:
+
+```julia
+p = Parser()
+enable!(p, ReferenceLinkRule())
+ast = p(markdown_text)
+
+undefined = [n.t for (n, entering) in ast
+             if entering && n.t isa CommonMark.UnresolvedReference]
+# Each has: label, style (:full/:collapsed/:shortcut), image (Bool)
+```
 """
 struct ReferenceLinkRule end
 
@@ -39,6 +70,15 @@ end
 
 is_container(::ReferenceImage) = true
 
+# Node for reference links with undefined labels
+mutable struct UnresolvedReference <: AbstractInline
+    label::String
+    style::Symbol
+    image::Bool
+end
+
+is_container(::UnresolvedReference) = true
+
 # Block type for reference definitions
 struct ReferenceDefinition <: AbstractBlock
     label::String
@@ -51,6 +91,58 @@ accepts_lines(::ReferenceDefinition) = false
 can_contain(::ReferenceDefinition, t) = false
 continue_(::ReferenceDefinition, ::Parser, ::Node) = 1
 finalize(::ReferenceDefinition, ::Parser, ::Node) = nothing
+
+# Node constructors for programmatic AST building
+
+const REFLINK_STYLES = (:full, :collapsed, :shortcut)
+
+"""Reference-style link. Build with `Node(ReferenceLink, children...; dest, label, title="", style=:full)`."""
+function Node(
+    ::Type{ReferenceLink},
+    children...;
+    dest::AbstractString,
+    label::AbstractString,
+    title::AbstractString = "",
+    style::Symbol = :full,
+)
+    style in REFLINK_STYLES || error("style must be one of $REFLINK_STYLES")
+    _build(ReferenceLink(dest, title, label, style), children)
+end
+
+"""Reference-style image. Build with `Node(ReferenceImage, children...; dest, label, title="", style=:full)`."""
+function Node(
+    ::Type{ReferenceImage},
+    children...;
+    dest::AbstractString,
+    label::AbstractString,
+    title::AbstractString = "",
+    style::Symbol = :full,
+)
+    style in REFLINK_STYLES || error("style must be one of $REFLINK_STYLES")
+    _build(ReferenceImage(dest, title, label, style), children)
+end
+
+"""Reference definition. Build with `Node(ReferenceDefinition; label, dest, title="")`."""
+function Node(
+    ::Type{ReferenceDefinition};
+    label::AbstractString,
+    dest::AbstractString,
+    title::AbstractString = "",
+)
+    Node(ReferenceDefinition(label, dest, title))
+end
+
+"""Unresolved reference. Build with `Node(UnresolvedReference, children...; label, style=:shortcut, image=false)`."""
+function Node(
+    ::Type{UnresolvedReference},
+    children...;
+    label::AbstractString,
+    style::Symbol = :shortcut,
+    image::Bool = false,
+)
+    style in REFLINK_STYLES || error("style must be one of $REFLINK_STYLES")
+    _build(UnresolvedReference(label, style, image), children)
+end
 
 # Inline rule - intercepts reference links before standard LinkRule
 
@@ -101,15 +193,6 @@ function parse_reference_close_bracket(parser::InlineParser, block::Node)
         return false
     end
 
-    # Lookup in refmap
-    link = get(parser.refmap, normalize_reference(reflabel), nothing)
-    if link === nothing
-        seek(parser, startpos - 1)
-        return false
-    end
-
-    dest, title = link
-
     # Strip brackets from label for storage
     label = if startswith(reflabel, '[') && endswith(reflabel, ']')
         chop(reflabel; head = 1, tail = 1)
@@ -117,11 +200,57 @@ function parse_reference_close_bracket(parser::InlineParser, block::Node)
         reflabel
     end
 
-    # Create ReferenceLink or ReferenceImage node
-    node = Node(
-        is_image ? ReferenceImage(dest, title === nothing ? "" : title, label, style) :
-        ReferenceLink(dest, title === nothing ? "" : title, label, style),
-    )
+    # Lookup in refmap
+    link = get(parser.refmap, normalize_reference(reflabel), nothing)
+    if link === nothing
+        if style === :shortcut
+            # Shortcut style is unambiguous - capture as UnresolvedReference
+            # Check if preceded by "]" - indicates this was originally full/collapsed
+            # opener.node is the placeholder for "[", its prev sibling is what came before
+            inferred_style = :shortcut
+            effective_label = label
+            inferred_image = is_image
+            prev_node = opener.node.prv
+            if !isnull(prev_node) && prev_node.t isa Text && prev_node.literal == "]"
+                # This shortcut followed a ] - was originally full or collapsed
+                if isempty(label)
+                    # Empty label means collapsed style [text][]
+                    inferred_style = :collapsed
+                    # Extract the link text as the label
+                    text_node = prev_node.prv
+                    if !isnull(text_node) && text_node.t isa Text
+                        effective_label = text_node.literal
+                    end
+                else
+                    # Non-empty label means full style [text][label]
+                    inferred_style = :full
+                end
+                # Check if original was an image by looking for "![" opener
+                # Walk back: ] -> text -> [ or ![
+                text_node = prev_node.prv
+                if !isnull(text_node)
+                    bracket_node = text_node.prv
+                    if !isnull(bracket_node) && bracket_node.t isa Text
+                        inferred_image = startswith(bracket_node.literal, "!")
+                    end
+                end
+            end
+            node =
+                Node(UnresolvedReference(effective_label, inferred_style, inferred_image))
+        else
+            # Full/collapsed style: must backtrack to allow other parses
+            # e.g. [foo][bar][baz] should parse as [foo] + link[bar][baz]
+            seek(parser, startpos - 1)
+            return false
+        end
+    else
+        dest, title = link
+        node = Node(
+            is_image ?
+            ReferenceImage(dest, title === nothing ? "" : title, label, style) :
+            ReferenceLink(dest, title === nothing ? "" : title, label, style),
+        )
+    end
 
     # Move children from opener to new node
     tmp = opener.node.nxt
@@ -365,6 +494,63 @@ write_latex(::ReferenceDefinition, w, n, ent) = nothing
 write_term(::ReferenceDefinition, r, n, ent) = nothing
 write_typst(::ReferenceDefinition, w, n, ent) = nothing
 
+# Writers for UnresolvedReference - preserve original syntax
+# For full/collapsed style, Text nodes before contain [text] or ![text], we just output [label] or []
+# For shortcut style, we output [text] or ![text] directly
+
+function write_markdown(ref::UnresolvedReference, w, node, ent)
+    if ent
+        # Only use image flag for shortcut style - for full/collapsed, ![ is in preceding Text
+        use_image = ref.image && ref.style === :shortcut
+        literal(w, use_image ? "![" : "[")
+    else
+        literal(w, "]")
+    end
+end
+
+# HTML - output as text (no link)
+function write_html(ref::UnresolvedReference, r, n, ent)
+    if ent
+        use_image = ref.image && ref.style === :shortcut
+        literal(r, use_image ? "![" : "[")
+    else
+        literal(r, "]")
+    end
+end
+
+# LaTeX - output as text
+function write_latex(ref::UnresolvedReference, w, node, ent)
+    if ent
+        use_image = ref.image && ref.style === :shortcut
+        literal(w, use_image ? "![" : "[")
+    else
+        literal(w, "]")
+    end
+end
+
+# Term - output as warning style
+function write_term(ref::UnresolvedReference, render, node, enter)
+    style = crayon"red"
+    if enter
+        use_image = ref.image && ref.style === :shortcut
+        print_literal(render, style, use_image ? "![" : "[")
+        push_inline!(render, style)
+    else
+        pop_inline!(render)
+        print_literal(render, "]", inv(style))
+    end
+end
+
+# Typst - output as text
+function write_typst(ref::UnresolvedReference, w, node, ent)
+    if ent
+        use_image = ref.image && ref.style === :shortcut
+        literal(w, use_image ? "![" : "[")
+    else
+        literal(w, "]")
+    end
+end
+
 # JSON - same as regular Link/Image
 
 function write_json(ref::ReferenceLink, ctx, node, enter)
@@ -390,3 +576,21 @@ function write_json(ref::ReferenceImage, ctx, node, enter)
 end
 
 write_json(::ReferenceDefinition, ctx, node, enter) = nothing
+
+function write_json(ref::UnresolvedReference, ctx, node, enter)
+    if enter
+        inlines = Any[]
+        push_container!(ctx, inlines)
+    else
+        inlines = pop_container!(ctx)
+        # Use distinct type name so tools can find unresolved references
+        push_element!(
+            ctx,
+            json_el(
+                ctx,
+                "UnresolvedReference",
+                Any[node_attr(node), inlines, Any[ref.label, string(ref.style), ref.image]],
+            ),
+        )
+    end
+end
