@@ -1,22 +1,27 @@
 # Pandoc AST JSON → CommonMark AST reader.
 
 """
-    from_json(data::AbstractDict) -> Node
+    Node(data::AbstractDict) -> Node
 
-Construct a CommonMark AST from Pandoc AST JSON.
+Construct a CommonMark AST from a Pandoc AST JSON dictionary.
 
 The input should be a parsed JSON dictionary with "pandoc-api-version",
 "meta", and "blocks" keys. Use `JSON.parse(str)` to convert a JSON string first.
+
+Inverse of `json(Dict, ast)`.
 
 # Examples
 
 ```julia
 using JSON
 data = JSON.parse(json_string)
-ast = from_json(data)
+ast = Node(data)
+
+# Round-trip:
+ast2 = Node(json(Dict, ast))
 ```
 """
-function from_json(data::AbstractDict)
+function Node(data::AbstractDict)
     doc = Node(Document())
 
     # Convert metadata to doc.meta.

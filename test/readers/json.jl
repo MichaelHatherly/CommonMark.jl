@@ -1,4 +1,4 @@
-@testitem "from_json" tags = [:readers, :json] setup = [Utilities] begin
+@testitem "Node from dict" tags = [:readers, :json] setup = [Utilities] begin
     using CommonMark
     using Test
     import JSON
@@ -12,11 +12,11 @@
     enable!(p, FencedDivRule())
     enable!(p, RawContentRule())
 
-    # Roundtrip test: json(ast) == json(from_json(JSON.parse(json(ast))))
+    # Roundtrip test: json(ast) == json(Node(JSON.parse(json(ast))))
     function json_roundtrips(text, parser = p)
         ast1 = parser(text)
         json1 = JSON.parse(json(ast1))
-        ast2 = from_json(json1)
+        ast2 = Node(json1)
         json2 = JSON.parse(json(ast2))
         return json1 == json2
     end
@@ -52,7 +52,7 @@
         # Ordered list preserves start
         ast1 = p("5. item five\n6. item six")
         json1 = JSON.parse(json(ast1))
-        ast2 = from_json(json1)
+        ast2 = Node(json1)
         @test ast2.first_child.t.list_data.start == 5
 
         @test json_roundtrips("- outer\n  - inner\n- outer again")
@@ -105,7 +105,7 @@
             "blocks" => [],
         )
 
-        ast = from_json(data)
+        ast = Node(data)
         @test ast.meta["title"] == "Test Title"
         @test ast.meta["count"] == true
         @test ast.meta["items"] == ["a", "b"]
@@ -119,7 +119,7 @@
             "meta" => Dict(),
             "blocks" => [Dict("t" => "UnknownBlock", "c" => [])],
         )
-        ast = @test_logs (:warn, r"Unknown block type") from_json(data)
+        ast = @test_logs (:warn, r"Unknown block type") Node(data)
         @test ast.t isa CommonMark.Document
         @test CommonMark.isnull(ast.first_child)
 
@@ -137,7 +137,7 @@
                 ),
             ],
         )
-        ast = @test_logs (:warn, r"Unknown inline type") from_json(data)
+        ast = @test_logs (:warn, r"Unknown inline type") Node(data)
         @test !CommonMark.isnull(ast.first_child)
     end
 
@@ -171,5 +171,21 @@
         """
 
         @test json_roundtrips(doc_md)
+    end
+
+    @testset "json(Dict, ast)" begin
+        ast = p("# Hello\n\nWorld")
+        d = json(Dict, ast)
+
+        @test d isa Dict
+        @test haskey(d, "pandoc-api-version")
+        @test haskey(d, "meta")
+        @test haskey(d, "blocks")
+        @test length(d["blocks"]) == 2
+
+        # Roundtrip without JSON string serialization
+        ast2 = Node(d)
+        d2 = json(Dict, ast2)
+        @test d == d2
     end
 end

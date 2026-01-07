@@ -10,17 +10,7 @@ include("precompile.jl")
 
 # Interface
 export Parser,
-    enable!,
-    disable!,
-    html,
-    latex,
-    term,
-    markdown,
-    notebook,
-    typst,
-    json,
-    from_json,
-    frontmatter
+    Node, enable!, disable!, html, latex, term, markdown, notebook, typst, json, frontmatter
 
 # Core block rules
 export AtxHeadingRule,
