@@ -1,8 +1,14 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/markdown", ast::Node, env = Dict{String,Any}())
-    writer = Writer(Markdown(io), io, env)
-    write_markdown(writer, ast)
+function Base.show(
+    io::IO,
+    ::MIME"text/markdown",
+    ast::Node,
+    env = Dict{String,Any}();
+    transform = default_transform,
+)
+    w = Writer(Markdown(io), io, env; transform = transform)
+    write_markdown(w, ast)
     return nothing
 end
 """
@@ -23,7 +29,7 @@ ast = p("# Hello\\n\\nWorld")
 markdown(ast)  # "# Hello\\n\\nWorld\\n"
 ```
 """
-markdown(args...) = writer(MIME"text/markdown"(), args...)
+markdown(args...; kws...) = writer(MIME"text/markdown"(), args...; kws...)
 
 # Internals.
 
@@ -55,7 +61,9 @@ function print_margin_rstrip(w)
 end
 
 function write_markdown(writer::Writer, ast::Node)
+    mime = MIME"text/markdown"()
     for (node, entering) in ast
+        node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_markdown(node.t, writer, node, entering)
     end
 end
@@ -108,7 +116,6 @@ function write_markdown(link::Link, w, node, ent)
     if ent
         literal(w, "[")
     else
-        link = _smart_link(MIME"text/markdown"(), link, node, w.env)
         literal(w, "](", link.destination)
         isempty(link.title) || literal(w, " \"", escape_markdown_title(link.title), "\"")
         literal(w, ")")
@@ -119,7 +126,6 @@ function write_markdown(image::Image, w, node, ent)
     if ent
         literal(w, "![")
     else
-        image = _smart_link(MIME"text/markdown"(), image, node, w.env)
         literal(w, "](", image.destination)
         isempty(image.title) || literal(w, " \"", escape_markdown_title(image.title), "\"")
         literal(w, ")")

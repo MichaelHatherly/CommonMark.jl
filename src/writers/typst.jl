@@ -1,8 +1,14 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/typst", ast::Node, env = Dict{String,Any}())
-    writer = Writer(Typst(io), io, env)
-    write_typst(writer, ast)
+function Base.show(
+    io::IO,
+    ::MIME"text/typst",
+    ast::Node,
+    env = Dict{String,Any}();
+    transform = default_transform,
+)
+    w = Writer(Typst(io), io, env; transform = transform)
+    write_typst(w, ast)
     return nothing
 end
 """
@@ -20,7 +26,7 @@ ast = p("# Hello\\n\\nWorld")
 typst(ast)
 ```
 """
-typst(args...) = writer(MIME"text/typst"(), args...)
+typst(args...; kws...) = writer(MIME"text/typst"(), args...; kws...)
 
 # Internals.
 
@@ -36,7 +42,9 @@ mutable struct Typst{I<:IO}
 end
 
 function write_typst(writer::Writer, ast::Node)
+    mime = MIME"text/typst"()
     for (node, entering) in ast
+        node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_typst(node.t, writer, node, entering)
     end
 end
@@ -67,7 +75,6 @@ write_typst(::HtmlInline, w, node, ent) = nothing
 
 function write_typst(link::Link, w, node, ent)
     if ent
-        link = _smart_link(MIME"text/typst"(), link, node, w.env)
         literal(w, "#link(", repr(link.destination), ")[")
     else
         literal(w, "]")
@@ -76,7 +83,6 @@ end
 
 function write_typst(image::Image, w, node, ent)
     if ent
-        image = _smart_link(MIME"text/typst"(), image, node, w.env)
         literal(w, "#figure(image(", repr(image.destination), "), caption: [")
     else
         literal(w, "])")

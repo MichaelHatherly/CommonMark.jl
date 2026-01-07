@@ -1,8 +1,15 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/html", ast::Node, env = Dict{String,Any}(); kws...)
-    writer = Writer(HTML(; kws...), io, env)
-    write_html(writer, ast)
+function Base.show(
+    io::IO,
+    ::MIME"text/html",
+    ast::Node,
+    env = Dict{String,Any}();
+    transform = default_transform,
+    kws...,
+)
+    w = Writer(HTML(; kws...), io, env; transform = transform)
+    write_html(w, ast)
     return nothing
 end
 """
@@ -32,8 +39,6 @@ html(args...; kws...) = writer(MIME"text/html"(), args...; kws...)
 
 mime_to_str(::MIME"text/html") = "html"
 
-TEMPLATES["html"] = joinpath(@__DIR__, "templates/html.mustache")
-
 mutable struct HTML
     disable_tags::Int
     softbreak::String
@@ -51,7 +56,9 @@ mutable struct HTML
 end
 
 function write_html(writer::Writer, ast::Node)
+    mime = MIME"text/html"()
     for (node, entering) in ast
+        node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_html(node.t, writer, node, entering)
     end
 end
@@ -91,7 +98,6 @@ function write_html(link::Link, r, n, ent)
     if ent
         attrs = []
         if !(r.format.safe && potentially_unsafe(link.destination))
-            link = _smart_link(MIME"text/html"(), link, n, r.env)
             push!(attrs, "href" => escape_xml(link.destination))
         end
         if !isempty(link.title)
@@ -109,7 +115,6 @@ function write_html(image::Image, r, n, ent)
             if r.format.safe && potentially_unsafe(image.destination)
                 literal(r, "<img src=\"\" alt=\"")
             else
-                image = _smart_link(MIME"text/html"(), image, n, r.env)
                 literal(r, "<img src=\"", escape_xml(image.destination), "\" alt=\"")
             end
         end
@@ -182,7 +187,7 @@ function write_html(::CodeBlock, r, n, ent)
     cr(r)
     tag(r, "pre")
     tag(r, "code", attrs)
-    literal(r, _syntax_highlighter(r, MIME("text/html"), n, escape_xml))
+    literal(r, escape_xml(n.literal))
     tag(r, "/code")
     tag(r, "/pre")
     cr(r)
