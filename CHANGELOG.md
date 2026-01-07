@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `transform` keyword argument to writers for AST node interception during rendering [#123]
+- Add transforms documentation page with URL rewriting, syntax highlighting, and document wrapper examples [#123]
 - Add `UnresolvedReference` node type for detecting undefined reference links with `ReferenceLinkRule` [#121]
 - Add programmatic AST construction with `Node(Type, children...)` builders for all container types [#120]
 - Add tree manipulation functions as public API: `append_child`, `prepend_child`, `insert_after`, `insert_before`, `unlink`, `isnull`, `text` [#120]
@@ -32,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `StrikethroughRule` (`~~text~~`), `SubscriptRule` (`~text~`), and `SuperscriptRule` (`^text^`) extensions [#93]
 - Add generalized delimiter-based inline extension system (`delim_nodes`, `flanking_rule`, `uses_odd_match` hooks) [#93]
 - Add Unicode sub/superscript rendering for terminal writer [#93]
+
+### Removed
+
+- Remove `template-engine`, `smartlink-engine`, and `syntax-highlighter` env hooks (use `transform` instead) [#123]
+- Remove built-in Mustache templates for HTML and LaTeX (use transform on `Document` instead) [#123]
 
 ### Fixed
 
@@ -382,3 +389,6 @@ Initial release.
 [#116]: https://github.com/MichaelHatherly/CommonMark.jl/issues/116
 [#118]: https://github.com/MichaelHatherly/CommonMark.jl/issues/118
 [#119]: https://github.com/MichaelHatherly/CommonMark.jl/issues/119
+[#120]: https://github.com/MichaelHatherly/CommonMark.jl/issues/120
+[#121]: https://github.com/MichaelHatherly/CommonMark.jl/issues/121
+[#123]: https://github.com/MichaelHatherly/CommonMark.jl/issues/123

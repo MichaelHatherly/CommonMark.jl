@@ -1,8 +1,14 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/latex", ast::Node, env = Dict{String,Any}())
-    writer = Writer(LaTeX(), io, env)
-    write_latex(writer, ast)
+function Base.show(
+    io::IO,
+    ::MIME"text/latex",
+    ast::Node,
+    env = Dict{String,Any}();
+    transform = default_transform,
+)
+    w = Writer(LaTeX(), io, env; transform = transform)
+    write_latex(w, ast)
     return nothing
 end
 """
@@ -20,20 +26,20 @@ ast = p("# Hello\\n\\nWorld")
 latex(ast)  # "\\\\section{Hello}\\n\\nWorld\\n"
 ```
 """
-latex(args...) = writer(MIME"text/latex"(), args...)
+latex(args...; kws...) = writer(MIME"text/latex"(), args...; kws...)
 
 # Internals.
 
 mime_to_str(::MIME"text/latex") = "latex"
-
-TEMPLATES["latex"] = joinpath(@__DIR__, "templates/latex.mustache")
 
 mutable struct LaTeX
     LaTeX() = new()
 end
 
 function write_latex(writer::Writer, ast::Node)
+    mime = MIME"text/latex"()
     for (node, entering) in ast
+        node, entering = _transform(writer.transform, mime, node, entering, writer)
         if entering
             if hasmeta(node, "id")
                 literal(writer, "\\protect\\hypertarget{", getmeta(node, "id", ""), "}{}")
@@ -62,7 +68,6 @@ write_latex(::HtmlInline, w, node, ent) = nothing
 
 function write_latex(link::Link, w, node, ent)
     if ent
-        link = _smart_link(MIME"text/latex"(), link, node, w.env)
         # Link destinations that begin with a # are taken to be internal to the
         # document. LaTeX wants to use a hyperlink rather than an href for
         # these, so branch based on it to allow both types of links to be used.
@@ -76,7 +81,6 @@ end
 
 function write_latex(image::Image, w, node, ent)
     if ent
-        image = _smart_link(MIME"text/latex"(), image, node, w.env)
         cr(w)
         literal(w, "\\begin{figure}\n")
         literal(w, "\\centering\n")
@@ -150,7 +154,7 @@ function write_latex(c::CodeBlock, w, node, ent)
     cr(w)
     literal(w, "\\begin{$environment}")
     cr(w)
-    literal(w, _syntax_highlighter(w, MIME("text/latex"), node))
+    literal(w, node.literal)
     cr(w)
     literal(w, "\\end{$environment}")
     cr(w)

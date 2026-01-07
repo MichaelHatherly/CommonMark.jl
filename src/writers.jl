@@ -1,15 +1,38 @@
-function writer(mime, file::AbstractString, ast::Node, env = Dict{String,Any}(); kws...)
+function writer(
+    mime,
+    file::AbstractString,
+    ast::Node,
+    env = Dict{String,Any}();
+    transform = default_transform,
+    kws...,
+)
     env = merge(env, Dict("outputfile" => file))
-    open(io -> writer(io, mime, ast, env; kws...), file, "w")
+    open(io -> writer(io, mime, ast, env; transform = transform, kws...), file, "w")
 end
-writer(mime, io::IO, ast::Node, env = nothing; kws...) = writer(io, mime, ast, env; kws...)
-function writer(mime, ast::Node, env = nothing; kws...)
+function writer(
+    mime,
+    io::IO,
+    ast::Node,
+    env = nothing;
+    transform = default_transform,
+    kws...,
+)
+    writer(io, mime, ast, env; transform = transform, kws...)
+end
+function writer(mime, ast::Node, env = nothing; transform = default_transform, kws...)
     io = IOBuffer()
-    writer(mime, io, ast, env; kws...)
+    writer(mime, io, ast, env; transform = transform, kws...)
     return String(take!(io))
 end
 
-function writer(io::IO, mime::MIME, ast::Node, env::Dict; kws...)
+function writer(
+    io::IO,
+    mime::MIME,
+    ast::Node,
+    env::Dict;
+    transform = default_transform,
+    kws...,
+)
     # Merge all metadata provided, priority is right-to-left.
     env = recursive_merge(
         default_config(),
@@ -17,18 +40,18 @@ function writer(io::IO, mime::MIME, ast::Node, env::Dict; kws...)
         frontmatter(ast),
         something(ast.meta, Dict{String,Any}()),
     )
-    if haskey(env, "template-engine")
-        temp = template(env, mime_to_str(mime))
-        # Empty templates will skip the template rendering step.
-        if !isempty(temp)
-            env["body"] = sprint(show, mime, ast, env)
-            env["template-engine"](io, temp, env; tags = ("\${", "}"))
-            return nothing
-        end
-    end
-    show(io, mime, ast, env; kws...)
+    show(io, mime, ast, env; transform = transform, kws...)
 end
-writer(io::IO, mime::MIME, ast::Node, ::Nothing; kws...) = show(io, mime, ast; kws...)
+function writer(
+    io::IO,
+    mime::MIME,
+    ast::Node,
+    ::Nothing;
+    transform = default_transform,
+    kws...,
+)
+    show(io, mime, ast; transform = transform, kws...)
+end
 
 default_config() = Dict{String,Any}(
     "authors" => [],
@@ -40,25 +63,6 @@ default_config() = Dict{String,Any}(
     "lang" => "en",
     "latex" => Dict{String,Any}("documentclass" => "article"),
 )
-
-_smart_link(mime, obj, node, env) =
-    haskey(env, "smartlink-engine") ? env["smartlink-engine"](mime, obj, node, env) : obj
-
-function template(env, fmt)
-    # Template load order:
-    #
-    # - <fmt>.template.string
-    # - <fmt>.template.file
-    # - TEMPLATES["<fmt>"]
-    #
-    config = get(() -> Dict{String,Any}(), env, fmt)
-    tmp = get(() -> Dict{String,Any}(), config, "template")
-    get(tmp, "string") do
-        haskey(tmp, "file") ? read(tmp["file"], String) :
-        haskey(TEMPLATES, fmt) ? read(TEMPLATES[fmt], String) : ""
-    end
-end
-const TEMPLATES = Dict{String,String}()
 
 recursive_merge(ds::AbstractDict...) = merge(recursive_merge, ds...)
 recursive_merge(args...) = last(args)
@@ -90,16 +94,21 @@ frontmatter(ast)  # Dict("title" => "My Document", "author" => "Jane Doe")
 frontmatter(n::Node) = has_frontmatter(n) ? n.first_child.t.data : Dict{String,Any}()
 has_frontmatter(n::Node) = !isnull(n.first_child) && n.first_child.t isa FrontMatter
 
-mutable struct Writer{F,I<:IO}
+mutable struct Writer{F,I<:IO,T}
     format::F
     buffer::I
     last::Char
     enabled::Bool
     context::Dict{Symbol,Any}
     env::Dict{String,Any}
+    transform::T
 end
-Writer(format, buffer = IOBuffer(), env = Dict{String,Any}()) =
-    Writer(format, buffer, '\n', true, Dict{Symbol,Any}(), env)
+Writer(
+    format,
+    buffer = IOBuffer(),
+    env = Dict{String,Any}();
+    transform = default_transform,
+) = Writer(format, buffer, '\n', true, Dict{Symbol,Any}(), env, transform)
 
 Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
 Base.get!(f::Function, w::Writer, k::Symbol) = get!(f, w.context, k)
@@ -122,10 +131,34 @@ function cr(r::Writer)
     return nothing
 end
 
-function _syntax_highlighter(w::Writer, mime::MIME, node::Node, escape = identity)
-    key = "syntax-highlighter"
-    return haskey(w.env, key) ? w.env[key](mime, node) : escape(node.literal)
+"""
+    default_transform(mime, container, node, entering, writer)
+
+Default transform - passes through node unchanged.
+Users can define methods dispatching on container types to transform nodes.
+
+# Example
+```julia
+function my_transform(::MIME"text/html", link::Link, node, entering, writer)
+    if entering
+        dest = transform_url(link.destination)
+        (Node(Link; dest = dest, title = link.title), entering)
+    else
+        (node, entering)
+    end
 end
+my_transform(mime, ::AbstractContainer, node, entering, writer) =
+    (node, entering)
+```
+"""
+default_transform(mime, ::AbstractContainer, node, entering, writer) = (node, entering)
+
+# Dispatch helper: no-op for default, calls transform otherwise.
+# Pass node not node.t - only access .t in the transform path.
+@inline _transform(::typeof(default_transform), mime, node, entering, writer) =
+    (node, entering)
+@noinline _transform(f, mime, node, entering, writer) =
+    f(mime, node.t, node, entering, writer)
 
 include("writers/html.jl")
 include("writers/latex.jl")

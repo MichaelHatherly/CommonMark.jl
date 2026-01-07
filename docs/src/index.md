@@ -86,6 +86,30 @@ html("output.html", ast)
 term(stdout, ast)
 ```
 
+## Transforms
+
+Writers accept a `transform` keyword argument to intercept and modify nodes
+during rendering. Use transforms for URL rewriting, syntax highlighting, or
+wrapping output in templates:
+
+```@example index
+function my_transform(::MIME"text/html", link::CommonMark.Link, node, entering, writer)
+    if entering
+        dest = replace(link.destination, ".md" => ".html")
+        (CommonMark.Node(CommonMark.Link; dest = dest, title = link.title), entering)
+    else
+        (node, entering)
+    end
+end
+my_transform(mime, ::CommonMark.AbstractContainer, node, entering, writer) =
+    (node, entering)
+
+ast = parser("[Guide](guide.md)")
+html(ast; transform = my_transform)
+```
+
+See the [Transforms](@ref transforms-page) page for full documentation.
+
 ## Customization
 
 The parser is modular. Each piece of syntax (headings, lists, emphasis, etc.)

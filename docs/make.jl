@@ -9,6 +9,7 @@ makedocs(
         "Core Rules" => "core.md",
         "Extensions" => "extensions.md",
         "Building ASTs" => "ast.md",
+        "Transforms" => "transforms.md",
         "Developing Extensions" => "developing.md",
         "API Reference" => "api.md",
     ],

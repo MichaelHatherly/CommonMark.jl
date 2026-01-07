@@ -1,12 +1,18 @@
 # Public.
 
-function Base.show(io::IO, ::MIME"text/plain", ast::Node, env = Dict{String,Any}())
-    writer = Writer(Term(), io, env)
-    write_term(writer, ast)
+function Base.show(
+    io::IO,
+    ::MIME"text/plain",
+    ast::Node,
+    env = Dict{String,Any}();
+    transform = default_transform,
+)
+    w = Writer(Term(), io, env; transform = transform)
+    write_term(w, ast)
     # Writing is done to an intermediate buffer and then written to the
     # user-provided one once we have traversed the AST so that we can avoid
     # noticable lag when displaying on the terminal.
-    write(writer.buffer, take!(writer.format.buffer))
+    write(w.buffer, take!(w.format.buffer))
     return nothing
 end
 """
@@ -27,7 +33,7 @@ ast = p("# Hello\\n\\n**World**")
 term(ast)  # Returns ANSI-formatted string
 ```
 """
-term(args...) = writer(MIME"text/plain"(), args...)
+term(args...; kws...) = writer(MIME"text/plain"(), args...; kws...)
 
 # Internals.
 
@@ -174,7 +180,9 @@ to_superscript(c::Char) = get(SUPERSCRIPT_MAP, c, c)
 to_superscript(s::AbstractString) = map(to_superscript, s)
 
 function write_term(writer::Writer, ast::Node)
+    mime = MIME"text/plain"()
     for (node, entering) in ast
+        node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_term(node.t, writer, node, entering)
     end
 end
@@ -540,7 +548,7 @@ end
 function write_term(::CodeBlock, render, node, enter)
     pipe = crayon"cyan"
     style = crayon"dark_gray"
-    for line in eachline(IOBuffer(_syntax_highlighter(render, MIME("text/plain"), node)))
+    for line in eachline(IOBuffer(node.literal))
         print_margin(render)
         print_literal(render, "  ", pipe, "│", inv(pipe), " ")
         print_literal(render, style, line, inv(style), "\n")

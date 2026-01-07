@@ -17,6 +17,7 @@
         reference_dir::String;
         formats = [:html, :latex, :markdown, :term, :typst],
         env = nothing,
+        transform = nothing,
     )
         format_specs = Dict(
             :html => (html, "html.txt"),
@@ -30,7 +31,12 @@
             func, ext = format_specs[format]
             filename =
                 joinpath(test_dir, "references", reference_dir, "$(base_name).$(ext)")
-            output = isnothing(env) ? func(ast) : func(ast, env)
+            output = if isnothing(transform)
+                isnothing(env) ? func(ast) : func(ast, env)
+            else
+                isnothing(env) ? func(ast; transform = transform) :
+                func(ast, env; transform = transform)
+            end
             @test_reference filename ReferenceTests.Text(output)
         end
     end

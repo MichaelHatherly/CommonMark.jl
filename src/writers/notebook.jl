@@ -4,7 +4,8 @@ function Base.show(
     io::IO,
     ::MIME"application/x-ipynb+json",
     ast::Node,
-    env = Dict{String,Any}(),
+    env = Dict{String,Any}();
+    transform = default_transform,
 )
     json = Dict(
         "cells" => [],
@@ -48,7 +49,7 @@ ast = p("# Title\\n\\n```julia\\nprintln(\\"Hello\\")\\n```")
 notebook("output.ipynb", ast)
 ```
 """
-notebook(args...) = writer(MIME"application/x-ipynb+json"(), args...)
+notebook(args...; kws...) = writer(MIME"application/x-ipynb+json"(), args...; kws...)
 
 # Internal.
 
