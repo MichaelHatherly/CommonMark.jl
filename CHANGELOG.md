@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add `from_json()` reader to construct AST from Pandoc AST JSON (inverse of `json()`) [#118]
-- Add `json()` writer for Pandoc AST JSON export to docx, epub, rst, and other formats via `pandoc -f json` [#116]
+- Add `json(Dict, ast)` to return Pandoc AST dict without JSON serialization [#119]
+- Export `Node` as public API [#119]
+- Add `Node(dict)` constructor for Pandoc AST JSON import [#118]
+- Add `json()` writer for Pandoc AST JSON export [#116]
 - Add stdlib compatibility tests covering 30 Julia Markdown issues [#113]
 - Add continuous benchmarking CI with historical tracking and PR comparisons [#104]
 - Add internal documentation for writing extension rules [#103]
@@ -374,3 +376,4 @@ Initial release.
 [#115]: https://github.com/MichaelHatherly/CommonMark.jl/issues/115
 [#116]: https://github.com/MichaelHatherly/CommonMark.jl/issues/116
 [#118]: https://github.com/MichaelHatherly/CommonMark.jl/issues/118
+[#119]: https://github.com/MichaelHatherly/CommonMark.jl/issues/119

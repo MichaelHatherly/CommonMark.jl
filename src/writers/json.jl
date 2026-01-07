@@ -1,33 +1,10 @@
 # Public.
 
-function Base.show(
-    io::IO,
-    ::MIME"application/pandoc+json",
-    ast::Node,
-    env = Dict{String,Any}();
-    dicttype = Dict,
-    kws...,
-)
-    DictType = get(env, "dicttype", dicttype)
-    ctx = JSONContext(DictType)
-    # Populate meta from frontmatter if present.
-    if has_frontmatter(ast)
-        fm = frontmatter(ast)
-        for (k, v) in fm
-            ctx.doc["meta"][k] = json_meta_value(ctx, v)
-        end
-    end
-    for (node, enter) in ast
-        write_json(node.t, ctx, node, enter)
-    end
-    _json(io, ctx.doc)
-    return nothing
-end
-
 """
     json(ast::Node; dicttype=Dict) -> String
     json(filename::String, ast::Node; dicttype=Dict)
     json(io::IO, ast::Node; dicttype=Dict)
+    json(::Type{<:AbstractDict}, ast::Node) -> AbstractDict
 
 Render a CommonMark AST to Pandoc AST JSON format.
 
@@ -37,6 +14,9 @@ format Pandoc supports (docx, epub, rst, asciidoc, etc.).
 The `dicttype` keyword argument controls the dictionary type used internally.
 Use `OrderedCollections.OrderedDict` for deterministic key ordering.
 
+Pass a dict type as the first argument to return the dict directly without
+JSON string serialization: `json(Dict, ast)`.
+
 # Examples
 
 ```julia
@@ -44,10 +24,45 @@ p = Parser()
 ast = p("# Hello\\n\\nWorld")
 output = json(ast)
 # Use with: echo \$output | pandoc -f json -t docx -o out.docx
+
+# Get dict directly (no JSON string):
+d = json(Dict, ast)
 ```
 """
 json(args...; dicttype = Dict) =
     writer(MIME"application/pandoc+json"(), args...; dicttype = dicttype)
+
+function json(::Type{D}, ast::Node) where {D<:AbstractDict}
+    return build_json_dict(D, ast)
+end
+
+function Base.show(
+    io::IO,
+    ::MIME"application/pandoc+json",
+    ast::Node,
+    env = Dict{String,Any}();
+    dicttype = Dict,
+    kws...,
+)
+    DictType = get(env, "dicttype", dicttype)
+    doc = build_json_dict(DictType, ast)
+    _json(io, doc)
+    return nothing
+end
+
+function build_json_dict(DictType::Type, ast::Node)
+    ctx = JSONContext(DictType)
+    if has_frontmatter(ast)
+        fm = frontmatter(ast)
+        for (k, v) in fm
+            ctx.doc["meta"][k] = json_meta_value(ctx, v)
+        end
+    end
+    for (node, enter) in ast
+        write_json(node.t, ctx, node, enter)
+    end
+    return ctx.doc
+end
 
 # Internals.
 
