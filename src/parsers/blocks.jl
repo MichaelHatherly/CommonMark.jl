@@ -292,6 +292,16 @@ advance_to_end(parser::Parser) = advance_offset(parser, typemax(Int), false)
 rest_from_nonspace(p::Parser) = SubString(p.buf, p.next_nonspace)
 peek_nonspace(p::Parser, default = '\0') = get(p.buf, p.next_nonspace, default)
 
+# Type-stable helper for last_line_blank computation.
+# Checks if a container type is exempt from blank line tracking.
+@inline function _is_blank_exempt(t::AbstractContainer, container::Node, parser::Parser)
+    t isa BlockQuote && return true
+    t isa CodeBlock && return (t::CodeBlock).is_fenced
+    t isa Item && return isnull(container.first_child) &&
+           container.sourcepos[1][1] == parser.line_number
+    return false
+end
+
 function incorporate_line(parser::Parser, ln::AbstractString)
     all_matched = true
 
@@ -345,7 +355,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
     parser.all_closed = (container === parser.oldtip)
     parser.last_matched_container = container
 
-    matched_leaf = !(container.t isa Paragraph) && accepts_lines(container.t)
+    matched_leaf::Bool = !(container.t isa Paragraph) && accepts_lines(container.t)::Bool
     # Unless last matched container is a code block, try new container starts,
     # adding children to the last matched container.
     while !matched_leaf
@@ -360,7 +370,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
         found = false
         if haskey(parser.block_starts, next_nonspace_char)
             for λ in parser.block_starts[next_nonspace_char]
-                res = λ(parser, container)
+                res = λ(parser, container)::Int
                 if res === 1
                     found = true
                     container = parser.tip
@@ -375,7 +385,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
         end
         if !found
             for λ in parser.block_starts['\0']
-                res = λ(parser, container)
+                res = λ(parser, container)::Int
                 if res === 1
                     found = true
                     container = parser.tip
@@ -413,16 +423,7 @@ function incorporate_line(parser::Parser, ln::AbstractString)
         # count blanks in fenced code for purposes of tight/loose lists or
         # breaking out of lists. We also don't set last_line_blank on an empty
         # list item, or if we just closed a fenced block.
-        last_line_blank =
-            parser.blank && !(
-                t isa BlockQuote ||
-                (t isa CodeBlock && container.t.is_fenced) ||
-                (
-                    t isa Item &&
-                    isnull(container.first_child) &&
-                    container.sourcepos[1][1] == parser.line_number
-                )
-            )
+        last_line_blank::Bool = parser.blank && !_is_blank_exempt(t, container, parser)
 
         # Propagate `last_line_blank` up through parents.
         cont = container
@@ -431,14 +432,17 @@ function incorporate_line(parser::Parser, ln::AbstractString)
             cont = cont.parent
         end
 
-        if accepts_lines(t)
+        if accepts_lines(t)::Bool
             add_line(parser)
             # If HtmlBlock, check for end condition.
-            if t isa HtmlBlock && container.t.html_block_type in 1:5
-                str = rest(parser)
-                if occursin(reHtmlBlockClose[container.t.html_block_type], str)
-                    parser.last_line_length = length(ln)
-                    finalize(parser, container, parser.line_number)
+            if t isa HtmlBlock
+                html_type = (t::HtmlBlock).html_block_type::Int
+                if html_type in 1:5
+                    str = rest(parser)
+                    if occursin(reHtmlBlockClose[html_type], str)
+                        parser.last_line_length = length(ln)
+                        finalize(parser, container, parser.line_number)
+                    end
                 end
             end
         elseif !eof(parser) && !parser.blank

@@ -59,6 +59,10 @@ mutable struct Term
     Term() = new(0, [], IOBuffer(), -1, 0, [], Symbol[])
 end
 
+# Pre-allocated bullet strings to avoid array allocation per list item
+# Symbols: ●  ○  ▶  ▷  ■  □
+const BULLET_STRINGS = ("● ", "○ ", "▶ ", "▷ ", "■ ", "□ ")
+
 # Unicode subscript/superscript translation maps
 const SUBSCRIPT_MAP = Dict(
     '0' => '₀',
@@ -518,10 +522,8 @@ function write_term(item::Item, render, node, enter)
             render.format.list_item_number[end] += 1
             push_margin!(render, 1, number, crayon"")
         else
-            #              ●         ○         ▶         ▷         ■         □
-            bullets = ['\u25CF', '\u25CB', '\u25B6', '\u25B7', '\u25A0', '\u25A1']
-            bullet = bullets[min(render.format.list_depth, length(bullets))]
-            push_margin!(render, 1, "$bullet ", crayon"")
+            idx = min(render.format.list_depth, length(BULLET_STRINGS))
+            push_margin!(render, 1, BULLET_STRINGS[idx], crayon"")
         end
     else
         maybe_print_margin(render, node)
