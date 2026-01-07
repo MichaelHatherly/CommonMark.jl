@@ -1,3 +1,4 @@
+"""Text paragraph containing inline content."""
 struct Paragraph <: AbstractBlock end
 
 is_container(::Paragraph) = true
@@ -23,3 +24,5 @@ function finalize(::Paragraph, p::Parser, block::Node)
 end
 
 can_contain(::Paragraph, t) = false
+
+Node(::Type{Paragraph}, children...) = _build(Paragraph(), children)

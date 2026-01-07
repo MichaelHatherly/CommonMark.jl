@@ -104,6 +104,12 @@ end
 copy_tree(root::Node) = copy_tree(identity, root)
 
 const NULL_NODE = Node()
+
+"""
+    isnull(node::Node) -> Bool
+
+Check if a node is the null node (empty reference).
+"""
 isnull(node::Node) = node === NULL_NODE
 
 """
@@ -165,6 +171,11 @@ function Base.iterate(node::Node, (sr, sc, se) = (node, node, true))
     return (cur, entering), (sr, sc, se)
 end
 
+"""
+    append_child(parent::Node, child::Node)
+
+Add `child` as the last child of `parent`. Unlinks `child` from any previous location.
+"""
 function append_child(node::Node, child::Node)
     unlink(child)
     child.parent = node
@@ -178,6 +189,11 @@ function append_child(node::Node, child::Node)
     end
 end
 
+"""
+    prepend_child(parent::Node, child::Node)
+
+Add `child` as the first child of `parent`. Unlinks `child` from any previous location.
+"""
 function prepend_child(node::Node, child::Node)
     unlink(child)
     child.parent = node
@@ -191,6 +207,11 @@ function prepend_child(node::Node, child::Node)
     end
 end
 
+"""
+    unlink(node::Node)
+
+Remove `node` from its parent, updating sibling links. Safe to call on unlinked nodes.
+"""
 function unlink(node::Node)
     if !isnull(node.prv)
         node.prv.nxt = node.nxt
@@ -209,6 +230,11 @@ function unlink(node::Node)
     node.prv = NULL_NODE
 end
 
+"""
+    insert_after(node::Node, sibling::Node)
+
+Insert `sibling` immediately after `node` in the tree.
+"""
 function insert_after(node::Node, sibling::Node)
     unlink(sibling)
     sibling.nxt = node.nxt
@@ -223,6 +249,11 @@ function insert_after(node::Node, sibling::Node)
     end
 end
 
+"""
+    insert_before(node::Node, sibling::Node)
+
+Insert `sibling` immediately before `node` in the tree.
+"""
 function insert_before(node::Node, sibling::Node)
     unlink(sibling)
     sibling.prv = node.prv
@@ -235,4 +266,16 @@ function insert_before(node::Node, sibling::Node)
     if isnull(sibling.prv)
         sibling.parent.first_child = sibling
     end
+end
+
+# Builder helpers for Node(Type, children...) constructors.
+_to_node(s::AbstractString) = text(s)
+_to_node(n::Node) = n
+
+function _build(t::AbstractContainer, children)
+    node = Node(t)
+    for child in children
+        append_child(node, _to_node(child))
+    end
+    node
 end

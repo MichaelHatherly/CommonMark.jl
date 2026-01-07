@@ -11,7 +11,7 @@
         ast = p(text)
         json = JSON.parse(notebook(ast))
         markdown = join(json["cells"][1]["source"])
-        @test_reference joinpath(dir, filename) Text(markdown)
+        @test_reference joinpath(dir, filename) ReferenceTests.Text(markdown)
     end
 
     # Code blocks.

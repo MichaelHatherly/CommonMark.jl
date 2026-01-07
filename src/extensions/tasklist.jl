@@ -2,9 +2,15 @@
 # Task List extension: - [ ] / - [x]
 #
 
+"""Task list item with checkbox. Build with `Node(TaskItem, children...; checked=false)`."""
 mutable struct TaskItem <: AbstractBlock
     list_data::ListData
     checked::Bool
+end
+
+function Node(::Type{TaskItem}, children...; checked::Bool = false)
+    item = TaskItem(ListData(), checked)
+    _build(item, children)
 end
 
 is_container(::TaskItem) = true

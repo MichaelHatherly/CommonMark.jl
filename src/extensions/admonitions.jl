@@ -1,3 +1,6 @@
+"""
+Admonition callout box. Build with `Node(Admonition, category, title, children...)`.
+"""
 struct Admonition <: AbstractBlock
     category::String
     title::String
@@ -7,6 +10,17 @@ is_container(::Admonition) = true
 accepts_lines(::Admonition) = false
 can_contain(::Admonition, t) = !(t isa Item)
 finalize(::Admonition, parser::Parser, node::Node) = nothing
+
+function Node(
+    ::Type{Admonition},
+    category::AbstractString,
+    title::AbstractString,
+    children...,
+)
+    a = Admonition(category, title)
+    _build(a, children)
+end
+
 function continue_(::Admonition, parser::Parser, ::Any)
     if parser.indent ≥ 4
         advance_offset(parser, 4, true)

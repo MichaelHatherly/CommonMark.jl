@@ -1,10 +1,16 @@
+"""Emphasis (italic). Contains inline children."""
 struct Emph <: AbstractInline end
 
 is_container(::Emph) = true
 
+Node(::Type{Emph}, children...) = _build(Emph(), children)
+
+"""Strong emphasis (bold). Contains inline children."""
 struct Strong <: AbstractInline end
 
 is_container(::Strong) = true
+
+Node(::Type{Strong}, children...) = _build(Strong(), children)
 
 const EMPTY_INT_VECTOR = Int[]
 

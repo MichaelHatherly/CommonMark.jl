@@ -10,7 +10,7 @@ include("precompile.jl")
 
 # Interface
 export Parser,
-    Node, enable!, disable!, html, latex, term, markdown, notebook, typst, json, frontmatter
+    enable!, disable!, html, latex, term, markdown, notebook, typst, json, frontmatter
 
 # Core block rules
 export AtxHeadingRule,
@@ -51,5 +51,25 @@ export AdmonitionRule,
     TableRule,
     TaskListRule,
     TypographyRule
+
+# Container types: public API but not exported (requires qualified access)
+# Must use eval(Meta.parse(...)) because `public` keyword doesn't exist in Julia < 1.11
+# and would cause a parse error even inside @static if block
+@static if VERSION >= v"1.11"
+    eval(
+        Meta.parse(
+            """
+    public Node,
+        append_child, prepend_child, insert_after, insert_before, unlink, isnull, text,
+        Document, Paragraph, Heading, BlockQuote, List, Item, CodeBlock, HtmlBlock, ThematicBreak,
+        Text, SoftBreak, LineBreak, Code, Emph, Strong, Link, Image, HtmlInline,
+        Table, TableHeader, TableBody, TableRow, TableCell,
+        DisplayMath, Admonition, FencedDiv, FootnoteDefinition, LaTeXBlock, TypstBlock,
+        Math, Strikethrough, Subscript, Superscript, LaTeXInline, TypstInline,
+        GitHubAlert, TaskItem, FootnoteLink, Citation
+""",
+        ),
+    )
+end
 
 end # module

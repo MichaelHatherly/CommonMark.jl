@@ -2,7 +2,14 @@
 # Inline math
 #
 
+"""Inline math expression. Build with `Node(Math, "expression")`."""
 struct Math <: AbstractInline end
+
+function Node(::Type{Math}, s::AbstractString)
+    node = Node(Math())
+    node.literal = s
+    node
+end
 
 function parse_inline_math_backticks(p::InlineParser, node::Node)
     ticks = match(reTicksHere, p)
@@ -33,7 +40,14 @@ end
 # Display math
 #
 
+"""Display math block. Build with `Node(DisplayMath, "expression")`."""
 struct DisplayMath <: AbstractBlock end
+
+function Node(::Type{DisplayMath}, s::AbstractString)
+    node = Node(DisplayMath())
+    node.literal = s
+    node
+end
 
 function handle_fenced_math_block(node::Node, info, source)
     node.t = DisplayMath()

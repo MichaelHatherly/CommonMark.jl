@@ -1,6 +1,13 @@
+"""Citation reference. Build with `Node(Citation, "id"; brackets=false)`."""
 struct Citation <: AbstractBlock
     id::String
     brackets::Bool
+end
+
+function Node(::Type{Citation}, id::AbstractString; brackets::Bool = false)
+    node = Node(Citation(id, brackets))
+    node.literal = "@$id"
+    node
 end
 
 struct CitationBracket <: AbstractBlock end

@@ -19,11 +19,15 @@ function Base.:(==)(a::ListData, b::ListData)
         a.marker_offset == b.marker_offset
 end
 
+"""List item. Usually created as a child of List."""
 mutable struct Item <: AbstractBlock
     list_data::ListData
     Item() = new(ListData())
 end
 
+"""
+Bullet or ordered list. Build with `Node(List, items...; ordered=false, start=1, tight=true)`.
+"""
 mutable struct List <: AbstractBlock
     list_data::ListData
     List() = new(ListData())
@@ -129,6 +133,33 @@ end
 
 can_contain(::List, t) = t isa Item
 
+function Node(
+    ::Type{List},
+    items::Node...;
+    ordered::Bool = false,
+    start::Int = 1,
+    tight::Bool = true,
+)
+    ld = ListData()
+    ld.type = ordered ? :ordered : :bullet
+    ld.start = start
+    ld.tight = tight
+    ld.bullet_char = '-'
+    ld.delimiter = "."
+    l = List()
+    l.list_data = ld
+    node = _build(l, items)
+    # Propagate list_data to child Items/TaskItems for correct rendering
+    child = node.first_child
+    while !isnull(child)
+        if child.t isa Item || child.t isa TaskItem
+            child.t.list_data = ld
+        end
+        child = child.nxt
+    end
+    node
+end
+
 accepts_lines(::Item) = false
 
 function continue_(::Item, parser::Parser, container::Node)
@@ -155,6 +186,8 @@ end
 finalize(::Item, ::Parser, ::Node) = nothing
 
 can_contain(::Item, t) = !(t isa Item)
+
+Node(::Type{Item}, children...) = _build(Item(), children)
 
 function list_item(parser::Parser, container::Node)
     if (!parser.indented || container.t isa List)

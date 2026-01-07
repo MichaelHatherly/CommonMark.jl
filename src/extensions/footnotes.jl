@@ -38,14 +38,27 @@ inline_rule(fr::FootnoteRule) =
         return true
     end
 
+"""Footnote definition block. Build with `Node(FootnoteDefinition, "id", children...)`."""
 struct FootnoteDefinition <: AbstractBlock
     id::String
 end
 
+function Node(::Type{FootnoteDefinition}, id::AbstractString, children...)
+    fd = FootnoteDefinition(id)
+    _build(fd, children)
+end
+
+"""Footnote reference link. Build with `Node(FootnoteLink, "id")`."""
 struct FootnoteLink <: AbstractInline
     id::String
     rule::FootnoteRule
 end
+
+# Temporary rule for programmatic construction - replaced by Document builder
+const _UNLINKED_FOOTNOTE_RULE = FootnoteRule()
+
+Node(::Type{FootnoteLink}, id::AbstractString) =
+    Node(FootnoteLink(id, _UNLINKED_FOOTNOTE_RULE))
 
 is_container(::FootnoteDefinition) = true
 accepts_lines(::FootnoteDefinition) = false

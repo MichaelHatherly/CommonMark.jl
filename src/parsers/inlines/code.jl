@@ -1,4 +1,11 @@
+"""Inline code span. Build with `Node(Code, "code string")`."""
 struct Code <: AbstractInline end
+
+function Node(::Type{Code}, s::AbstractString)
+    node = Node(Code())
+    node.literal = s
+    node
+end
 
 function parse_backticks(parser::InlineParser, block::Node)
     # Any length sequence of backticks is a valid code opener.

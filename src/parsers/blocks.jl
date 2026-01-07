@@ -128,6 +128,7 @@ function ends_with_blank_line(block::Node)
     return false
 end
 
+"""Root container for a CommonMark AST. All documents start with this node."""
 struct Document <: AbstractBlock end
 
 is_container(::Document) = true
@@ -135,6 +136,31 @@ accepts_lines(::Document) = false
 continue_(::Document, ::Parser, ::Node) = 0
 finalize(::Document, ::Parser, ::Node) = nothing
 can_contain(::Document, t) = !(t isa Item)
+
+function Node(::Type{Document}, children...)
+    node = _build(Document(), children)
+    _heal_footnotes!(node)
+    node
+end
+
+function _heal_footnotes!(doc::Node)
+    rule = FootnoteRule()
+    has_footnotes = false
+    # Collect definitions into rule cache
+    for (n, enter) in doc
+        if enter && n.t isa FootnoteDefinition
+            rule.cache[n.t.id] = n
+            has_footnotes = true
+        end
+    end
+    has_footnotes || return
+    # Update links to use this rule
+    for (n, enter) in doc
+        if enter && n.t isa FootnoteLink
+            n.t = FootnoteLink(n.t.id, rule)
+        end
+    end
+end
 
 include("blocks/lists.jl")
 include("blocks/blockquotes.jl")

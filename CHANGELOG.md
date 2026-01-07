@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add programmatic AST construction with `Node(Type, children...)` builders for all container types [#120]
+- Add tree manipulation functions as public API: `append_child`, `prepend_child`, `insert_after`, `insert_before`, `unlink`, `isnull`, `text` [#120]
+- Add docstrings to all container types and tree manipulation functions [#120]
+- Add "Building ASTs" documentation page for programmatic construction [#120]
 - Add `json(Dict, ast)` to return Pandoc AST dict without JSON serialization [#119]
 - Export `Node` as public API [#119]
 - Add `Node(dict)` constructor for Pandoc AST JSON import [#118]

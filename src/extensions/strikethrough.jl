@@ -2,9 +2,12 @@
 # Strikethrough extension: ~~text~~
 #
 
+"""Strikethrough text. Contains inline children."""
 struct Strikethrough <: AbstractInline end
 
 is_container(::Strikethrough) = true
+
+Node(::Type{Strikethrough}, children...) = _build(Strikethrough(), children)
 
 """
     StrikethroughRule()
