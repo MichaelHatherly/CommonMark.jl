@@ -571,6 +571,34 @@ doc = CM.Node(CM.Document,
 CM.latex(doc)
 ```
 
+### Reference Links
+
+Reference-style links preserve the original syntax for roundtripping. These
+nodes are produced when parsing with `ReferenceLinkRule` enabled.
+
+```@example ast
+doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        "See the ",
+        CM.Node(CM.ReferenceLink, "docs"; dest="https://example.com", label="docs"),
+        " or ",
+        CM.Node(CM.ReferenceLink, "click here"; dest="https://example.com", label="docs", style=:full),
+        "."
+    ),
+    CM.Node(CM.ReferenceDefinition; label="docs", dest="https://example.com")
+)
+CM.markdown(doc)
+```
+
+| Type | Children | Keyword Args |
+|------|----------|--------------|
+| `ReferenceLink` | link text | `dest`, `label`, `title=""`, `style=:full` |
+| `ReferenceImage` | alt text | `dest`, `label`, `title=""`, `style=:full` |
+| `ReferenceDefinition` | — | `label`, `dest`, `title=""` |
+| `UnresolvedReference` | link text | `label`, `style=:shortcut`, `image=false` |
+
+The `style` can be `:full`, `:collapsed`, or `:shortcut`.
+
 ## Tree Manipulation
 
 After constructing nodes, you can modify the tree structure using these functions:

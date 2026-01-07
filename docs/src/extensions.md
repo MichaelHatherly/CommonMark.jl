@@ -312,10 +312,43 @@ Duplicate headings get numeric suffixes.
 ## Reference Links
 
 Preserves reference-style link syntax in the AST instead of resolving it
-during parsing. Enables accurate markdown roundtripping.
+during parsing. Enables accurate markdown roundtripping and detection of
+undefined references.
 
-```julia
+```@example ext
+parser = Parser()
 enable!(parser, ReferenceLinkRule())
+
+ast = parser("""
+[full style][ref]
+[collapsed style][]
+[shortcut style]
+
+[ref]: https://example.com
+[collapsed style]: /url
+[shortcut style]: /url
+""")
+markdown(ast)
+```
+
+The three reference styles are preserved:
+- **Full**: `[text][label]` - explicit label
+- **Collapsed**: `[text][]` - label matches text
+- **Shortcut**: `[text]` - implicit label
+
+### Detecting Undefined References
+
+When enabled, undefined references become `UnresolvedReference` nodes instead
+of literal text. This enables tools to find broken links:
+
+```@example ext
+ast = parser("[undefined link][missing]")
+for (node, entering) in ast
+    if entering && node.t isa CommonMark.UnresolvedReference
+        ref = node.t
+        println("Undefined: label='$(ref.label)', style=$(ref.style), image=$(ref.image)")
+    end
+end
 ```
 
 ## Raw Content

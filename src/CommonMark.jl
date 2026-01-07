@@ -66,7 +66,8 @@ export AdmonitionRule,
         Table, TableHeader, TableBody, TableRow, TableCell,
         DisplayMath, Admonition, FencedDiv, FootnoteDefinition, LaTeXBlock, TypstBlock,
         Math, Strikethrough, Subscript, Superscript, LaTeXInline, TypstInline,
-        GitHubAlert, TaskItem, FootnoteLink, Citation
+        GitHubAlert, TaskItem, FootnoteLink, Citation,
+        ReferenceLink, ReferenceImage, ReferenceDefinition, UnresolvedReference
 """,
         ),
     )

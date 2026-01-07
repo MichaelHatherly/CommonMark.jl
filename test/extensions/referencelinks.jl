@@ -46,9 +46,66 @@
     @test occursin("[ref][label]", markdown(ast))
     @test occursin("[inline](/url)", markdown(ast))
 
-    # Missing definition - falls through to literal text
+    # UnresolvedReference - full style
     ast = p("[text][missing]")
+    unresolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.UnresolvedReference]
+    @test length(unresolved) == 1
+    @test unresolved[1].label == "missing"
+    @test unresolved[1].style == :full
+    @test unresolved[1].image == false
     @test html(ast) == "<p>[text][missing]</p>\n"
+    @test markdown(ast) == "[text][missing]\n"
+
+    # UnresolvedReference - collapsed style
+    ast = p("[collapsed][]")
+    unresolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.UnresolvedReference]
+    @test length(unresolved) == 1
+    @test unresolved[1].label == "collapsed"
+    @test unresolved[1].style == :collapsed
+    @test html(ast) == "<p>[collapsed][]</p>\n"
+    @test markdown(ast) == "[collapsed][]\n"
+
+    # UnresolvedReference - shortcut style
+    ast = p("[undefined shortcut]")
+    unresolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.UnresolvedReference]
+    @test length(unresolved) == 1
+    @test unresolved[1].label == "undefined shortcut"
+    @test unresolved[1].style == :shortcut
+    @test unresolved[1].image == false
+    @test html(ast) == "<p>[undefined shortcut]</p>\n"
+    @test markdown(ast) == "[undefined shortcut]\n"
+
+    # UnresolvedReference - image shortcut
+    ast = p("![undefined image]")
+    unresolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.UnresolvedReference]
+    @test length(unresolved) == 1
+    @test unresolved[1].label == "undefined image"
+    @test unresolved[1].image == true
+    @test html(ast) == "<p>![undefined image]</p>\n"
+
+    # UnresolvedReference - image full style
+    ast = p("![img][missing]")
+    unresolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.UnresolvedReference]
+    @test length(unresolved) == 1
+    @test unresolved[1].label == "missing"
+    @test unresolved[1].style == :full
+    @test unresolved[1].image == true
+    @test html(ast) == "<p>![img][missing]</p>\n"
+
+    # UnresolvedReference - mixed with valid refs
+    ast = p("[valid][label]\n[undefined]\n\n[label]: /url")
+    unresolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.UnresolvedReference]
+    @test length(unresolved) == 1
+    @test unresolved[1].label == "undefined"
+    resolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.ReferenceLink]
+    @test length(resolved) == 1
+    @test resolved[1].label == "label"
+
+    # Ambiguous case: [a][b][c] - must still parse correctly
+    ast = p("[a][b][c]\n\n[c]: /url")
+    unresolved = [n.t for (n, e) in ast if e && n.t isa CommonMark.UnresolvedReference]
+    @test isempty(unresolved)  # [a][b] becomes text due to backtracking
+    @test html(ast) == "<p>[a]<a href=\"/url\">b</a></p>\n"
 
     # Without extension, reference links become regular links
     p_no_ext = create_parser()

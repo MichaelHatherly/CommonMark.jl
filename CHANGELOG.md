@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `UnresolvedReference` node type for detecting undefined reference links with `ReferenceLinkRule` [#121]
 - Add programmatic AST construction with `Node(Type, children...)` builders for all container types [#120]
 - Add tree manipulation functions as public API: `append_child`, `prepend_child`, `insert_after`, `insert_before`, `unlink`, `isnull`, `text` [#120]
 - Add docstrings to all container types and tree manipulation functions [#120]
