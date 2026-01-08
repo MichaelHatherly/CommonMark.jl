@@ -179,6 +179,7 @@ function compare_and_report(baseline_path, current_path, output_path)
 
     result = String(take!(io))
     write(output_path, result)
+    println(result)
     println("Comparison written to: $output_path")
     result
 end

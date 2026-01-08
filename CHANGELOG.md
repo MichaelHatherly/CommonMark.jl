@@ -59,6 +59,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add type annotations and helper function for type stability in block parser hot path [#125]
+- Cache heading tag strings and bullet strings to reduce allocations in writers [#125]
 - Replace regex with character check in table spec validation [#111]
 - Eliminate redundant dictionary lookup in auto-identifier rule [#111]
 - Use BitVector trigger table for O(1) inline parser character lookups [#110]
@@ -392,3 +394,4 @@ Initial release.
 [#120]: https://github.com/MichaelHatherly/CommonMark.jl/issues/120
 [#121]: https://github.com/MichaelHatherly/CommonMark.jl/issues/121
 [#123]: https://github.com/MichaelHatherly/CommonMark.jl/issues/123
+[#125]: https://github.com/MichaelHatherly/CommonMark.jl/issues/125

@@ -39,6 +39,10 @@ html(args...; kws...) = writer(MIME"text/html"(), args...; kws...)
 
 mime_to_str(::MIME"text/html") = "html"
 
+# Pre-allocated heading tag strings to avoid interpolation
+const HEADING_OPEN = ("h1", "h2", "h3", "h4", "h5", "h6")
+const HEADING_CLOSE = ("/h1", "/h2", "/h3", "/h4", "/h5", "/h6")
+
 mutable struct HTML
     disable_tags::Int
     softbreak::String
@@ -153,11 +157,11 @@ function write_html(::Paragraph, r, n, ent)
 end
 
 function write_html(::Heading, r, n, ent)
-    tagname = "h$(n.t.level)"
+    level = n.t.level
     if ent
         attrs = attributes(r, n)
         cr(r)
-        tag(r, tagname, attrs)
+        tag(r, HEADING_OPEN[level], attrs)
         # Insert auto-generated anchor Links for all Headings with IDs.
         # The Link is not added to the document's AST.
         if hasmeta(n, "id")
@@ -167,7 +171,7 @@ function write_html(::Heading, r, n, ent)
             write_html(r, anchor)
         end
     else
-        tag(r, "/$(tagname)")
+        tag(r, HEADING_CLOSE[level])
         cr(r)
     end
 end

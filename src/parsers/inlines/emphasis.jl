@@ -240,7 +240,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
                         closer_inl.literal[1:length(closer_inl.literal)-use_delims]
 
                     # Build container node
-                    container = Node(NodeType())
+                    container = Node(NodeType())::Node
                     container.literal = delim_string(closercc, use_delims)
 
                     tmp = opener_inl.nxt
