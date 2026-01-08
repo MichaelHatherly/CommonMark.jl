@@ -399,20 +399,21 @@ doc = CM.Node(CM.Document,
 CM.html(doc)
 ```
 
-### Strikethrough, Subscript, Superscript
+### Strikethrough, Mark, Subscript, Superscript
 
-Text formatting for deleted text, subscripts, and superscripts. All are
-containers that hold inline content.
+Text formatting for deleted text, highlighted text, subscripts, and superscripts.
+All are containers that hold inline content.
 
 ```@example ast
 doc = CM.Node(CM.Document,
     CM.Node(CM.Paragraph,
-        CM.Node(CM.Strikethrough, "removed text"),
-        ", water is H",
+        CM.Node(CM.Strikethrough, "removed"),
+        ", ",
+        CM.Node(CM.Mark, "highlighted"),
+        ", H",
         CM.Node(CM.Subscript, "2"),
-        "O, and x",
-        CM.Node(CM.Superscript, "2"),
-        " means x squared."
+        "O, x",
+        CM.Node(CM.Superscript, "2")
     )
 )
 CM.html(doc)

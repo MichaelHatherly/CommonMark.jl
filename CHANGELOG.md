@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `MarkRule` extension for highlighted text (`==text==` renders as `<mark>`) with Pandoc JSON roundtrip [#129]
 - Document `@cm_str` macro, `json(Dict, ast)`, `Node(dict)`, `frontmatter()`, and writer `env` parameter [#128]
 - Add `Node(md::Markdown.MD)` to convert Julia stdlib Markdown AST to CommonMark AST [#126]
 - Add `transform` keyword argument to writers for AST node interception during rendering [#123]

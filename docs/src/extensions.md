@@ -170,6 +170,22 @@ ast = parser("~~deleted text~~")
 html(ast)
 ```
 
+## Mark
+
+Highlights important text. Renders as `<mark>` in HTML. Follows Pandoc's
+`+mark` extension syntax.
+
+```@example ext
+parser = Parser()
+enable!(parser, MarkRule())
+
+ast = parser("This is ==highlighted text==.")
+html(ast)
+```
+
+Uses double equals signs. Single equals are unaffected (for code examples
+like `a = b`).
+
 ## Subscript
 
 Chemical formulas, mathematical notation, and other subscripted text.
