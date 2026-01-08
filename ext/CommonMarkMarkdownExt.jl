@@ -2,46 +2,37 @@
 
 module CommonMarkMarkdownExt
 
-using CommonMark
-using CommonMark:
-    Node,
-    append_child,
-    setmeta!,
-    Document,
-    Paragraph,
-    Heading,
-    BlockQuote,
-    List,
-    Item,
-    CodeBlock,
-    ThematicBreak,
-    Text,
-    SoftBreak,
-    LineBreak,
-    Code,
-    Emph,
-    Strong,
-    Link,
-    Image,
-    # Extensions
-    Table,
-    TableHeader,
-    TableBody,
-    TableRow,
-    TableCell,
-    Admonition,
-    FootnoteDefinition,
-    FootnoteLink,
-    Math
+import CommonMark
 
 @static if isdefined(Base, :get_extension)
-    using Markdown
+    import Markdown
 else
-    using ..Markdown  # ExtensionLoader binds Markdown const
+    import ..Markdown  # ExtensionLoader binds Markdown const
+end
+
+# Flatten nested Markdown.MD and merge metadata (outer takes precedence)
+function flatten_md(md::Markdown.MD)
+    content = Any[]
+    meta = Dict{Symbol,Any}()
+    for (k, v) in md.meta
+        meta[k] = v
+    end
+    for block in md.content
+        if block isa Markdown.MD
+            nested_content, nested_meta = flatten_md(block)
+            append!(content, nested_content)
+            for (k, v) in nested_meta
+                haskey(meta, k) || (meta[k] = v)
+            end
+        else
+            push!(content, block)
+        end
+    end
+    return content, meta
 end
 
 """
-    Node(md::Markdown.MD) -> Node
+    CommonMark.Node(md::Markdown.MD) -> CommonMark.Node
 
 Convert a Julia Markdown stdlib AST to a CommonMark.jl AST.
 
@@ -50,18 +41,19 @@ Convert a Julia Markdown stdlib AST to a CommonMark.jl AST.
 ```julia
 using CommonMark, Markdown
 md = md"# Hello **world**"
-ast = Node(md)
-html(ast)
+ast = CommonMark.Node(md)
+CommonMark.html(ast)
 ```
 """
 function CommonMark.Node(md::Markdown.MD)
-    doc = Node(Document())
-    for (k, v) in md.meta
-        setmeta!(doc, string(k), v)
+    doc = CommonMark.Node(CommonMark.Document())
+    content, meta = flatten_md(md)
+    for (k, v) in meta
+        CommonMark.setmeta!(doc, string(k), v)
     end
-    for block in md.content
+    for block in content
         child = from_stdlib_block(block)
-        !isnothing(child) && append_child(doc, child)
+        !isnothing(child) && CommonMark.append_child(doc, child)
     end
     return doc
 end
@@ -69,39 +61,55 @@ end
 # Block converters
 
 function from_stdlib_block(elem::Markdown.Paragraph)
-    node = Node(Paragraph())
+    node = CommonMark.Node(CommonMark.Paragraph())
     process_inlines!(node, elem.content)
     return node
 end
 
 function from_stdlib_block(elem::Markdown.Header{N}) where {N}
-    node = Node(Heading())
+    node = CommonMark.Node(CommonMark.Heading())
     node.t.level = N
     process_inlines!(node, elem.text)
     return node
 end
 
 function from_stdlib_block(elem::Markdown.Code)
-    node = Node(CodeBlock())
+    node = CommonMark.Node(CommonMark.CodeBlock())
     node.t.info = elem.language
     node.t.is_fenced = true
     node.t.fence_char = '`'
-    node.t.fence_length = 3
+    # Fence must be longer than any backtick sequence in content
+    node.t.fence_length = max(3, max_backtick_run(elem.code) + 1)
     node.literal = endswith(elem.code, '\n') ? elem.code : elem.code * "\n"
     return node
 end
 
+# Find longest consecutive backtick sequence in string
+function max_backtick_run(s::AbstractString)
+    max_run = 0
+    current = 0
+    for c in s
+        if c == '`'
+            current += 1
+            max_run = max(max_run, current)
+        else
+            current = 0
+        end
+    end
+    return max_run
+end
+
 function from_stdlib_block(elem::Markdown.BlockQuote)
-    node = Node(BlockQuote())
+    node = CommonMark.Node(CommonMark.BlockQuote())
     for block in elem.content
         child = from_stdlib_block(block)
-        !isnothing(child) && append_child(node, child)
+        !isnothing(child) && CommonMark.append_child(node, child)
     end
     return node
 end
 
 function from_stdlib_block(elem::Markdown.List)
-    list = Node(List())
+    list = CommonMark.Node(CommonMark.List())
     list.t.list_data.type = elem.ordered >= 0 ? :ordered : :bullet
     list.t.list_data.tight = !elem.loose
     if elem.ordered >= 0
@@ -110,19 +118,19 @@ function from_stdlib_block(elem::Markdown.List)
         list.t.list_data.bullet_char = '-'
     end
     for item_content in elem.items
-        item = Node(Item())
+        item = CommonMark.Node(CommonMark.Item())
         item.t.list_data = list.t.list_data
         for block in item_content
             child = from_stdlib_block(block)
-            !isnothing(child) && append_child(item, child)
+            !isnothing(child) && CommonMark.append_child(item, child)
         end
-        append_child(list, item)
+        CommonMark.append_child(list, item)
     end
     return list
 end
 
 function from_stdlib_block(elem::Markdown.HorizontalRule)
-    return Node(ThematicBreak())
+    return CommonMark.Node(CommonMark.ThematicBreak())
 end
 
 function from_stdlib_block(elem::Markdown.Table)
@@ -130,23 +138,23 @@ function from_stdlib_block(elem::Markdown.Table)
     isempty(rows) && return nothing
 
     spec = elem.align
-    table = Node(Table(spec))
+    table = CommonMark.Node(CommonMark.Table(spec))
 
     # First row is header
     if !isempty(rows)
-        header = Node(TableHeader())
-        append_child(table, header)
+        header = CommonMark.Node(CommonMark.TableHeader())
+        CommonMark.append_child(table, header)
         header_row = table_row_from_stdlib(rows[1], spec, true)
-        append_child(header, header_row)
+        CommonMark.append_child(header, header_row)
     end
 
     # Rest are body
     if length(rows) > 1
-        body = Node(TableBody())
-        append_child(table, body)
+        body = CommonMark.Node(CommonMark.TableBody())
+        CommonMark.append_child(table, body)
         for i = 2:length(rows)
             row = table_row_from_stdlib(rows[i], spec, false)
-            append_child(body, row)
+            CommonMark.append_child(body, row)
         end
     end
 
@@ -154,21 +162,21 @@ function from_stdlib_block(elem::Markdown.Table)
 end
 
 function table_row_from_stdlib(cells::Vector, spec::Vector{Symbol}, is_header::Bool)
-    row = Node(TableRow())
+    row = CommonMark.Node(CommonMark.TableRow())
     for (i, cell_content) in enumerate(cells)
         align = i <= length(spec) ? spec[i] : :left
-        cell = Node(TableCell(align, is_header, i))
+        cell = CommonMark.Node(CommonMark.TableCell(align, is_header, i))
         process_inlines!(cell, cell_content)
-        append_child(row, cell)
+        CommonMark.append_child(row, cell)
     end
     return row
 end
 
 function from_stdlib_block(elem::Markdown.Admonition)
-    node = Node(Admonition(elem.category, elem.title))
+    node = CommonMark.Node(CommonMark.Admonition(elem.category, elem.title))
     for block in elem.content
         child = from_stdlib_block(block)
-        !isnothing(child) && append_child(node, child)
+        !isnothing(child) && CommonMark.append_child(node, child)
     end
     return node
 end
@@ -176,10 +184,10 @@ end
 function from_stdlib_block(elem::Markdown.Footnote)
     # Footnote with text is a definition, without is a reference (handled inline)
     if !isnothing(elem.text)
-        node = Node(FootnoteDefinition(elem.id))
+        node = CommonMark.Node(CommonMark.FootnoteDefinition(elem.id))
         for block in elem.text
             child = from_stdlib_block(block)
-            !isnothing(child) && append_child(node, child)
+            !isnothing(child) && CommonMark.append_child(node, child)
         end
         return node
     end
@@ -194,41 +202,41 @@ end
 
 # Inline converters
 
-function process_inlines!(parent::Node, content)
+function process_inlines!(parent::CommonMark.Node, content)
     for elem in content
         child = from_stdlib_inline(elem)
-        !isnothing(child) && append_child(parent, child)
+        !isnothing(child) && CommonMark.append_child(parent, child)
     end
 end
 
 function from_stdlib_inline(s::AbstractString)
-    node = Node(Text())
+    node = CommonMark.Node(CommonMark.Text())
     node.literal = s
     return node
 end
 
 function from_stdlib_inline(elem::Markdown.Bold)
-    node = Node(Strong())
+    node = CommonMark.Node(CommonMark.Strong())
     node.literal = "**"  # Delimiter for markdown writer
     process_inlines!(node, elem.text)
     return node
 end
 
 function from_stdlib_inline(elem::Markdown.Italic)
-    node = Node(Emph())
+    node = CommonMark.Node(CommonMark.Emph())
     node.literal = "*"  # Delimiter for markdown writer
     process_inlines!(node, elem.text)
     return node
 end
 
 function from_stdlib_inline(elem::Markdown.Code)
-    node = Node(Code())
+    node = CommonMark.Node(CommonMark.Code())
     node.literal = elem.code
     return node
 end
 
 function from_stdlib_inline(elem::Markdown.Link)
-    node = Node(Link())
+    node = CommonMark.Node(CommonMark.Link())
     node.t.destination = elem.url
     node.t.title = ""
     process_inlines!(node, elem.text)
@@ -236,24 +244,24 @@ function from_stdlib_inline(elem::Markdown.Link)
 end
 
 function from_stdlib_inline(elem::Markdown.Image)
-    node = Node(Image())
+    node = CommonMark.Node(CommonMark.Image())
     node.t.destination = elem.url
     node.t.title = ""
     # Alt text goes as Text child in CommonMark.jl
     if !isempty(elem.alt)
-        alt_node = Node(Text())
+        alt_node = CommonMark.Node(CommonMark.Text())
         alt_node.literal = elem.alt
-        append_child(node, alt_node)
+        CommonMark.append_child(node, alt_node)
     end
     return node
 end
 
 function from_stdlib_inline(elem::Markdown.LineBreak)
-    return Node(LineBreak())
+    return CommonMark.Node(CommonMark.LineBreak())
 end
 
 function from_stdlib_inline(elem::Markdown.LaTeX)
-    node = Node(Math())
+    node = CommonMark.Node(CommonMark.Math())
     node.literal = elem.formula
     return node
 end
@@ -261,7 +269,7 @@ end
 function from_stdlib_inline(elem::Markdown.Footnote)
     # Footnote reference (text is nothing)
     if isnothing(elem.text)
-        return Node(FootnoteLink, elem.id)
+        return CommonMark.Node(CommonMark.FootnoteLink, elem.id)
     end
     return nothing
 end
