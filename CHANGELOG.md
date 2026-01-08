@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `Node(md::Markdown.MD)` to convert Julia stdlib Markdown AST to CommonMark AST (Julia 1.9+) [#126]
 - Add `transform` keyword argument to writers for AST node interception during rendering [#123]
 - Add transforms documentation page with URL rewriting, syntax highlighting, and document wrapper examples [#123]
 - Add `UnresolvedReference` node type for detecting undefined reference links with `ReferenceLinkRule` [#121]
@@ -395,3 +396,4 @@ Initial release.
 [#121]: https://github.com/MichaelHatherly/CommonMark.jl/issues/121
 [#123]: https://github.com/MichaelHatherly/CommonMark.jl/issues/123
 [#125]: https://github.com/MichaelHatherly/CommonMark.jl/issues/125
+[#126]: https://github.com/MichaelHatherly/CommonMark.jl/issues/126
