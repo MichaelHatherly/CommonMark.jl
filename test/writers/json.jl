@@ -4,7 +4,6 @@
     using ReferenceTests
     import JSON
     import pandoc_jll
-    using OrderedCollections: OrderedDict
 
     p = create_parser()
 
