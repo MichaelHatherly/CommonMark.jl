@@ -1,6 +1,6 @@
 name = "CommonMark"
 uuid = "a80b9123-70ca-4bc0-993e-6e3bcb318db6"
-version = "0.9.1"
+version = "0.10.0"
 authors = ["Michael Hatherly"]
 
 [deps]
