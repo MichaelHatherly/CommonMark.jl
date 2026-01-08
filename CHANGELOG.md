@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.10.0] - 2026-01-08
+
 ### Added
 
 - Add `MarkRule` extension for highlighted text (`==text==` renders as `<mark>`) with Pandoc JSON roundtrip [#129]
@@ -354,6 +356,7 @@ Initial release.
 [v0.8.14]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.8.14
 [v0.8.15]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.8.15
 [v0.9.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.9.0
+[v0.10.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.0
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
@@ -400,3 +403,4 @@ Initial release.
 [#125]: https://github.com/MichaelHatherly/CommonMark.jl/issues/125
 [#126]: https://github.com/MichaelHatherly/CommonMark.jl/issues/126
 [#128]: https://github.com/MichaelHatherly/CommonMark.jl/issues/128
+[#129]: https://github.com/MichaelHatherly/CommonMark.jl/issues/129
