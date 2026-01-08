@@ -407,6 +407,14 @@ function from_json_inline(el::AbstractDict)
         elseif t == "Quoted"
             return quoted_from_json(c)
         elseif t == "SmallCaps" || t == "Span"
+            # Check for mark class on Span
+            if t == "Span" && length(c) >= 2
+                attrs = c[1]
+                classes = length(attrs) >= 2 ? attrs[2] : []
+                if "mark" in classes
+                    return mark_from_json(c[2])
+                end
+            end
             # Container types - extract content
             return span_from_json(c)
         else
@@ -561,4 +569,10 @@ function span_from_json(content::AbstractVector)
     container = Node(Emph())
     process_inlines!(container, inlines)
     return container
+end
+
+function mark_from_json(inlines::AbstractVector)
+    node = Node(Mark())
+    process_inlines!(node, inlines)
+    return node
 end

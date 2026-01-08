@@ -137,6 +137,11 @@
         test_json("references/json/strikethrough.json", "~~deleted~~", st_parser)
     end
 
+    @testset "mark" begin
+        mark_parser = create_parser(MarkRule())
+        test_json("references/json/mark.json", "==highlighted==", mark_parser)
+    end
+
     @testset "admonitions" begin
         adm_parser = create_parser(AdmonitionRule())
         test_json(

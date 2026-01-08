@@ -3,7 +3,7 @@
     using Test
 
     # Parser with all delimiter-based extensions
-    p = create_parser([StrikethroughRule(), SubscriptRule(), SuperscriptRule()])
+    p = create_parser([StrikethroughRule(), SubscriptRule(), SuperscriptRule(), MarkRule()])
 
     # ==========================================
     # Strikethrough containing subscript (the bug case)
@@ -61,4 +61,22 @@
     # ==========================================
     @test html(p("***bold italic***")) == "<p><em><strong>bold italic</strong></em></p>\n"
     @test html(p("**_bold italic_**")) == "<p><strong><em>bold italic</em></strong></p>\n"
+
+    # ==========================================
+    # Mark containing other delimiters
+    # ==========================================
+    @test html(p("==H~2~O==")) == "<p><mark>H<sub>2</sub>O</mark></p>\n"
+    @test html(p("==x^2^==")) == "<p><mark>x<sup>2</sup></mark></p>\n"
+    @test html(p("==~~struck~~==")) == "<p><mark><del>struck</del></mark></p>\n"
+
+    # ==========================================
+    # Mark inside other delimiters
+    # ==========================================
+    @test html(p("~~==marked==~~")) == "<p><del><mark>marked</mark></del></p>\n"
+    @test html(p("*==italic mark==*")) == "<p><em><mark>italic mark</mark></em></p>\n"
+
+    # ==========================================
+    # Adjacent marks with other delimiters
+    # ==========================================
+    @test html(p("==mark==~~strike~~")) == "<p><mark>mark</mark><del>strike</del></p>\n"
 end

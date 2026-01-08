@@ -1,0 +1,33 @@
+{
+  "blocks": [
+    {
+      "c": [
+        {
+          "c": [
+            [
+              "",
+              [
+                "mark"
+              ],
+              []
+            ],
+            [
+              {
+                "c": "highlighted",
+                "t": "Str"
+              }
+            ]
+          ],
+          "t": "Span"
+        }
+      ],
+      "t": "Para"
+    }
+  ],
+  "meta": {},
+  "pandoc-api-version": [
+    1,
+    23,
+    1
+  ]
+}

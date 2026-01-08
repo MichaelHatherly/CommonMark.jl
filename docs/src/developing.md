@@ -261,6 +261,9 @@ disable!(parser, SetextHeadingRule())  # Only allow ATX headings
 
 A custom inline extension using delimiter hooks for `==highlighted text==` syntax.
 
+!!! note "Built-in Alternative"
+    This syntax is available as [`MarkRule`](@ref extensions-page). This example shows how such an extension is implemented.
+
 ```@example dev
 # AST node
 struct Highlight <: CommonMark.AbstractInline end
