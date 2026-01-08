@@ -716,9 +716,9 @@ CM.html(doc)
 
 ## Converting from Julia Markdown
 
-On Julia 1.9+, CommonMark.jl can convert Julia's stdlib `Markdown.MD` AST to
-CommonMark's `Node` AST. This enables migration of existing documentation or
-integration with tools that produce stdlib Markdown.
+CommonMark.jl can convert Julia's stdlib `Markdown.MD` AST to CommonMark's
+`Node` AST. This enables migration of existing documentation or integration
+with tools that produce stdlib Markdown.
 
 ```@example ast-stdlib
 using Markdown  # Load first to trigger extension
