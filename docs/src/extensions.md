@@ -275,6 +275,9 @@ Content here.
 frontmatter(ast)
 ```
 
+The `frontmatter(ast)` function extracts metadata as a dictionary. Returns
+an empty dict if no front matter is present.
+
 Delimiters determine format: `---` for YAML, `+++` for TOML, `;;;` for JSON.
 Pass the appropriate parser function for each format you want to support.
 
@@ -386,3 +389,58 @@ html(ast)  # LaTeX content omitted
 The format name (`html`, `latex`, `typst`) is specified in the attribute.
 The parser automatically determines inline vs block from context. Custom
 formats can be added by passing type mappings to `RawContentRule`.
+
+## String Macro
+
+The `@cm_str` macro enables markdown string interpolation, embedding Julia
+expressions directly in markdown text.
+
+```@example ext
+using CommonMark
+
+name = "world"
+ast = cm"Hello *$(name)*!"
+html(ast)
+```
+
+Expressions are captured during parsing and evaluated at runtime when the
+code executes. This is useful for generating markdown programmatically
+without manually constructing nodes.
+
+### Default Syntax Rules
+
+The macro enables several extensions by default, matching Julia's `@md_str`:
+
+- `AdmonitionRule`
+- `AttributeRule`
+- `AutoIdentifierRule`
+- `CitationRule`
+- `FootnoteRule`
+- `MathRule`
+- `RawContentRule`
+- `TableRule`
+- `TypographyRule`
+
+!!! warning "DollarMathRule Conflict"
+    `DollarMathRule` is NOT enabled because `$` is used for interpolation.
+    Use double backticks (``` ``E=mc^2`` ```) or `math` code blocks instead.
+
+### Custom Parser
+
+Suffix the macro with a function name to use a custom parser:
+
+```@example ext
+# Define a minimal parser (no extensions)
+minimal() = Parser()
+
+text = "plain"
+ast = cm"Just $(text) markdown."minimal
+html(ast)
+```
+
+The suffix `none` invokes a basic parser with no extensions:
+
+```@example ext
+ast = cm"No **extensions** here."none
+html(ast)
+```
