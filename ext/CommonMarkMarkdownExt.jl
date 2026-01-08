@@ -34,7 +34,11 @@ using CommonMark:
     FootnoteLink,
     Math
 
-using Markdown
+@static if isdefined(Base, :get_extension)
+    using Markdown
+else
+    using ..Markdown  # ExtensionLoader binds Markdown const
+end
 
 """
     Node(md::Markdown.MD) -> Node

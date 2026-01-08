@@ -8,6 +8,8 @@ include("extensions.jl")
 include("readers.jl")
 include("precompile.jl")
 
+isdefined(Base, :get_extension) || include("ExtensionLoader.jl")
+
 # Interface
 export Parser,
     enable!, disable!, html, latex, term, markdown, notebook, typst, json, frontmatter
