@@ -78,12 +78,21 @@ markdown(ast)
 Other formats include `typst()` for Typst documents, `term()` for
 terminal output with ANSI colors, `notebook()` for Jupyter notebooks,
 and `json()` for Pandoc AST JSON (enables export to docx, epub, rst, etc.).
+Use `json(Dict, ast)` to get the dict without JSON serialization.
 
 All writer functions accept a filename or IO as the first argument:
 
 ```julia
 html("output.html", ast)
 term(stdout, ast)
+```
+
+Writers also accept an optional `env` dictionary for configuration. Front
+matter from the document is merged automatically:
+
+```julia
+env = Dict{String,Any}("title" => "My Page", "lang" => "en")
+html(ast, env)
 ```
 
 ## Transforms
@@ -140,4 +149,5 @@ nothing # hide
 ```
 
 See [Core Rules](@ref) for the default syntax and [Extensions](@ref extensions-page)
-for additional features like tables, math, and admonitions.
+for additional features like tables, math, admonitions, and a string macro for
+interpolation (`cm"Hello $(name)!"`).

@@ -778,3 +778,66 @@ println("HTML:     ", CommonMark.html(ast))
 println("LaTeX:    ", CommonMark.latex(ast))
 println("Markdown: ", CommonMark.markdown(ast))
 ```
+
+## Pandoc JSON Round-Trip
+
+CommonMark.jl can convert ASTs to and from Pandoc's JSON format, enabling
+interoperability with Pandoc's ecosystem and lossless round-tripping.
+
+### Export to Dict
+
+Use `json(Dict, ast)` to get the Pandoc AST as a dictionary without JSON
+string serialization:
+
+```@example ast-json
+import CommonMark as CM
+
+parser = CM.Parser()
+ast = parser("# Hello\n\nWorld with **bold**.")
+
+d = CM.json(Dict, ast)
+keys(d)
+```
+
+The dictionary contains Pandoc's standard keys:
+
+```@example ast-json
+d["pandoc-api-version"]
+```
+
+### Import from Dict
+
+Convert a Pandoc AST dictionary back to a CommonMark `Node`:
+
+```@example ast-json
+ast2 = CM.Node(d)
+CM.html(ast2)
+```
+
+### Round-Trip Example
+
+This enables lossless round-tripping through the Pandoc format:
+
+```@example ast-json
+original = parser("A [link](url.md) and `code`.")
+roundtrip = CM.Node(CM.json(Dict, original))
+
+CM.markdown(original) == CM.markdown(roundtrip)
+```
+
+### Deterministic Output
+
+For deterministic key ordering (useful for diffs and tests), pass an ordered
+dict type:
+
+```julia
+using OrderedCollections
+d = json(OrderedDict, ast)  # Keys in consistent order
+```
+
+### Use Cases
+
+- **Pandoc integration**: Modify AST between CommonMark parsing and Pandoc output
+- **Serialization**: Store ASTs in databases or send over networks
+- **Testing**: Compare AST structures programmatically
+- **Migration**: Convert from other tools that export Pandoc JSON
