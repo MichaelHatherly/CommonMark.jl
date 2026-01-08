@@ -713,3 +713,68 @@ html(ast)"""; info="julia"),
 
 CM.html(doc)
 ```
+
+## Converting from Julia Markdown
+
+CommonMark.jl can convert Julia's stdlib `Markdown.MD` AST to CommonMark's
+`Node` AST. This enables migration of existing documentation or integration
+with tools that produce stdlib Markdown.
+
+```@example ast-stdlib
+using Markdown  # Load first to trigger extension
+using CommonMark
+import CommonMark: Node
+
+# Parse with Julia's stdlib
+md = Markdown.parse("# Hello World\n\nThis is **bold** and *italic* text.")
+
+# Convert to CommonMark AST
+ast = Node(md)
+
+# Render to any format
+CommonMark.html(ast)
+```
+
+The conversion handles all stdlib element types:
+
+| Stdlib Type | CommonMark Type |
+|-------------|-----------------|
+| `MD` | `Document` |
+| `Paragraph` | `Paragraph` |
+| `Header{N}` | `Heading` (level N) |
+| `Bold` | `Strong` |
+| `Italic` | `Emph` |
+| `Code` (inline) | `Code` |
+| `Code` (block) | `CodeBlock` |
+| `BlockQuote` | `BlockQuote` |
+| `List` | `List` + `Item` |
+| `HorizontalRule` | `ThematicBreak` |
+| `Link` | `Link` |
+| `Image` | `Image` |
+| `LineBreak` | `LineBreak` |
+| `Table` | `Table` hierarchy |
+| `Admonition` | `Admonition` |
+| `Footnote` | `FootnoteDefinition` / `FootnoteLink` |
+| `LaTeX` | `Math` |
+
+Metadata from the stdlib `MD` object is preserved:
+
+```@example ast-stdlib
+md = Markdown.MD([Markdown.Paragraph(["Content"])])
+md.meta[:title] = "My Document"
+md.meta[:author] = "Author Name"
+
+ast = Node(md)
+ast.meta["title"], ast.meta["author"]
+```
+
+The converted AST works with all CommonMark.jl output formats:
+
+```@example ast-stdlib
+md = Markdown.parse("Visit [Julia](https://julialang.org).")
+ast = Node(md)
+
+println("HTML:     ", CommonMark.html(ast))
+println("LaTeX:    ", CommonMark.latex(ast))
+println("Markdown: ", CommonMark.markdown(ast))
+```
