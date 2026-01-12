@@ -780,6 +780,77 @@ println("LaTeX:    ", CommonMark.latex(ast))
 println("Markdown: ", CommonMark.markdown(ast))
 ```
 
+## Converting to/from MarkdownAST.jl
+
+CommonMark.jl supports bidirectional conversion with
+[MarkdownAST.jl](https://github.com/JuliaDocs/MarkdownAST.jl), enabling
+interoperability between the two AST representations.
+
+### CommonMark → MarkdownAST
+
+```@example ast-mast
+using MarkdownAST
+using CommonMark
+
+cm = CommonMark.Parser()("# Hello **world**")
+mast = MarkdownAST.Node(cm)
+```
+
+### MarkdownAST → CommonMark
+
+```@example ast-mast
+using MarkdownAST: @ast
+
+mast = @ast MarkdownAST.Document() do
+    MarkdownAST.Heading(1) do
+        "Hello"
+    end
+    MarkdownAST.Paragraph() do
+        "Some "
+        MarkdownAST.Strong() do
+            "bold"
+        end
+        " text."
+    end
+end
+
+cm = CommonMark.Node(mast)
+CommonMark.html(cm)
+```
+
+### Supported Type Mappings
+
+| CommonMark | MarkdownAST |
+|------------|-------------|
+| `Document` | `Document` |
+| `Paragraph` | `Paragraph` |
+| `Heading` | `Heading` |
+| `BlockQuote` | `BlockQuote` |
+| `List` | `List` |
+| `Item` | `Item` |
+| `CodeBlock` | `CodeBlock` |
+| `ThematicBreak` | `ThematicBreak` |
+| `HtmlBlock` | `HTMLBlock` |
+| `Text` | `Text` |
+| `SoftBreak` | `SoftBreak` |
+| `LineBreak` | `LineBreak` |
+| `Code` | `Code` |
+| `Emph` | `Emph` |
+| `Strong` | `Strong` |
+| `Link` | `Link` |
+| `Image` | `Image` |
+| `HtmlInline` | `HTMLInline` |
+| `Backslash` | `Backslash` |
+| `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableCell` | Table hierarchy |
+| `Admonition` | `Admonition` |
+| `Math` | `InlineMath` |
+| `DisplayMath` | `DisplayMath` |
+| `FootnoteDefinition` | `FootnoteDefinition` |
+| `FootnoteLink` | `FootnoteLink` |
+| `JuliaValue`, `JuliaExpression` | `JuliaValue` |
+
+Unsupported types generate a warning and are skipped during conversion.
+
 ## Pandoc JSON Round-Trip
 
 CommonMark.jl can convert ASTs to and from Pandoc's JSON format, enabling

@@ -8,18 +8,22 @@ PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 
 [compat]
 JSON = "0.21, 1"
+MarkdownAST = "0.1"
 PrecompileTools = "1"
 julia = "1.3"
 
 [weakdeps]
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
+MarkdownAST = "d0879d2d-cac2-40c8-9cee-1863dc0c7391"
 
 [extensions]
+CommonMarkMarkdownASTExt = "MarkdownAST"
 CommonMarkMarkdownExt = "Markdown"
 
 [extras]
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
+MarkdownAST = "d0879d2d-cac2-40c8-9cee-1863dc0c7391"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 ReferenceTests = "324d217c-45ce-50fc-942e-d289b448e8cf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -28,4 +32,4 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 pandoc_jll = "c5432543-76ad-5c9d-82bf-db097047a5e2"
 
 [targets]
-test = ["Test", "JSON", "Markdown", "Pkg", "YAML", "ReferenceTests", "TestItemRunner", "pandoc_jll"]
+test = ["Test", "JSON", "Markdown", "MarkdownAST", "Pkg", "YAML", "ReferenceTests", "TestItemRunner", "pandoc_jll"]

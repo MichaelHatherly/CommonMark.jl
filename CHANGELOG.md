@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add `Parser(enable=[], disable=[])` keyword arguments for rule configuration at construction [#133]
+- Add bidirectional conversion between CommonMark and MarkdownAST via `MarkdownAST.Node(cm)` and `CommonMark.Node(mast)` [#130]
 
 ### Fixed
 
@@ -412,5 +413,6 @@ Initial release.
 [#126]: https://github.com/MichaelHatherly/CommonMark.jl/issues/126
 [#128]: https://github.com/MichaelHatherly/CommonMark.jl/issues/128
 [#129]: https://github.com/MichaelHatherly/CommonMark.jl/issues/129
+[#130]: https://github.com/MichaelHatherly/CommonMark.jl/issues/130
 [#132]: https://github.com/MichaelHatherly/CommonMark.jl/issues/132
 [#133]: https://github.com/MichaelHatherly/CommonMark.jl/issues/133
