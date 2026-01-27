@@ -2,12 +2,12 @@
 
 module CommonMarkMarkdownExt
 
-import CommonMark
-
 @static if isdefined(Base, :get_extension)
+    import CommonMark
     import Markdown
 else
-    import ..Markdown  # ExtensionLoader binds Markdown const
+    import ..CommonMark
+    import ..Markdown
 end
 
 # Flatten nested Markdown.MD and merge metadata (outer takes precedence)

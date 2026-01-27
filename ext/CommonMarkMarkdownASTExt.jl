@@ -2,8 +2,13 @@
 
 module CommonMarkMarkdownASTExt
 
-import CommonMark
-import MarkdownAST
+@static if isdefined(Base, :get_extension)
+    import CommonMark
+    import MarkdownAST
+else
+    import ..CommonMark
+    import ..MarkdownAST
+end
 
 #
 # CommonMark → MarkdownAST
