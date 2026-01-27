@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Building ASTs · CommonMark.jl</title><meta name="title" content="Building ASTs · CommonMark.jl"/><meta property="og:title" content="Building ASTs · CommonMark.jl"/><meta property="twitter:title" content="Building ASTs · CommonMark.jl"/><meta name="description" content="Documentation for CommonMark.jl."/><meta property="og:description" content="Documentation for CommonMark.jl."/><meta property="twitter:description" content="Documentation for CommonMark.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">CommonMark.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../core/">Core Rules</a></li><li><a class="tocitem" href="../extensions/">Extensions</a></li><li class="is-active"><a class="tocitem" href>Building ASTs</a><ul class="internal"><li><a class="tocitem" href="#How-It-Works"><span>How It Works</span></a></li><li><a class="tocitem" href="#Block-Containers"><span>Block Containers</span></a></li><li><a class="tocitem" href="#Inline-Containers"><span>Inline Containers</span></a></li><li><a class="tocitem" href="#Extension-Types"><span>Extension Types</span></a></li><li><a class="tocitem" href="#Tree-Manipulation"><span>Tree Manipulation</span></a></li><li><a class="tocitem" href="#Complete-Example"><span>Complete Example</span></a></li><li><a class="tocitem" href="#Converting-from-Julia-Markdown"><span>Converting from Julia Markdown</span></a></li><li><a class="tocitem" href="#Pandoc-JSON-Round-Trip"><span>Pandoc JSON Round-Trip</span></a></li></ul></li><li><a class="tocitem" href="../transforms/">Transforms</a></li><li><a class="tocitem" href="../developing/">Developing Extensions</a></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Building ASTs</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Building ASTs</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MichaelHatherly/CommonMark.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/MichaelHatherly/CommonMark.jl/blob/master/docs/src/ast.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Building-ASTs"><a class="docs-heading-anchor" href="#Building-ASTs">Building ASTs</a><a id="Building-ASTs-1"></a><a class="docs-heading-anchor-permalink" href="#Building-ASTs" title="Permalink"></a></h1><p>Build markdown documents programmatically using Node constructors instead of parsing text. This is useful for:</p><ul><li><strong>Generating documents from data</strong>: Create reports, documentation, or content from databases, APIs, or computation results</li><li><strong>Template systems</strong>: Build document structures that get filled with dynamic content</li><li><strong>Document transformation</strong>: Modify parsed documents or create new ones based on existing ASTs</li><li><strong>Testing</strong>: Create specific AST structures for unit tests</li></ul><pre><code class="language-julia hljs">import CommonMark as CM</code></pre><div class="admonition is-success" id="Tip-c3d5a57ed71dcc72"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-c3d5a57ed71dcc72" title="Permalink"></a></header><div class="admonition-body"><p>Use <code>import CommonMark as CM</code> to reduce verbosity in code that builds ASTs.</p></div></div><h2 id="How-It-Works"><a class="docs-heading-anchor" href="#How-It-Works">How It Works</a><a id="How-It-Works-1"></a><a class="docs-heading-anchor-permalink" href="#How-It-Works" title="Permalink"></a></h2><p>The AST is a tree of <code>Node</code> objects. Each node has:</p><ul><li>A <strong>container type</strong> (e.g., <code>Document</code>, <code>Paragraph</code>, <code>Strong</code>) that defines what kind of element it is</li><li><strong>Children</strong> for container nodes (blocks contain blocks or inlines; inlines contain inlines or text)</li><li>A <strong>literal</strong> string for leaf nodes like <code>Text</code>, <code>Code</code>, and <code>CodeBlock</code></li><li>Optional <strong>metadata</strong> for attributes, IDs, and classes</li></ul><p>Nodes are created with <code>Node(Type, children...)</code> where strings automatically become <code>Text</code> nodes:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Heading, 1, &quot;Hello World&quot;),
+    CM.Node(CM.Paragraph, &quot;Welcome to &quot;, CM.Node(CM.Strong, &quot;CommonMark&quot;), &quot;!&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h1&gt;Hello World&lt;/h1&gt;\n&lt;p&gt;Welcome to &lt;strong&gt;CommonMark&lt;/strong&gt;!&lt;/p&gt;\n&quot;</code></pre><p>The constructed AST can be rendered to any output format: <code>html()</code>, <code>latex()</code>, <code>markdown()</code>, <code>term()</code>, <code>typst()</code>, or <code>json()</code>.</p><h2 id="Block-Containers"><a class="docs-heading-anchor" href="#Block-Containers">Block Containers</a><a id="Block-Containers-1"></a><a class="docs-heading-anchor-permalink" href="#Block-Containers" title="Permalink"></a></h2><p>Block elements form the document structure: paragraphs, headings, lists, etc. They occupy their own vertical space in the rendered output.</p><h3 id="Document"><a class="docs-heading-anchor" href="#Document">Document</a><a id="Document-1"></a><a class="docs-heading-anchor-permalink" href="#Document" title="Permalink"></a></h3><p>The root container. Every AST must have a <code>Document</code> as its root node. It can contain any block elements except list items.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph, &quot;First paragraph.&quot;),
+    CM.Node(CM.Paragraph, &quot;Second paragraph.&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;First paragraph.&lt;/p&gt;\n&lt;p&gt;Second paragraph.&lt;/p&gt;\n&quot;</code></pre><h3 id="Paragraph"><a class="docs-heading-anchor" href="#Paragraph">Paragraph</a><a id="Paragraph-1"></a><a class="docs-heading-anchor-permalink" href="#Paragraph" title="Permalink"></a></h3><p>The basic text container. Paragraphs hold inline content: text, emphasis, links, code spans, etc. Most text content lives inside paragraphs.</p><pre><code class="language-julia hljs">p = CM.Node(CM.Paragraph,
+    &quot;Plain text, &quot;,
+    CM.Node(CM.Emph, &quot;italic&quot;),
+    &quot;, and &quot;,
+    CM.Node(CM.Strong, &quot;bold&quot;),
+    &quot;.&quot;
+)
+doc = CM.Node(CM.Document, p)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Plain text, &lt;em&gt;italic&lt;/em&gt;, and &lt;strong&gt;bold&lt;/strong&gt;.&lt;/p&gt;\n&quot;</code></pre><h3 id="Heading"><a class="docs-heading-anchor" href="#Heading">Heading</a><a id="Heading-1"></a><a class="docs-heading-anchor-permalink" href="#Heading" title="Permalink"></a></h3><p>Section headings with levels 1-6. The first argument is the level (1 = h1, 2 = h2, etc.), followed by the heading content.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Heading, 1, &quot;Main Title&quot;),
+    CM.Node(CM.Paragraph, &quot;Introduction paragraph.&quot;),
+    CM.Node(CM.Heading, 2, &quot;First Section&quot;),
+    CM.Node(CM.Paragraph, &quot;Section content.&quot;),
+    CM.Node(CM.Heading, 3, &quot;Subsection&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h1&gt;Main Title&lt;/h1&gt;\n&lt;p&gt;Introduction paragraph.&lt;/p&gt;\n&lt;h2&gt;First Section&lt;/h2&gt;\n&lt;p&gt;Section content.&lt;/p&gt;\n&lt;h3&gt;Subsection&lt;/h3&gt;\n&quot;</code></pre><p>Headings can contain inline formatting:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Heading, 2, &quot;The &quot;, CM.Node(CM.Code, &quot;Node&quot;), &quot; API&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h2&gt;The &lt;code&gt;Node&lt;/code&gt; API&lt;/h2&gt;\n&quot;</code></pre><h3 id="BlockQuote"><a class="docs-heading-anchor" href="#BlockQuote">BlockQuote</a><a id="BlockQuote-1"></a><a class="docs-heading-anchor-permalink" href="#BlockQuote" title="Permalink"></a></h3><p>Quoted content, typically rendered with indentation or a vertical bar. Block quotes can contain any block elements including nested quotes.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.BlockQuote,
+        CM.Node(CM.Paragraph, &quot;To be or not to be.&quot;),
+        CM.Node(CM.Paragraph, &quot;— Shakespeare&quot;)
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;blockquote&gt;\n&lt;p&gt;To be or not to be.&lt;/p&gt;\n&lt;p&gt;— Shakespeare&lt;/p&gt;\n&lt;/blockquote&gt;\n&quot;</code></pre><p>Nested block quotes:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.BlockQuote,
+        CM.Node(CM.Paragraph, &quot;Outer quote&quot;),
+        CM.Node(CM.BlockQuote,
+            CM.Node(CM.Paragraph, &quot;Inner quote&quot;)
+        )
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;blockquote&gt;\n&lt;p&gt;Outer quote&lt;/p&gt;\n&lt;blockquote&gt;\n&lt;p&gt;Inner quote&lt;/p&gt;\n&lt;/blockquote&gt;\n&lt;/blockquote&gt;\n&quot;</code></pre><h3 id="List-and-Item"><a class="docs-heading-anchor" href="#List-and-Item">List and Item</a><a id="List-and-Item-1"></a><a class="docs-heading-anchor-permalink" href="#List-and-Item" title="Permalink"></a></h3><p>Lists contain <code>Item</code> nodes. By default, lists are unordered (bullet points). Use keyword arguments to customize:</p><table><tr><th style="text-align: right">Keyword</th><th style="text-align: right">Type</th><th style="text-align: right">Default</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right"><code>ordered</code></td><td style="text-align: right"><code>Bool</code></td><td style="text-align: right"><code>false</code></td><td style="text-align: right">Numbered list instead of bullets</td></tr><tr><td style="text-align: right"><code>start</code></td><td style="text-align: right"><code>Int</code></td><td style="text-align: right"><code>1</code></td><td style="text-align: right">Starting number for ordered lists</td></tr><tr><td style="text-align: right"><code>tight</code></td><td style="text-align: right"><code>Bool</code></td><td style="text-align: right"><code>true</code></td><td style="text-align: right">Tight spacing (no <code>&lt;p&gt;</code> tags around items)</td></tr></table><p>Unordered list:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.List,
+        CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;First item&quot;)),
+        CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;Second item&quot;)),
+        CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;Third item&quot;))
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;ul&gt;\n&lt;li&gt;First item&lt;/li&gt;\n&lt;li&gt;Second item&lt;/li&gt;\n&lt;li&gt;Third item&lt;/li&gt;\n&lt;/ul&gt;\n&quot;</code></pre><p>Ordered list starting at 5:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.List,
+        CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;Fifth&quot;)),
+        CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;Sixth&quot;));
+        ordered=true, start=5
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;ol start=\&quot;5\&quot;&gt;\n&lt;li&gt;Fifth&lt;/li&gt;\n&lt;li&gt;Sixth&lt;/li&gt;\n&lt;/ol&gt;\n&quot;</code></pre><p>Nested lists:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.List,
+        CM.Node(CM.Item,
+            CM.Node(CM.Paragraph, &quot;Outer item&quot;),
+            CM.Node(CM.List,
+                CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;Nested item 1&quot;)),
+                CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;Nested item 2&quot;))
+            )
+        )
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;ul&gt;\n&lt;li&gt;Outer item\n&lt;ul&gt;\n&lt;li&gt;Nested item 1&lt;/li&gt;\n&lt;li&gt;Nested item 2&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;/ul&gt;\n&quot;</code></pre><h3 id="CodeBlock"><a class="docs-heading-anchor" href="#CodeBlock">CodeBlock</a><a id="CodeBlock-1"></a><a class="docs-heading-anchor-permalink" href="#CodeBlock" title="Permalink"></a></h3><p>Fenced code blocks for displaying source code. The <code>info</code> keyword specifies the language for syntax highlighting.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.CodeBlock, &quot;function greet(name)\n    println(\&quot;Hello, \$name!\&quot;)\nend&quot;; info=&quot;julia&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;pre&gt;&lt;code class=\&quot;language-julia\&quot;&gt;function greet(name)\n    println(&amp;quot;Hello, \$name!&amp;quot;)\nend&lt;/code&gt;&lt;/pre&gt;\n&quot;</code></pre><p>Without a language:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.CodeBlock, &quot;Plain text code block\nNo syntax highlighting&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;pre&gt;&lt;code&gt;Plain text code block\nNo syntax highlighting&lt;/code&gt;&lt;/pre&gt;\n&quot;</code></pre><h3 id="ThematicBreak"><a class="docs-heading-anchor" href="#ThematicBreak">ThematicBreak</a><a id="ThematicBreak-1"></a><a class="docs-heading-anchor-permalink" href="#ThematicBreak" title="Permalink"></a></h3><p>A horizontal rule that separates sections. Takes no children or arguments.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph, &quot;Content above the break.&quot;),
+    CM.Node(CM.ThematicBreak),
+    CM.Node(CM.Paragraph, &quot;Content below the break.&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Content above the break.&lt;/p&gt;\n&lt;hr /&gt;\n&lt;p&gt;Content below the break.&lt;/p&gt;\n&quot;</code></pre><h3 id="HtmlBlock"><a class="docs-heading-anchor" href="#HtmlBlock">HtmlBlock</a><a id="HtmlBlock-1"></a><a class="docs-heading-anchor-permalink" href="#HtmlBlock" title="Permalink"></a></h3><p>Raw HTML that passes through unchanged. Use for content that can&#39;t be expressed in markdown, like complex layouts or embedded widgets.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.HtmlBlock, &quot;&lt;div class=\&quot;warning\&quot;&gt;\n  &lt;strong&gt;Warning:&lt;/strong&gt; Custom HTML content.\n&lt;/div&gt;&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;div class=\&quot;warning\&quot;&gt;\n  &lt;strong&gt;Warning:&lt;/strong&gt; Custom HTML content.\n&lt;/div&gt;\n&quot;</code></pre><h2 id="Inline-Containers"><a class="docs-heading-anchor" href="#Inline-Containers">Inline Containers</a><a id="Inline-Containers-1"></a><a class="docs-heading-anchor-permalink" href="#Inline-Containers" title="Permalink"></a></h2><p>Inline elements flow within text: emphasis, links, code spans, etc. They don&#39;t create line breaks by themselves.</p><h3 id="Emph-and-Strong"><a class="docs-heading-anchor" href="#Emph-and-Strong">Emph and Strong</a><a id="Emph-and-Strong-1"></a><a class="docs-heading-anchor-permalink" href="#Emph-and-Strong" title="Permalink"></a></h3><p>Emphasis (<code>&lt;em&gt;</code>, typically italic) and strong emphasis (<code>&lt;strong&gt;</code>, typically bold). Both are containers that can hold other inline content.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;This is &quot;,
+        CM.Node(CM.Emph, &quot;emphasized&quot;),
+        &quot; and this is &quot;,
+        CM.Node(CM.Strong, &quot;strongly emphasized&quot;),
+        &quot;.&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;This is &lt;em&gt;emphasized&lt;/em&gt; and this is &lt;strong&gt;strongly emphasized&lt;/strong&gt;.&lt;/p&gt;\n&quot;</code></pre><p>Nested emphasis:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        CM.Node(CM.Strong, &quot;Bold with &quot;, CM.Node(CM.Emph, &quot;italic&quot;), &quot; inside&quot;)
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;&lt;strong&gt;Bold with &lt;em&gt;italic&lt;/em&gt; inside&lt;/strong&gt;&lt;/p&gt;\n&quot;</code></pre><h3 id="Code"><a class="docs-heading-anchor" href="#Code">Code</a><a id="Code-1"></a><a class="docs-heading-anchor-permalink" href="#Code" title="Permalink"></a></h3><p>Inline code spans for mentioning code within text. The argument is the literal code string.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;Call &quot;,
+        CM.Node(CM.Code, &quot;process(data)&quot;),
+        &quot; to transform the input.&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Call &lt;code&gt;process(data)&lt;/code&gt; to transform the input.&lt;/p&gt;\n&quot;</code></pre><h3 id="Link"><a class="docs-heading-anchor" href="#Link">Link</a><a id="Link-1"></a><a class="docs-heading-anchor-permalink" href="#Link" title="Permalink"></a></h3><p>Hyperlinks with a destination URL and optional title. Links are containers—their children become the link text.</p><table><tr><th style="text-align: right">Keyword</th><th style="text-align: right">Type</th><th style="text-align: right">Required</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right"><code>dest</code></td><td style="text-align: right"><code>String</code></td><td style="text-align: right">Yes</td><td style="text-align: right">URL or path</td></tr><tr><td style="text-align: right"><code>title</code></td><td style="text-align: right"><code>String</code></td><td style="text-align: right">No</td><td style="text-align: right">Tooltip text</td></tr></table><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;Visit the &quot;,
+        CM.Node(CM.Link, &quot;official website&quot;; dest=&quot;https://example.com&quot;, title=&quot;Example Site&quot;),
+        &quot; for more information.&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Visit the &lt;a href=\&quot;https://example.com\&quot; title=\&quot;Example Site\&quot;&gt;official website&lt;/a&gt; for more information.&lt;/p&gt;\n&quot;</code></pre><p>Links can contain formatting:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        CM.Node(CM.Link,
+            &quot;Click &quot;,
+            CM.Node(CM.Strong, &quot;here&quot;),
+            &quot; to continue&quot;;
+            dest=&quot;/next&quot;
+        )
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;&lt;a href=\&quot;/next\&quot;&gt;Click &lt;strong&gt;here&lt;/strong&gt; to continue&lt;/a&gt;&lt;/p&gt;\n&quot;</code></pre><h3 id="Image"><a class="docs-heading-anchor" href="#Image">Image</a><a id="Image-1"></a><a class="docs-heading-anchor-permalink" href="#Image" title="Permalink"></a></h3><p>Images with source URL and alt text. Unlike links, images don&#39;t contain children— the alt text is specified as a keyword argument.</p><table><tr><th style="text-align: right">Keyword</th><th style="text-align: right">Type</th><th style="text-align: right">Required</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right"><code>dest</code></td><td style="text-align: right"><code>String</code></td><td style="text-align: right">Yes</td><td style="text-align: right">Image URL or path</td></tr><tr><td style="text-align: right"><code>alt</code></td><td style="text-align: right"><code>String</code></td><td style="text-align: right">No</td><td style="text-align: right">Alternative text</td></tr><tr><td style="text-align: right"><code>title</code></td><td style="text-align: right"><code>String</code></td><td style="text-align: right">No</td><td style="text-align: right">Tooltip text</td></tr></table><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;Here&#39;s a diagram: &quot;,
+        CM.Node(CM.Image; dest=&quot;diagram.png&quot;, alt=&quot;Architecture diagram&quot;)
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Here&#39;s a diagram: &lt;img src=\&quot;diagram.png\&quot; alt=\&quot;\&quot; /&gt;&lt;/p&gt;\n&quot;</code></pre><h3 id="SoftBreak-and-LineBreak"><a class="docs-heading-anchor" href="#SoftBreak-and-LineBreak">SoftBreak and LineBreak</a><a id="SoftBreak-and-LineBreak-1"></a><a class="docs-heading-anchor-permalink" href="#SoftBreak-and-LineBreak" title="Permalink"></a></h3><p><code>SoftBreak</code> represents a line break in the source that becomes a space or newline depending on output format. <code>LineBreak</code> is a hard break (<code>&lt;br&gt;</code> in HTML).</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;First line&quot;,
+        CM.Node(CM.SoftBreak),
+        &quot;continues here (soft break becomes space).&quot;
+    ),
+    CM.Node(CM.Paragraph,
+        &quot;Line one&quot;,
+        CM.Node(CM.LineBreak),
+        &quot;Line two (hard break)&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;First line\ncontinues here (soft break becomes space).&lt;/p&gt;\n&lt;p&gt;Line one&lt;br /&gt;\nLine two (hard break)&lt;/p&gt;\n&quot;</code></pre><h3 id="HtmlInline"><a class="docs-heading-anchor" href="#HtmlInline">HtmlInline</a><a id="HtmlInline-1"></a><a class="docs-heading-anchor-permalink" href="#HtmlInline" title="Permalink"></a></h3><p>Raw inline HTML for special formatting not available in markdown. Use paired tags for spans or single tags for elements like <code>&lt;br&gt;</code>.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;Text with &quot;,
+        CM.Node(CM.HtmlInline, &quot;&lt;mark&gt;&quot;),
+        &quot;highlighted&quot;,
+        CM.Node(CM.HtmlInline, &quot;&lt;/mark&gt;&quot;),
+        &quot; content.&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Text with &lt;mark&gt;highlighted&lt;/mark&gt; content.&lt;/p&gt;\n&quot;</code></pre><h2 id="Extension-Types"><a class="docs-heading-anchor" href="#Extension-Types">Extension Types</a><a id="Extension-Types-1"></a><a class="docs-heading-anchor-permalink" href="#Extension-Types" title="Permalink"></a></h2><p>Extension nodes represent syntax beyond standard CommonMark. They can be built programmatically regardless of whether the corresponding parser rule is enabled.</p><h3 id="Math"><a class="docs-heading-anchor" href="#Math">Math</a><a id="Math-1"></a><a class="docs-heading-anchor-permalink" href="#Math" title="Permalink"></a></h3><p>Inline math (<code>Math</code>) and display math blocks (<code>DisplayMath</code>) for LaTeX-style equations. The argument is the LaTeX expression without delimiters.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;Einstein&#39;s famous equation: &quot;,
+        CM.Node(CM.Math, &quot;E = mc^2&quot;),
+        &quot;.&quot;
+    ),
+    CM.Node(CM.DisplayMath, &quot;\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}&quot;)
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Einstein&#39;s famous equation: &lt;span class=\&quot;math tex\&quot;&gt;\\(E = mc^2\\)&lt;/span&gt;.&lt;/p&gt;\n&lt;div class=\&quot;display-math tex\&quot;&gt;\\[\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}\\]&lt;/div&gt;&quot;</code></pre><h3 id="Strikethrough,-Mark,-Subscript,-Superscript"><a class="docs-heading-anchor" href="#Strikethrough,-Mark,-Subscript,-Superscript">Strikethrough, Mark, Subscript, Superscript</a><a id="Strikethrough,-Mark,-Subscript,-Superscript-1"></a><a class="docs-heading-anchor-permalink" href="#Strikethrough,-Mark,-Subscript,-Superscript" title="Permalink"></a></h3><p>Text formatting for deleted text, highlighted text, subscripts, and superscripts. All are containers that hold inline content.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        CM.Node(CM.Strikethrough, &quot;removed&quot;),
+        &quot;, &quot;,
+        CM.Node(CM.Mark, &quot;highlighted&quot;),
+        &quot;, H&quot;,
+        CM.Node(CM.Subscript, &quot;2&quot;),
+        &quot;O, x&quot;,
+        CM.Node(CM.Superscript, &quot;2&quot;)
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;&lt;del&gt;removed&lt;/del&gt;, &lt;mark&gt;highlighted&lt;/mark&gt;, H&lt;sub&gt;2&lt;/sub&gt;O, x&lt;sup&gt;2&lt;/sup&gt;&lt;/p&gt;\n&quot;</code></pre><h3 id="Admonition"><a class="docs-heading-anchor" href="#Admonition">Admonition</a><a id="Admonition-1"></a><a class="docs-heading-anchor-permalink" href="#Admonition" title="Permalink"></a></h3><p>Callout boxes for notes, warnings, tips, and other highlighted content. Takes a category, title, and block children.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Admonition, &quot;warning&quot;, &quot;Important&quot;,
+        CM.Node(CM.Paragraph, &quot;This operation cannot be undone.&quot;)
+    ),
+    CM.Node(CM.Admonition, &quot;tip&quot;, &quot;Pro Tip&quot;,
+        CM.Node(CM.Paragraph, &quot;Use keyboard shortcuts for efficiency.&quot;)
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;div class=\&quot;admonition warning\&quot;&gt;&lt;p class=\&quot;admonition-title\&quot;&gt;Important&lt;/p&gt;\n&lt;p&gt;This operation cannot be undone.&lt;/p&gt;\n&lt;/div&gt;&lt;div class=\&quot;admonition tip\&quot;&gt;&lt;p class=\&quot;admonition-title\&quot;&gt;Pro Tip&lt;/p&gt;\n&lt;p&gt;Use keyboard shortcuts for efficiency.&lt;/p&gt;\n&lt;/div&gt;&quot;</code></pre><h3 id="FencedDiv"><a class="docs-heading-anchor" href="#FencedDiv">FencedDiv</a><a id="FencedDiv-1"></a><a class="docs-heading-anchor-permalink" href="#FencedDiv" title="Permalink"></a></h3><p>Generic container divs with CSS classes and IDs. Useful for custom styling or semantic grouping.</p><table><tr><th style="text-align: right">Keyword</th><th style="text-align: right">Type</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right"><code>class</code></td><td style="text-align: right"><code>String</code> or <code>Vector{String}</code></td><td style="text-align: right">CSS class(es)</td></tr><tr><td style="text-align: right"><code>id</code></td><td style="text-align: right"><code>String</code></td><td style="text-align: right">Element ID</td></tr></table><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.FencedDiv,
+        CM.Node(CM.Paragraph, &quot;Important content here.&quot;);
+        class=[&quot;highlight&quot;, &quot;important&quot;], id=&quot;section-1&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;div class=\&quot;highlight important\&quot; id=\&quot;section-1\&quot;&gt;\n&lt;p&gt;Important content here.&lt;/p&gt;\n&lt;/div&gt;\n&quot;</code></pre><h3 id="Footnotes"><a class="docs-heading-anchor" href="#Footnotes">Footnotes</a><a id="Footnotes-1"></a><a class="docs-heading-anchor-permalink" href="#Footnotes" title="Permalink"></a></h3><p>Footnote definitions and references. When building a <code>Document</code>, footnote links are automatically connected to their definitions.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;This claim needs a citation&quot;,
+        CM.Node(CM.FootnoteLink, &quot;1&quot;),
+        &quot;.&quot;
+    ),
+    CM.Node(CM.FootnoteDefinition, &quot;1&quot;,
+        CM.Node(CM.Paragraph, &quot;Source: Journal of Examples, 2024.&quot;)
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;This claim needs a citation&lt;a href=\&quot;#footnote-1\&quot; class=\&quot;footnote\&quot;&gt;1&lt;/a&gt;.&lt;/p&gt;\n&lt;div class=\&quot;footnote\&quot; id=\&quot;footnote-1\&quot;&gt;&lt;p class=\&quot;footnote-title\&quot;&gt;1&lt;/p&gt;\n&lt;p&gt;Source: Journal of Examples, 2024.&lt;/p&gt;\n&lt;/div&gt;&quot;</code></pre><h3 id="GitHubAlert"><a class="docs-heading-anchor" href="#GitHubAlert">GitHubAlert</a><a id="GitHubAlert-1"></a><a class="docs-heading-anchor-permalink" href="#GitHubAlert" title="Permalink"></a></h3><p>GitHub-flavored alert blocks. Categories: <code>note</code>, <code>tip</code>, <code>important</code>, <code>warning</code>, <code>caution</code>. The title defaults to the capitalized category.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.GitHubAlert, &quot;note&quot;,
+        CM.Node(CM.Paragraph, &quot;This is informational.&quot;)
+    ),
+    CM.Node(CM.GitHubAlert, &quot;warning&quot;,
+        CM.Node(CM.Paragraph, &quot;Proceed with caution!&quot;); title=&quot;Danger Zone&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;div class=\&quot;github-alert note\&quot;&gt;&lt;p class=\&quot;github-alert-title\&quot;&gt;Note&lt;/p&gt;\n&lt;p&gt;This is informational.&lt;/p&gt;\n&lt;/div&gt;\n&lt;div class=\&quot;github-alert warning\&quot;&gt;&lt;p class=\&quot;github-alert-title\&quot;&gt;Danger Zone&lt;/p&gt;\n&lt;p&gt;Proceed with caution!&lt;/p&gt;\n&lt;/div&gt;\n&quot;</code></pre><h3 id="TaskItem"><a class="docs-heading-anchor" href="#TaskItem">TaskItem</a><a id="TaskItem-1"></a><a class="docs-heading-anchor-permalink" href="#TaskItem" title="Permalink"></a></h3><p>Checkbox list items for task lists. Use <code>checked=true</code> for completed items. TaskItems go inside a <code>List</code> just like regular <code>Item</code> nodes.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Heading, 2, &quot;Todo&quot;),
+    CM.Node(CM.List,
+        CM.Node(CM.TaskItem, CM.Node(CM.Paragraph, &quot;Write documentation&quot;)),
+        CM.Node(CM.TaskItem, CM.Node(CM.Paragraph, &quot;Add tests&quot;); checked=true),
+        CM.Node(CM.TaskItem, CM.Node(CM.Paragraph, &quot;Release&quot;))
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h2&gt;Todo&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;input type=\&quot;checkbox\&quot; disabled&gt; Write documentation&lt;/li&gt;\n&lt;li&gt;&lt;input type=\&quot;checkbox\&quot; disabled checked&gt; Add tests&lt;/li&gt;\n&lt;li&gt;&lt;input type=\&quot;checkbox\&quot; disabled&gt; Release&lt;/li&gt;\n&lt;/ul&gt;\n&quot;</code></pre><h3 id="Table"><a class="docs-heading-anchor" href="#Table">Table</a><a id="Table-1"></a><a class="docs-heading-anchor-permalink" href="#Table" title="Permalink"></a></h3><p>Tables with headers and data rows. Build from <code>TableHeader</code>, <code>TableBody</code>, <code>TableRow</code>, and <code>TableCell</code> components.</p><p>The <code>align</code> keyword on <code>Table</code> sets column alignments: <code>:left</code>, <code>:center</code>, or <code>:right</code>.</p><pre><code class="language-julia hljs">header = CM.Node(CM.TableHeader,
+    CM.Node(CM.TableRow,
+        CM.Node(CM.TableCell, &quot;Name&quot;),
+        CM.Node(CM.TableCell, &quot;Value&quot;),
+        CM.Node(CM.TableCell, &quot;Status&quot;)
+    )
+)
+row1 = CM.Node(CM.TableRow,
+    CM.Node(CM.TableCell, &quot;Alpha&quot;),
+    CM.Node(CM.TableCell, &quot;100&quot;),
+    CM.Node(CM.TableCell, CM.Node(CM.Strong, &quot;Active&quot;))
+)
+row2 = CM.Node(CM.TableRow,
+    CM.Node(CM.TableCell, &quot;Beta&quot;),
+    CM.Node(CM.TableCell, &quot;200&quot;),
+    CM.Node(CM.TableCell, &quot;Pending&quot;)
+)
+doc = CM.Node(CM.Document,
+    CM.Node(CM.Table, header, row1, row2; align=[:left, :right, :center])
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;td align=\&quot;left\&quot;&gt;Name&lt;/td&gt;&lt;td align=\&quot;left\&quot;&gt;Value&lt;/td&gt;&lt;td align=\&quot;left\&quot;&gt;Status&lt;/td&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td align=\&quot;left\&quot;&gt;Alpha&lt;/td&gt;&lt;td align=\&quot;left\&quot;&gt;100&lt;/td&gt;&lt;td align=\&quot;left\&quot;&gt;&lt;strong&gt;Active&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\&quot;left\&quot;&gt;Beta&lt;/td&gt;&lt;td align=\&quot;left\&quot;&gt;200&lt;/td&gt;&lt;td align=\&quot;left\&quot;&gt;Pending&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&quot;</code></pre><h3 id="Citation"><a class="docs-heading-anchor" href="#Citation">Citation</a><a id="Citation-1"></a><a class="docs-heading-anchor-permalink" href="#Citation" title="Permalink"></a></h3><p>Academic citation references. Requires bibliography configuration for proper rendering.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;According to &quot;,
+        CM.Node(CM.Citation, &quot;smith2020&quot;),
+        &quot;, this approach is effective.&quot;
+    )
+)
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;According to &lt;span class=\&quot;citation\&quot;&gt;&lt;a href=\&quot;#ref-smith2020\&quot;&gt;@smith2020&lt;/a&gt;&lt;/span&gt;, this approach is effective.&lt;/p&gt;\n&quot;</code></pre><h3 id="Raw-Content"><a class="docs-heading-anchor" href="#Raw-Content">Raw Content</a><a id="Raw-Content-1"></a><a class="docs-heading-anchor-permalink" href="#Raw-Content" title="Permalink"></a></h3><p>Format-specific content that passes through only to matching output formats. Available types: <code>LaTeXInline</code>, <code>LaTeXBlock</code>, <code>TypstInline</code>, <code>TypstBlock</code>.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;This &quot;,
+        CM.Node(CM.LaTeXInline, &quot;\\textbf{bold}&quot;),
+        &quot; only appears in LaTeX output.&quot;
+    )
+)
+CM.latex(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;This \\textbf{bold} only appears in LaTeX output.\\par\n&quot;</code></pre><h3 id="Reference-Links"><a class="docs-heading-anchor" href="#Reference-Links">Reference Links</a><a id="Reference-Links-1"></a><a class="docs-heading-anchor-permalink" href="#Reference-Links" title="Permalink"></a></h3><p>Reference-style links preserve the original syntax for roundtripping. These nodes are produced when parsing with <code>ReferenceLinkRule</code> enabled.</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Paragraph,
+        &quot;See the &quot;,
+        CM.Node(CM.ReferenceLink, &quot;docs&quot;; dest=&quot;https://example.com&quot;, label=&quot;docs&quot;),
+        &quot; or &quot;,
+        CM.Node(CM.ReferenceLink, &quot;click here&quot;; dest=&quot;https://example.com&quot;, label=&quot;docs&quot;, style=:full),
+        &quot;.&quot;
+    ),
+    CM.Node(CM.ReferenceDefinition; label=&quot;docs&quot;, dest=&quot;https://example.com&quot;)
+)
+CM.markdown(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;See the [docs][docs] or [click here][docs].\n\n[docs]: https://example.com\n&quot;</code></pre><table><tr><th style="text-align: right">Type</th><th style="text-align: right">Children</th><th style="text-align: right">Keyword Args</th></tr><tr><td style="text-align: right"><code>ReferenceLink</code></td><td style="text-align: right">link text</td><td style="text-align: right"><code>dest</code>, <code>label</code>, <code>title=&quot;&quot;</code>, <code>style=:full</code></td></tr><tr><td style="text-align: right"><code>ReferenceImage</code></td><td style="text-align: right">alt text</td><td style="text-align: right"><code>dest</code>, <code>label</code>, <code>title=&quot;&quot;</code>, <code>style=:full</code></td></tr><tr><td style="text-align: right"><code>ReferenceDefinition</code></td><td style="text-align: right">—</td><td style="text-align: right"><code>label</code>, <code>dest</code>, <code>title=&quot;&quot;</code></td></tr><tr><td style="text-align: right"><code>UnresolvedReference</code></td><td style="text-align: right">link text</td><td style="text-align: right"><code>label</code>, <code>style=:shortcut</code>, <code>image=false</code></td></tr></table><p>The <code>style</code> can be <code>:full</code>, <code>:collapsed</code>, or <code>:shortcut</code>.</p><h2 id="Tree-Manipulation"><a class="docs-heading-anchor" href="#Tree-Manipulation">Tree Manipulation</a><a id="Tree-Manipulation-1"></a><a class="docs-heading-anchor-permalink" href="#Tree-Manipulation" title="Permalink"></a></h2><p>After constructing nodes, you can modify the tree structure using these functions:</p><table><tr><th style="text-align: right">Function</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right"><code>append_child(parent, child)</code></td><td style="text-align: right">Add child as last child of parent</td></tr><tr><td style="text-align: right"><code>prepend_child(parent, child)</code></td><td style="text-align: right">Add child as first child of parent</td></tr><tr><td style="text-align: right"><code>insert_after(node, sibling)</code></td><td style="text-align: right">Insert sibling immediately after node</td></tr><tr><td style="text-align: right"><code>insert_before(node, sibling)</code></td><td style="text-align: right">Insert sibling immediately before node</td></tr><tr><td style="text-align: right"><code>unlink(node)</code></td><td style="text-align: right">Remove node from its parent</td></tr><tr><td style="text-align: right"><code>isnull(node)</code></td><td style="text-align: right">Check if node is the null node (empty reference)</td></tr><tr><td style="text-align: right"><code>text(string)</code></td><td style="text-align: right">Create a Text node with the given content</td></tr></table><h3 id="Building-Incrementally"><a class="docs-heading-anchor" href="#Building-Incrementally">Building Incrementally</a><a id="Building-Incrementally-1"></a><a class="docs-heading-anchor-permalink" href="#Building-Incrementally" title="Permalink"></a></h3><p>Instead of nesting everything in the constructor, you can build nodes step by step:</p><pre><code class="language-julia hljs"># Create empty containers
+doc = CM.Node(CM.Document)
+para = CM.Node(CM.Paragraph)
+
+# Add content
+CM.append_child(para, CM.text(&quot;Hello &quot;))
+CM.append_child(para, CM.Node(CM.Strong, &quot;world&quot;))
+CM.append_child(para, CM.text(&quot;!&quot;))
+
+# Attach to document
+CM.append_child(doc, para)
+
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;p&gt;Hello &lt;strong&gt;world&lt;/strong&gt;!&lt;/p&gt;\n&quot;</code></pre><h3 id="Modifying-Existing-Trees"><a class="docs-heading-anchor" href="#Modifying-Existing-Trees">Modifying Existing Trees</a><a id="Modifying-Existing-Trees-1"></a><a class="docs-heading-anchor-permalink" href="#Modifying-Existing-Trees" title="Permalink"></a></h3><p>You can also modify trees created by the parser:</p><pre><code class="language-julia hljs"># Parse a document
+parser = CM.Parser()
+doc = parser(&quot;# Original Title\n\nSome content.&quot;)
+
+# Find and modify nodes
+for (node, entering) in doc
+    if entering &amp;&amp; node.t isa CM.Heading
+        # Prepend &quot;Chapter: &quot; to all headings
+        CM.prepend_child(node, CM.text(&quot;Chapter: &quot;))
+    end
+end
+
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h1&gt;Chapter: Original Title&lt;/h1&gt;\n&lt;p&gt;Some content.&lt;/p&gt;\n&quot;</code></pre><h2 id="Complete-Example"><a class="docs-heading-anchor" href="#Complete-Example">Complete Example</a><a id="Complete-Example-1"></a><a class="docs-heading-anchor-permalink" href="#Complete-Example" title="Permalink"></a></h2><p>A realistic document combining multiple element types:</p><pre><code class="language-julia hljs">doc = CM.Node(CM.Document,
+    CM.Node(CM.Heading, 1, &quot;CommonMark.jl User Guide&quot;),
+
+    CM.Node(CM.Paragraph,
+        &quot;CommonMark.jl is a &quot;,
+        CM.Node(CM.Strong, &quot;fast&quot;),
+        &quot; and &quot;,
+        CM.Node(CM.Strong, &quot;spec-compliant&quot;),
+        &quot; markdown parser for Julia.&quot;
+    ),
+
+    CM.Node(CM.Admonition, &quot;tip&quot;, &quot;Quick Start&quot;,
+        CM.Node(CM.Paragraph,
+            &quot;Install with &quot;,
+            CM.Node(CM.Code, &quot;Pkg.add(\&quot;CommonMark\&quot;)&quot;),
+            &quot;.&quot;
+        )
+    ),
+
+    CM.Node(CM.Heading, 2, &quot;Features&quot;),
+
+    CM.Node(CM.List,
+        CM.Node(CM.Item, CM.Node(CM.Paragraph,
+            CM.Node(CM.Link, &quot;Multiple output formats&quot;; dest=&quot;#outputs&quot;),
+            &quot;: HTML, LaTeX, Typst, terminal&quot;
+        )),
+        CM.Node(CM.Item, CM.Node(CM.Paragraph,
+            &quot;Extensible parser with &quot;,
+            CM.Node(CM.Code, &quot;enable!&quot;),
+            &quot; and &quot;,
+            CM.Node(CM.Code, &quot;disable!&quot;)
+        )),
+        CM.Node(CM.Item, CM.Node(CM.Paragraph, &quot;Full CommonMark specification support&quot;))
+    ),
+
+    CM.Node(CM.Heading, 2, &quot;Example&quot;),
+
+    CM.Node(CM.CodeBlock, &quot;&quot;&quot;
+using CommonMark
+
+parser = Parser()
+enable!(parser, TableRule())
+
+ast = parser(&quot;| A | B |\\n|---|---|\\n| 1 | 2 |&quot;)
+html(ast)&quot;&quot;&quot;; info=&quot;julia&quot;),
+
+    CM.Node(CM.Paragraph,
+        &quot;See the &quot;,
+        CM.Node(CM.Link, &quot;API Reference&quot;; dest=&quot;api.html&quot;),
+        &quot; for complete documentation.&quot;
+    )
+)
+
+CM.html(doc)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h1&gt;CommonMark.jl User Guide&lt;/h1&gt;\n&lt;p&gt;CommonMark.jl is a &lt;strong&gt;fast&lt;/strong&gt; and &lt;strong&gt;spec-compliant&lt;/strong&gt; markdown parser for Julia.&lt;/p&gt;\n&lt;div class=\&quot;admonition tip\&quot;&gt;&lt;p class=\&quot;admonition-title\&quot;&gt;Quick Start&lt;/p&gt;\n&lt;p&gt;Install with &lt;code&gt;Pkg.add(&amp;quot;CommonMark&amp;quot;)&lt;/co&quot;<span class="sgr93"><span class="sgr1"> ⋯ 255 bytes ⋯ </span></span>&quot;&gt;\n&lt;h2&gt;Example&lt;/h2&gt;\n&lt;pre&gt;&lt;code class=\&quot;language-julia\&quot;&gt;using CommonMark\n\nparser = Parser()\nenable!(parser, TableRule())\n\nast = parser(&amp;quot;| A | B |\\n|---|---|\\n| 1 | 2 |&amp;quot;)\nhtml(ast)&lt;/code&gt;&lt;/pre&gt;\n&lt;p&gt;See the &lt;a href=\&quot;api.html\&quot;&gt;API Reference&lt;/a&gt; for complete documentation.&lt;/p&gt;\n&quot;</code></pre><h2 id="Converting-from-Julia-Markdown"><a class="docs-heading-anchor" href="#Converting-from-Julia-Markdown">Converting from Julia Markdown</a><a id="Converting-from-Julia-Markdown-1"></a><a class="docs-heading-anchor-permalink" href="#Converting-from-Julia-Markdown" title="Permalink"></a></h2><p>CommonMark.jl can convert Julia&#39;s stdlib <code>Markdown.MD</code> AST to CommonMark&#39;s <code>Node</code> AST. This enables migration of existing documentation or integration with tools that produce stdlib Markdown.</p><pre><code class="language-julia hljs">using Markdown  # Load first to trigger extension
+using CommonMark
+import CommonMark: Node
+
+# Parse with Julia&#39;s stdlib
+md = Markdown.parse(&quot;# Hello World\n\nThis is **bold** and *italic* text.&quot;)
+
+# Convert to CommonMark AST
+ast = Node(md)
+
+# Render to any format
+CommonMark.html(ast)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h1&gt;Hello World&lt;/h1&gt;\n&lt;p&gt;This is &lt;strong&gt;bold&lt;/strong&gt; and &lt;em&gt;italic&lt;/em&gt; text.&lt;/p&gt;\n&quot;</code></pre><p>The conversion handles all stdlib element types:</p><table><tr><th style="text-align: right">Stdlib Type</th><th style="text-align: right">CommonMark Type</th></tr><tr><td style="text-align: right"><code>MD</code></td><td style="text-align: right"><code>Document</code></td></tr><tr><td style="text-align: right"><code>Paragraph</code></td><td style="text-align: right"><code>Paragraph</code></td></tr><tr><td style="text-align: right"><code>Header{N}</code></td><td style="text-align: right"><code>Heading</code> (level N)</td></tr><tr><td style="text-align: right"><code>Bold</code></td><td style="text-align: right"><code>Strong</code></td></tr><tr><td style="text-align: right"><code>Italic</code></td><td style="text-align: right"><code>Emph</code></td></tr><tr><td style="text-align: right"><code>Code</code> (inline)</td><td style="text-align: right"><code>Code</code></td></tr><tr><td style="text-align: right"><code>Code</code> (block)</td><td style="text-align: right"><code>CodeBlock</code></td></tr><tr><td style="text-align: right"><code>BlockQuote</code></td><td style="text-align: right"><code>BlockQuote</code></td></tr><tr><td style="text-align: right"><code>List</code></td><td style="text-align: right"><code>List</code> + <code>Item</code></td></tr><tr><td style="text-align: right"><code>HorizontalRule</code></td><td style="text-align: right"><code>ThematicBreak</code></td></tr><tr><td style="text-align: right"><code>Link</code></td><td style="text-align: right"><code>Link</code></td></tr><tr><td style="text-align: right"><code>Image</code></td><td style="text-align: right"><code>Image</code></td></tr><tr><td style="text-align: right"><code>LineBreak</code></td><td style="text-align: right"><code>LineBreak</code></td></tr><tr><td style="text-align: right"><code>Table</code></td><td style="text-align: right"><code>Table</code> hierarchy</td></tr><tr><td style="text-align: right"><code>Admonition</code></td><td style="text-align: right"><code>Admonition</code></td></tr><tr><td style="text-align: right"><code>Footnote</code></td><td style="text-align: right"><code>FootnoteDefinition</code> / <code>FootnoteLink</code></td></tr><tr><td style="text-align: right"><code>LaTeX</code></td><td style="text-align: right"><code>Math</code></td></tr></table><p>Metadata from the stdlib <code>MD</code> object is preserved:</p><pre><code class="language-julia hljs">md = Markdown.MD([Markdown.Paragraph([&quot;Content&quot;])])
+md.meta[:title] = &quot;My Document&quot;
+md.meta[:author] = &quot;Author Name&quot;
+
+ast = Node(md)
+ast.meta[&quot;title&quot;], ast.meta[&quot;author&quot;]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(&quot;My Document&quot;, &quot;Author Name&quot;)</code></pre><p>The converted AST works with all CommonMark.jl output formats:</p><pre><code class="language-julia hljs">md = Markdown.parse(&quot;Visit [Julia](https://julialang.org).&quot;)
+ast = Node(md)
+
+println(&quot;HTML:     &quot;, CommonMark.html(ast))
+println(&quot;LaTeX:    &quot;, CommonMark.latex(ast))
+println(&quot;Markdown: &quot;, CommonMark.markdown(ast))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">HTML:     &lt;p&gt;Visit &lt;a href=&quot;https://julialang.org&quot;&gt;Julia&lt;/a&gt;.&lt;/p&gt;
+
+LaTeX:    Visit \href{https://julialang.org}{Julia}.\par
+
+Markdown: Visit [Julia](https://julialang.org).</code></pre><h2 id="Pandoc-JSON-Round-Trip"><a class="docs-heading-anchor" href="#Pandoc-JSON-Round-Trip">Pandoc JSON Round-Trip</a><a id="Pandoc-JSON-Round-Trip-1"></a><a class="docs-heading-anchor-permalink" href="#Pandoc-JSON-Round-Trip" title="Permalink"></a></h2><p>CommonMark.jl can convert ASTs to and from Pandoc&#39;s JSON format, enabling interoperability with Pandoc&#39;s ecosystem and lossless round-tripping.</p><h3 id="Export-to-Dict"><a class="docs-heading-anchor" href="#Export-to-Dict">Export to Dict</a><a id="Export-to-Dict-1"></a><a class="docs-heading-anchor-permalink" href="#Export-to-Dict" title="Permalink"></a></h3><p>Use <code>json(Dict, ast)</code> to get the Pandoc AST as a dictionary without JSON string serialization:</p><pre><code class="language-julia hljs">import CommonMark as CM
+
+parser = CM.Parser()
+ast = parser(&quot;# Hello\n\nWorld with **bold**.&quot;)
+
+d = CM.json(Dict, ast)
+keys(d)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">KeySet for a Dict{String, Any} with 3 entries. Keys:
+  &quot;pandoc-api-version&quot;
+  &quot;meta&quot;
+  &quot;blocks&quot;</code></pre><p>The dictionary contains Pandoc&#39;s standard keys:</p><pre><code class="language-julia hljs">d[&quot;pandoc-api-version&quot;]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{Int64}:
+  1
+ 23
+  1</code></pre><h3 id="Import-from-Dict"><a class="docs-heading-anchor" href="#Import-from-Dict">Import from Dict</a><a id="Import-from-Dict-1"></a><a class="docs-heading-anchor-permalink" href="#Import-from-Dict" title="Permalink"></a></h3><p>Convert a Pandoc AST dictionary back to a CommonMark <code>Node</code>:</p><pre><code class="language-julia hljs">ast2 = CM.Node(d)
+CM.html(ast2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;&lt;h1&gt;Hello&lt;/h1&gt;\n&lt;p&gt;World with &lt;strong&gt;bold&lt;/strong&gt;.&lt;/p&gt;\n&quot;</code></pre><h3 id="Round-Trip-Example"><a class="docs-heading-anchor" href="#Round-Trip-Example">Round-Trip Example</a><a id="Round-Trip-Example-1"></a><a class="docs-heading-anchor-permalink" href="#Round-Trip-Example" title="Permalink"></a></h3><p>This enables lossless round-tripping through the Pandoc format:</p><pre><code class="language-julia hljs">original = parser(&quot;A [link](url.md) and `code`.&quot;)
+roundtrip = CM.Node(CM.json(Dict, original))
+
+CM.markdown(original) == CM.markdown(roundtrip)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h3 id="Deterministic-Output"><a class="docs-heading-anchor" href="#Deterministic-Output">Deterministic Output</a><a id="Deterministic-Output-1"></a><a class="docs-heading-anchor-permalink" href="#Deterministic-Output" title="Permalink"></a></h3><p>For deterministic key ordering (useful for diffs and tests), pass an ordered dict type:</p><pre><code class="language-julia hljs">using OrderedCollections
+d = json(OrderedDict, ast)  # Keys in consistent order</code></pre><h3 id="Use-Cases"><a class="docs-heading-anchor" href="#Use-Cases">Use Cases</a><a id="Use-Cases-1"></a><a class="docs-heading-anchor-permalink" href="#Use-Cases" title="Permalink"></a></h3><ul><li><strong>Pandoc integration</strong>: Modify AST between CommonMark parsing and Pandoc output</li><li><strong>Serialization</strong>: Store ASTs in databases or send over networks</li><li><strong>Testing</strong>: Compare AST structures programmatically</li><li><strong>Migration</strong>: Convert from other tools that export Pandoc JSON</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../extensions/">« Extensions</a><a class="docs-footer-nextpage" href="../transforms/">Transforms »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Tuesday 27 January 2026 13:32">Tuesday 27 January 2026</span>. Using Julia version 1.12.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
