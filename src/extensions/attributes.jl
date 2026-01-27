@@ -3,13 +3,15 @@
 
 Parse attribute syntax to attach metadata to elements.
 
-Not enabled by default. Uses `{#id .class key=value}` syntax after elements.
+Block attributes go above the target element. Inline attributes go after.
+Uses `{#id .class key=value}` syntax.
 
 ```markdown
-# Heading {#custom-id .highlight}
+{#custom-id .highlight}
+# Heading
 
-Paragraph with attributes.
 {.note}
+Paragraph with attributes.
 
 [Link](url){target=_blank}
 ```
