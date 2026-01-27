@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.10.2] - 2026-01-27
+
 ### Fixed
 
 - Fix extension loading when CommonMark is not on LOAD_PATH [#135]
@@ -374,6 +376,7 @@ Initial release.
 [v0.9.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.9.0
 [v0.10.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.0
 [v0.10.1]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.1
+[v0.10.2]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.2
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
@@ -425,3 +428,4 @@ Initial release.
 [#131]: https://github.com/MichaelHatherly/CommonMark.jl/issues/131
 [#132]: https://github.com/MichaelHatherly/CommonMark.jl/issues/132
 [#133]: https://github.com/MichaelHatherly/CommonMark.jl/issues/133
+[#135]: https://github.com/MichaelHatherly/CommonMark.jl/issues/135
