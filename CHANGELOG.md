@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix ExtensionLoader breaking precompilation by evaling into closed module during `__init__` [#132]
+
 ## [v0.10.0] - 2026-01-08
 
 ### Added
@@ -404,3 +408,4 @@ Initial release.
 [#126]: https://github.com/MichaelHatherly/CommonMark.jl/issues/126
 [#128]: https://github.com/MichaelHatherly/CommonMark.jl/issues/128
 [#129]: https://github.com/MichaelHatherly/CommonMark.jl/issues/129
+[#132]: https://github.com/MichaelHatherly/CommonMark.jl/issues/132
