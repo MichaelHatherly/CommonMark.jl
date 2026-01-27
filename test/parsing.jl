@@ -102,4 +102,35 @@
         @test !CommonMark.ruleoccursin(FootnoteRule(), p.rules)
         @test are_rules_unique(p)
     end
+    # Parser constructor with enable/disable keywords
+    let p = Parser(enable = [TableRule()])
+        @test CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test CommonMark.ruleoccursin(LinkRule(), p.rules)
+        @test are_rules_unique(p)
+    end
+    let p = Parser(enable = [TableRule(), FootnoteRule()])
+        @test CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test CommonMark.ruleoccursin(FootnoteRule(), p.rules)
+        @test are_rules_unique(p)
+    end
+    let p = Parser(disable = [LinkRule()])
+        @test !CommonMark.ruleoccursin(LinkRule(), p.rules)
+        @test CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test are_rules_unique(p)
+    end
+    let p = Parser(disable = [LinkRule(), ImageRule()])
+        @test !CommonMark.ruleoccursin(LinkRule(), p.rules)
+        @test !CommonMark.ruleoccursin(ImageRule(), p.rules)
+        @test are_rules_unique(p)
+    end
+    let p = Parser(enable = [TableRule()], disable = [LinkRule()])
+        @test CommonMark.ruleoccursin(TableRule(), p.rules)
+        @test !CommonMark.ruleoccursin(LinkRule(), p.rules)
+        @test are_rules_unique(p)
+    end
+    # Functional test: disabled rule doesn't parse
+    let p = Parser(disable = [AtxHeadingRule()])
+        ast = p("# not a header")
+        @test ast.first_child.t isa CommonMark.Paragraph
+    end
 end

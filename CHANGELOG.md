@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `Parser(enable=[], disable=[])` keyword arguments for rule configuration at construction [#133]
+
 ### Fixed
 
 - Fix ExtensionLoader breaking precompilation by evaling into closed module during `__init__` [#132]
@@ -409,3 +413,4 @@ Initial release.
 [#128]: https://github.com/MichaelHatherly/CommonMark.jl/issues/128
 [#129]: https://github.com/MichaelHatherly/CommonMark.jl/issues/129
 [#132]: https://github.com/MichaelHatherly/CommonMark.jl/issues/132
+[#133]: https://github.com/MichaelHatherly/CommonMark.jl/issues/133
