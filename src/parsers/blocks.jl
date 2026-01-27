@@ -22,9 +22,14 @@ const reSetextHeadingLine = r"^(?:=+|-+)[ \t]*$"
 const reLineEnding = r"\r\n|\n|\r"
 
 """
-    Parser()
+    Parser(; enable=[], disable=[])
 
 Create a CommonMark parser with default block and inline rules enabled.
+
+# Keywords
+
+- `enable::Vector`: Rules to enable after defaults (extensions like `TableRule()`)
+- `disable::Vector`: Rules to disable from defaults (runs before `enable`)
 
 The parser can be called directly on a string to produce an AST, which can then
 be rendered to various output formats using [`html`](@ref), [`latex`](@ref),
@@ -38,12 +43,19 @@ ast = p("# Hello\\n\\nWorld")
 html(ast)  # "<h1>Hello</h1>\\n<p>World</p>\\n"
 ```
 
-Use [`enable!`](@ref) and [`disable!`](@ref) to customize which rules are active.
+Enable extensions at construction:
 
 ```julia
-p = Parser()
-enable!(p, TableRule())
+p = Parser(enable=[TableRule(), MathRule()])
 ```
+
+Disable default rules:
+
+```julia
+p = Parser(disable=[SetextHeadingRule()])
+```
+
+Equivalent to chaining [`enable!`](@ref) and [`disable!`](@ref) calls.
 """
 mutable struct Parser <: AbstractParser
     doc::Node
@@ -70,7 +82,7 @@ mutable struct Parser <: AbstractParser
     modifiers::Vector{Function}
     priorities::IdDict{Function,Float64}
 
-    function Parser()
+    function Parser(; enable::Vector = [], disable::Vector = [])
         parser = new()
         parser.doc = Node(Document(), ((1, 1), (0, 0)))
         parser.block_starts = Dict()
@@ -99,6 +111,10 @@ mutable struct Parser <: AbstractParser
         # Enable the standard CommonMark rule set.
         enable!(parser, COMMONMARK_BLOCK_RULES)
         enable!(parser, COMMONMARK_INLINE_RULES)
+
+        # Apply user customizations.
+        isempty(disable) || disable!(parser, disable)
+        isempty(enable) || enable!(parser, enable)
 
         return parser
     end
