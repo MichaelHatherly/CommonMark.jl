@@ -460,3 +460,28 @@ The suffix `none` invokes a basic parser with no extensions:
 ast = cm"No **extensions** here."none
 html(ast)
 ```
+
+## Docstring Parser
+
+!!! warning "Experimental"
+    This feature is experimental and subject to change without notice.
+
+Render module docstrings with CommonMark formatting instead of Julia's
+default markdown parser.
+
+```julia
+module MyPackage
+
+# ... docstrings ...
+
+using CommonMark
+CommonMark.@docstring_parser
+end
+```
+
+Call at module top-level after all docstrings are defined. Pass a custom
+parser to enable extensions:
+
+```julia
+CommonMark.@docstring_parser Parser(enable=[AdmonitionRule(), TableRule(), MathRule()])
+```

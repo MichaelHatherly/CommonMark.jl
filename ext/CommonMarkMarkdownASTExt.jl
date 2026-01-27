@@ -27,14 +27,45 @@ function MarkdownAST.Node(cm::CommonMark.Node)
     _to_mast(cm)
 end
 
+function MarkdownAST.Node(doc::CommonMark.LazyCommonMarkDoc)
+    cm = CommonMark._parse_doc(doc)
+    MarkdownAST.Node(cm)
+end
+
+# Interface implementation for cross-extension conversion
+CommonMark.to_mast(doc::CommonMark.LazyCommonMarkDoc) = MarkdownAST.Node(doc)
+
+Base.convert(::Type{MarkdownAST.Node}, doc::CommonMark.LazyCommonMarkDoc) =
+    MarkdownAST.Node(doc)
+
 function _to_mast(cm::CommonMark.Node)
     element = _cm_to_element(cm.t, cm)
-    isnothing(element) && return nothing
+    if isnothing(element)
+        # Container being dropped - return children as vector
+        nodes = MarkdownAST.Node[]
+        child = cm.first_child
+        while !CommonMark.isnull(child)
+            result = _to_mast(child)
+            if result isa Vector
+                append!(nodes, result)
+            elseif !isnothing(result)
+                push!(nodes, result)
+            end
+            child = child.nxt
+        end
+        return nodes
+    end
     node = MarkdownAST.Node(element)
     child = cm.first_child
     while !CommonMark.isnull(child)
-        child_node = _to_mast(child)
-        !isnothing(child_node) && push!(node.children, child_node)
+        child_result = _to_mast(child)
+        if child_result isa Vector
+            for n in child_result
+                push!(node.children, n)
+            end
+        elseif !isnothing(child_result)
+            push!(node.children, child_result)
+        end
         child = child.nxt
     end
     return node
@@ -141,6 +172,9 @@ function _cm_to_element(je::CommonMark.JuliaExpression, cm)
     # JuliaExpression becomes JuliaValue with just the expression
     MarkdownAST.JuliaValue(je.ex, nothing)
 end
+
+# DocStringSection is a wrapper used by docstring parsing - drop it, keep children
+_cm_to_element(::CommonMark.DocStringSection, cm) = nothing
 
 # Fallback: warn and skip
 function _cm_to_element(t::CommonMark.AbstractContainer, cm)
