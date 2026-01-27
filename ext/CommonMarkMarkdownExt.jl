@@ -280,4 +280,10 @@ function from_stdlib_inline(elem)
     return nothing
 end
 
+# Convert LazyCommonMarkDoc to Markdown.MD via MarkdownAST intermediate
+function Base.convert(::Type{Markdown.MD}, doc::CommonMark.LazyCommonMarkDoc)
+    mast = CommonMark.to_mast(doc)  # Calls MarkdownAST ext
+    convert(Markdown.MD, mast)
+end
+
 end # module

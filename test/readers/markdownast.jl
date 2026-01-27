@@ -218,6 +218,47 @@
             mast = @test_logs (:warn, r"Unsupported CommonMark type") MarkdownAST.Node(cm)
             @test mast.element isa MarkdownAST.Document
         end
+
+        @testset "DocStringSection dropped, children promoted" begin
+            # Build a tree with DocStringSection wrapper
+            doc = CommonMark.Node(CommonMark.Document())
+            section = CommonMark.Node(CommonMark.DocStringSection())
+            para = CommonMark.Node(CommonMark.Paragraph())
+            txt = CommonMark.Node(CommonMark.Text())
+            txt.literal = "Test content"
+
+            CommonMark.append_child(para, txt)
+            CommonMark.append_child(section, para)
+            CommonMark.append_child(doc, section)
+
+            mast = MarkdownAST.Node(doc)
+            @test mast.element isa MarkdownAST.Document
+            # DocStringSection should be dropped, Paragraph promoted
+            @test length(collect(mast.children)) == 1
+            @test first(mast.children).element isa MarkdownAST.Paragraph
+        end
+
+        @testset "LazyCommonMarkDoc conversion" begin
+            # Create a module with docstrings
+            mod = Module()
+            Core.eval(mod, :(using CommonMark))
+            Core.eval(mod, :(@doc "Test **bold** docstring" function foo() end))
+            Core.eval(mod, :(CommonMark.@docstring_parser))
+
+            # Get the docstring
+            binding = Base.Docs.Binding(mod, :foo)
+            docs = Base.Docs.meta(mod)
+            docstr = first(values(docs[binding].docs))
+            lazy = Base.Docs.parsedoc(docstr)
+
+            @test lazy isa CommonMark.LazyCommonMarkDoc
+            mast = MarkdownAST.Node(lazy)
+            @test mast.element isa MarkdownAST.Document
+            # Should have paragraph(s) - DocStringSection wrapper dropped
+            children = collect(mast.children)
+            @test length(children) >= 1
+            @test first(children).element isa MarkdownAST.Paragraph
+        end
     end
 
     @testset "MarkdownAST -> CommonMark" begin

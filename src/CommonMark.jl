@@ -76,4 +76,6 @@ export AdmonitionRule,
     )
 end
 
+@docstring_parser Parser(enable = [AdmonitionRule(), TableRule()])
+
 end # module
