@@ -29,7 +29,7 @@ unescape_string(s) =
     occursin(reBackslashOrAmp, s) ? replace(s, reEntityOrEscapedChar => unescape_char) : s
 
 @inline issafe(c::Char) =
-    c in "?:/,-+@._()#=*&%" || (isascii(c) && (isletter(c) || isnumeric(c)))
+    c in "?:/,-+@._()#=*&%~!';\$" || (isascii(c) && (isletter(c) || isnumeric(c)))
 normalize_uri(s::AbstractString) = _escapeuri(s, issafe)
 
 # Copied over from URIs.jl.
