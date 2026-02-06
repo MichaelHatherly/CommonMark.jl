@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.10.3] - 2026-02-06
+
 ### Fixed
 
 - Align `normalize_uri` safe character set with cmark and commonmark.js (`~`, `!`, `'`, `;`, `$`) [#136]
@@ -381,6 +383,7 @@ Initial release.
 [v0.10.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.0
 [v0.10.1]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.1
 [v0.10.2]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.2
+[v0.10.3]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.3
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
