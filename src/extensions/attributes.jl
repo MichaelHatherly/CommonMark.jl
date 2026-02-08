@@ -142,6 +142,8 @@ function try_parse_attributes(parser::AbstractParser)
                 end
                 key = ""
             end
+        else
+            break
         end
     end
     if valid
