@@ -1,0 +1,13 @@
+<table><thead><tr><th align="left">
+<p>Left</p>
+</th><th align="center">
+<p>Center</p>
+</th><th align="right">
+<p>Right</p>
+</th></tr></thead><tbody><tr><td align="left">
+<p>l</p>
+</td><td align="center">
+<p>c</p>
+</td><td align="right">
+<p>r</p>
+</td></tr></tbody></table>

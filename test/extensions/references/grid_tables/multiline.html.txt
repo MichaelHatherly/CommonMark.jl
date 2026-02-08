@@ -1,0 +1,11 @@
+<table><thead><tr><th align="left">
+<p>Line one
+Line two</p>
+</th><th align="left">
+<p>Single</p>
+</th></tr></thead><tbody><tr><td align="left">
+<p>Body</p>
+</td><td align="left">
+<p>Multi<br />
+line too</p>
+</td></tr></tbody></table>

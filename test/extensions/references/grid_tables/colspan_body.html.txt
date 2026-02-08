@@ -1,0 +1,13 @@
+<table><tbody><tr><td align="left">
+<p>A</p>
+</td><td align="left">
+<p>B</p>
+</td><td align="left">
+<p>C</p>
+</td></tr><tr><td align="left">
+<p>wide</p>
+</td><td align="left">
+<p>pan</p>
+</td><td align="left">
+<p>solo</p>
+</td></tr></tbody></table>
