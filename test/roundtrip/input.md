@@ -175,6 +175,9 @@ Escaped characters: \* \_ \` \[ \] \( \) \# \+ \- \. \! \{ \} \| \\
 Backslash line break:\
 This is after a hard break.
 
+Two-space line break:  
+This is after a two-space hard break.
+
 ## Math
 
 Block math:
@@ -279,6 +282,14 @@ Display math with double dollars:
 $$
 \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
 $$
+
+Inline display math: text $$E = mc^2$$ in a sentence.
+
+Multiline inline display:
+$$
+\alpha + \beta
+$$
+more text.
 
 ## Autolinks
 

@@ -47,9 +47,11 @@
     # Output is stable (already canonical)
     @test markdown(p(actual_output)) == actual_output
 
-    # No trailing whitespace
-    @test !occursin(r" +\n", actual_output)
-
-    # No trailing whitespace at end of file (except single newline)
-    @test !occursin(r" +$", actual_output)
+    # No trailing whitespace except hard breaks (exactly two spaces)
+    for (i, line) in enumerate(split(actual_output, '\n'))
+        trailing = length(line) - length(rstrip(line))
+        if trailing > 0
+            @test trailing == 2 # only two-space hard breaks allowed
+        end
+    end
 end

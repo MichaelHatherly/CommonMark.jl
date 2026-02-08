@@ -19,7 +19,7 @@ end
 Render a CommonMark AST back to Markdown text.
 
 Useful for normalizing Markdown formatting or for roundtrip testing.
-Output uses opinionated formatting with no trailing whitespace.
+Output uses opinionated formatting. Hard breaks use two trailing spaces.
 
 # Examples
 
@@ -88,7 +88,16 @@ write_markdown(::Text, w, node, ent) = literal(w, node.literal)
 
 write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
 
-function write_markdown(::Union{SoftBreak,LineBreak}, w, node, ent)
+function write_markdown(::SoftBreak, w, node, ent)
+    cr(w)
+    print_margin(w)
+end
+
+function write_markdown(::LineBreak, w, node, ent)
+    # Backslash hard breaks already have the `\` from the Backslash node
+    if isnull(node.prv) || !(node.prv.t isa Backslash)
+        literal(w, "  ")
+    end
     cr(w)
     print_margin(w)
 end
