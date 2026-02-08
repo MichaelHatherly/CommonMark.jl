@@ -15,6 +15,15 @@ just test-all                                # Via justfile
 just test-item <name>                        # Run specific test item
 ```
 
+To run tests with TestItemRunner (filtered by tag, name, etc.):
+```bash
+julia --project <<'EOF'
+using TestEnv; TestEnv.activate(); cd("test")
+using TestItemRunner
+@run_package_tests(filter=ti->:math in ti.tags)
+EOF
+```
+
 ### Code Formatting
 ```bash
 just format
