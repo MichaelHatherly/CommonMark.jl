@@ -1,1 +1,1 @@
-Some ``math``.
+Some $math$.

@@ -3,7 +3,11 @@
 #
 
 """Inline math expression. Build with `Node(Math, "expression")`."""
-struct Math <: AbstractInline end
+struct Math <: AbstractInline
+    dollar::Bool
+    display::Bool
+    Math(dollar::Bool = false, display::Bool = false) = new(dollar, display)
+end
 
 function Node(::Type{Math}, s::AbstractString)
     node = Node(Math())
@@ -41,7 +45,10 @@ end
 #
 
 """Display math block. Build with `Node(DisplayMath, "expression")`."""
-struct DisplayMath <: AbstractBlock end
+struct DisplayMath <: AbstractBlock
+    dollar::Bool
+    DisplayMath(dollar::Bool = false) = new(dollar)
+end
 
 function Node(::Type{DisplayMath}, s::AbstractString)
     node = Node(DisplayMath())
@@ -112,7 +119,7 @@ function parse_block_dollar_math(p::Parser, node::Node)
         right === nothing && return nothing
         if length(left[1]) == length(right[1]) == 2
             node.literal = strip(c -> isspace(c) || c === '$', node.literal)
-            node.t = DisplayMath()
+            node.t = DisplayMath(true)
         end
     end
     return nothing
@@ -125,9 +132,10 @@ const reDollars = r"\$+"
 
 function parse_inline_dollar_math(p::InlineParser, node::Node)
     dollars = match(reDollarsHere, p)
-    if dollars === nothing || length(dollars.match) > 1
+    if dollars === nothing || length(dollars.match) > 2
         return false
     end
+    display = length(dollars.match) == 2
     consume(p, dollars)
     after_opener, count = position(p), length(dollars.match)
     while true
@@ -136,8 +144,8 @@ function parse_inline_dollar_math(p::InlineParser, node::Node)
         if length(matched.match) === count
             before_closer = position(p) - count - 1
             raw = String(bytes(p, after_opener, before_closer))
-            child = Node(Math())
-            child.literal = strip(replace(raw, r"\s+" => ' '))
+            child = Node(Math(true, display))
+            child.literal = display ? strip(raw, '\n') : strip(replace(raw, r"\s+" => ' '))
             append_child(node, child)
             return true
         end
@@ -154,18 +162,25 @@ inline_rule(::DollarMathRule) = Rule(parse_inline_dollar_math, 0, "\$")
 # Writers
 #
 
-function write_html(::Math, rend, node, enter)
-    tag(rend, "span", attributes(rend, node, ["class" => "math tex"]))
-    print(rend.buffer, "\\(", node.literal, "\\)")
+function write_html(m::Math, rend, node, enter)
+    cls = m.display ? "math display" : "math tex"
+    delims = m.display ? ("\\[", "\\]") : ("\\(", "\\)")
+    tag(rend, "span", attributes(rend, node, ["class" => cls]))
+    print(rend.buffer, delims[1], node.literal, delims[2])
     tag(rend, "/span")
 end
 
-function write_latex(::Math, rend, node, enter)
-    print(rend.buffer, "\\(", node.literal, "\\)")
+function write_latex(m::Math, rend, node, enter)
+    delims = m.display ? ("\\[", "\\]") : ("\\(", "\\)")
+    print(rend.buffer, delims[1], node.literal, delims[2])
 end
 
-function write_typst(::Math, rend, node, enter)
-    print(rend.buffer, "\$", strip(node.literal), "\$")
+function write_typst(m::Math, rend, node, enter)
+    if m.display
+        print(rend.buffer, "\$ ", strip(node.literal), " \$")
+    else
+        print(rend.buffer, "\$", strip(node.literal), "\$")
+    end
 end
 
 function write_term(::Math, rend, node, enter)
@@ -175,13 +190,18 @@ function write_term(::Math, rend, node, enter)
     pop_inline!(rend)
 end
 
-function write_markdown(::Math, w, node, ent)
-    num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
-        max(a, length(b.match))
+function write_markdown(m::Math, w, node, ent)
+    if m.dollar
+        delim = m.display ? "\$\$" : "\$"
+        literal(w, delim, node.literal, delim)
+    else
+        num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
+            max(a, length(b.match))
+        end
+        literal(w, "`"^(num == 2 ? 4 : 2))
+        literal(w, node.literal)
+        literal(w, "`"^(num == 2 ? 4 : 2))
     end
-    literal(w, "`"^(num == 2 ? 4 : 2))
-    literal(w, node.literal)
-    literal(w, "`"^(num == 2 ? 4 : 2))
 end
 
 function write_html(::DisplayMath, rend, node, enter)
@@ -216,22 +236,36 @@ function write_term(::DisplayMath, rend, node, enter)
     end
 end
 
-function write_markdown(::DisplayMath, w, node, ent)
-    print_margin(w)
-    literal(w, "```math\n")
-    for line in eachline(IOBuffer(node.literal))
+function write_markdown(m::DisplayMath, w, node, ent)
+    if m.dollar
         print_margin(w)
-        literal(w, line, "\n")
+        literal(w, "\$\$\n")
+        for line in eachline(IOBuffer(node.literal))
+            print_margin(w)
+            literal(w, line, "\n")
+        end
+        print_margin(w)
+        literal(w, "\$\$")
+        cr(w)
+        linebreak(w, node)
+    else
+        print_margin(w)
+        literal(w, "```math\n")
+        for line in eachline(IOBuffer(node.literal))
+            print_margin(w)
+            literal(w, line, "\n")
+        end
+        print_margin(w)
+        literal(w, "```")
+        cr(w)
+        linebreak(w, node)
     end
-    print_margin(w)
-    literal(w, "```")
-    cr(w)
-    linebreak(w, node)
 end
 
-function write_json(::Math, ctx, node, enter)
+function write_json(m::Math, ctx, node, enter)
     enter || return
-    push_element!(ctx, json_el(ctx, "Math", Any[json_el(ctx, "InlineMath"), node.literal]))
+    kind = m.display ? "DisplayMath" : "InlineMath"
+    push_element!(ctx, json_el(ctx, "Math", Any[json_el(ctx, kind), node.literal]))
 end
 
 function write_json(::DisplayMath, ctx, node, enter)

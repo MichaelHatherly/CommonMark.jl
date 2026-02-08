@@ -72,4 +72,14 @@
     text = raw"$$display math$$"
     ast = p(text)
     test_math("display_dollar_math", ast, "math")
+
+    # Inline display dollar math ($$...$$ embedded in paragraph)
+    text = raw"Text $$x^2$$ more text."
+    ast = p(text)
+    test_math("inline_display_dollar_math", ast, "math")
+
+    # Multiline inline display dollar math
+    text = "Text\n\$\$\nx^2\n\$\$\nmore text."
+    ast = p(text)
+    test_math("multiline_inline_display_dollar_math", ast, "math")
 end
