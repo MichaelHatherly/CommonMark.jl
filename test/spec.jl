@@ -9,7 +9,8 @@
 
         _bar_
 
-        </textarea>""",
+        </textarea>
+        """,
         "<textarea>\n\n*foo*\n\n_bar_\n\n</textarea>\n",
     )]
     p = Parser()
