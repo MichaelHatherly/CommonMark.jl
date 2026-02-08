@@ -110,7 +110,18 @@ function write_markdown(::Code, w, node, ent)
     literal(w, "`"^backticks)
 end
 
-write_markdown(::HtmlInline, w, node, ent) = literal(w, node.literal)
+function write_markdown(t::HtmlInline, w, node, ent)
+    if t.raw
+        num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
+            max(a, length(b.match))
+        end
+        literal(w, '`'^(num == 1 ? 2 : 1))
+        literal(w, node.literal)
+        literal(w, '`'^(num == 1 ? 2 : 1), "{=html}")
+    else
+        literal(w, node.literal)
+    end
+end
 
 function write_markdown(link::Link, w, node, ent)
     if ent
@@ -234,12 +245,21 @@ function write_markdown(code::CodeBlock, w, node, ent)
     linebreak(w, node)
 end
 
-function write_markdown(::HtmlBlock, w, node, ent)
-    for line in eachline(IOBuffer(node.literal); keep = true)
+function write_markdown(t::HtmlBlock, w, node, ent)
+    if t.raw
         print_margin(w)
-        literal(w, line)
-    end
-    if !isnull(node.nxt)
+        literal(w, "```{=html}\n")
+        for line in eachline(IOBuffer(node.literal))
+            print_margin(w)
+            literal(w, line, "\n")
+        end
+        print_margin(w)
+        literal(w, "```\n")
+    else
+        for line in eachline(IOBuffer(node.literal); keep = true)
+            print_margin(w)
+            literal(w, line)
+        end
         cr(w)
     end
     linebreak(w, node)

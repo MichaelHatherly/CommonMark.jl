@@ -1,5 +1,8 @@
 """Raw inline HTML. Build with `Node(HtmlInline, "<tag>")`."""
-struct HtmlInline <: AbstractInline end
+struct HtmlInline <: AbstractInline
+    raw::Bool
+    HtmlInline(; raw = false) = new(raw)
+end
 
 function Node(::Type{HtmlInline}, html::AbstractString)
     node = Node(HtmlInline())

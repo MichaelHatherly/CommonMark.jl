@@ -35,10 +35,10 @@ function Node(::Type{TypstBlock}, s::AbstractString)
 end
 
 const RAW_CONTENT_DEFAULTS = Dict(
-    "html_inline" => HtmlInline,
+    "html_inline" => () -> HtmlInline(raw = true),
     "latex_inline" => LaTeXInline,
     "typst_inline" => TypstInline,
-    "html_block" => HtmlBlock,
+    "html_block" => () -> HtmlBlock(raw = true),
     "latex_block" => LaTeXBlock,
     "typst_block" => TypstBlock,
 )
