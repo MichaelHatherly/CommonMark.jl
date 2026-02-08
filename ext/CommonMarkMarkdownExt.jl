@@ -165,7 +165,7 @@ function table_row_from_stdlib(cells::Vector, spec::Vector{Symbol}, is_header::B
     row = CommonMark.Node(CommonMark.TableRow())
     for (i, cell_content) in enumerate(cells)
         align = i <= length(spec) ? spec[i] : :left
-        cell = CommonMark.Node(CommonMark.TableCell(align, is_header, i))
+        cell = CommonMark.Node(CommonMark.TableCell(align, is_header, i, 1, 1))
         process_inlines!(cell, cell_content)
         CommonMark.append_child(row, cell)
     end

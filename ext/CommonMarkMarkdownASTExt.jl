@@ -142,6 +142,8 @@ end
 
 _cm_to_element(::CommonMark.TableHeader, cm) = MarkdownAST.TableHeader()
 _cm_to_element(::CommonMark.TableBody, cm) = MarkdownAST.TableBody()
+_cm_to_element(::CommonMark.TableFoot, cm) = MarkdownAST.TableBody()  # lossy: no TableFoot in MarkdownAST
+_cm_to_element(::CommonMark.TableRows, cm) = nothing  # drop wrapper, keep children
 _cm_to_element(::CommonMark.TableRow, cm) = MarkdownAST.TableRow()
 
 function _cm_to_element(tc::CommonMark.TableCell, cm)
@@ -341,7 +343,7 @@ _mast_to_node(::MarkdownAST.TableBody, m) = CommonMark.Node(CommonMark.TableBody
 _mast_to_node(::MarkdownAST.TableRow, m) = CommonMark.Node(CommonMark.TableRow())
 
 function _mast_to_node(e::MarkdownAST.TableCell, m)
-    CommonMark.Node(CommonMark.TableCell(e.align, e.header, e.column))
+    CommonMark.Node(CommonMark.TableCell(e.align, e.header, e.column, 1, 1))
 end
 
 # Extensions with CommonMark equivalents
