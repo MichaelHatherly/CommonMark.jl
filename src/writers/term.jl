@@ -222,7 +222,7 @@ on the current line.
 """
 function available_columns(r::Writer{Term})
     _, cols = displaysize(r.buffer)
-    return cols - r.format.indent - length(LEFT_MARGIN)
+    return cols - r.format.indent
 end
 
 """
@@ -292,6 +292,7 @@ count of zero it won't be printed and instead spaces equal to it's width are
 printed. For persistent printing a count of -1 should be used.
 """
 function print_margin(r::Writer)
+    r.enabled || return
     for seg in r.format.margin
         if seg.count == 0
             # Blank space case.
@@ -337,16 +338,31 @@ function print_literal(r::Writer{Term}, parts...)
     end
 end
 
+"""
+Return the string index corresponding to a given column (textwidth) offset.
+Stops before exceeding `col` columns, so the returned index is always valid.
+"""
+function _index_at_column(s::AbstractString, col::Integer)
+    w = 0
+    for (i, c) in pairs(s)
+        cw = Base.Unicode.textwidth(c)
+        w + cw > col && return prevind(s, i)
+        w += cw
+    end
+    return lastindex(s)
+end
+
 function print_literal_part(r::Writer{Term}, lit::AbstractString, rec = 0)
     width = Base.Unicode.textwidth(lit)
     space = (available_columns(r) - r.format.wrap) + ispunct(get(lit, 1, '\0'))
-    if width < space
+    if width <= space
         print(r.format.buffer, lit)
         r.format.wrap += width
     else
-        index = findprev(c -> c in " -–—", lit, space)
-        index = index === nothing ? (rec > 0 ? space : 0) : index
-        head = SubString(lit, 1, thisind(lit, index))
+        break_idx = _index_at_column(lit, space)
+        index = findprev(c -> c in " -–—", lit, break_idx)
+        index = index === nothing ? (rec > 0 ? break_idx : 0) : index
+        head = SubString(lit, 1, index)
         tail = SubString(lit, nextind(lit, index))
 
         print(r.format.buffer, rstrip(head), "\n")

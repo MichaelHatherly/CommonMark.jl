@@ -53,3 +53,36 @@
         term,
     )
 end
+
+@testitem "term_wrapping" tags = [:writers, :term] begin
+    using CommonMark
+    using Test
+
+    # Test A: exact-fit text stays on one line (exposes off-by-one bug).
+    # Document margin = 1 col, so at width=8, available = 7 cols.
+    # "aaa bbb" = 7 chars, should fit on one content line.
+    buf = IOBuffer()
+    ast = Parser()("aaa bbb")
+    show(IOContext(buf, :displaysize => (24, 8)), MIME"text/plain"(), ast)
+    output = String(take!(buf))
+    lines = filter(!isempty, split(output, '\n'))
+    @test length(lines) == 1
+
+    # Test B: multi-byte chars don't cause premature wrapping.
+    # "café morning" = 12 cols. At width=14, available=13. Should fit one line.
+    buf = IOBuffer()
+    ast = Parser()("café morning")
+    show(IOContext(buf, :displaysize => (24, 14)), MIME"text/plain"(), ast)
+    output = String(take!(buf))
+    lines = filter(!isempty, split(output, '\n'))
+    @test length(lines) == 1
+
+    # Test C: CJK wide characters don't cause premature wrapping.
+    # "你好 hi" = 4+1+2 = 7 cols. At width=8, available=7. Should fit one line.
+    buf = IOBuffer()
+    ast = Parser()("你好 hi")
+    show(IOContext(buf, :displaysize => (24, 8)), MIME"text/plain"(), ast)
+    output = String(take!(buf))
+    lines = filter(!isempty, split(output, '\n'))
+    @test length(lines) == 1
+end
