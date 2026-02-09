@@ -1082,7 +1082,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
         if ent && n.t isa TableCell
             lines = _render_grid_cell(n)
             rendered[n] = lines
-            max_w = mapreduce(length, max, lines; init = 0)
+            max_w = mapreduce(textwidth, max, lines; init = 0)
             tc = n.t
             if tc.colspan == 1 && tc.column <= ncols
                 col_widths[tc.column] = max(col_widths[tc.column], max_w)
@@ -1090,7 +1090,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
         end
     end
 
-    _redistribute_spanning_widths!(col_widths, table_node, rendered, length)
+    _redistribute_spanning_widths!(col_widths, table_node, rendered, textwidth)
 
     raw_groups = _collect_row_groups(table_node)
     isempty(raw_groups) && return
@@ -1139,7 +1139,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
                     lines =
                         _get_cell_lines(cell, sr_idx, cell_subrow_lines, rendered, subrows)
                     cell_line = line_idx <= length(lines) ? lines[line_idx] : ""
-                    pad = width - length(cell_line)
+                    pad = width - textwidth(cell_line)
                     literal(w, "| ", cell_line, " "^max(pad, 0), " ")
                 end
                 literal(w, "|")

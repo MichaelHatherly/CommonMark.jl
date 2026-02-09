@@ -540,7 +540,7 @@ write_json(::TablePipe, ctx, node, enter) = nothing
 # Utilities.
 
 # Visible length of a string, stripping ANSI escape codes.
-_term_visible_length(s) = length(replace(s, r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
+_term_visible_length(s) = textwidth(replace(s, r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
 
 function calculate_columns_widths(width_func, table, node)
     cells, widths = Dict{Node,Int}(), ones(Int, length(table.spec))
