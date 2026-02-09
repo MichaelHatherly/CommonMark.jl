@@ -480,39 +480,6 @@ end
 
 # --- Writers ---
 
-# HTML: delegate to Table writer pattern.
-
-write_html(gt::GridTable, rend, n, ent) =
-    tag(rend, ent ? "table" : "/table", ent ? attributes(rend, n) : [])
-
-# LaTeX
-
-function write_latex(gt::GridTable, rend, node, enter)
-    if enter
-        print(rend.buffer, "\\begin{longtable}[]{@{}")
-        join(rend.buffer, (string(a)[1] for a in gt.spec))
-        println(rend.buffer, "@{}}")
-    else
-        println(rend.buffer, "\\end{longtable}")
-    end
-end
-
-# Typst
-
-function write_typst(gt::GridTable, rend, node, enter)
-    if enter
-        align = "align: (" * join(gt.spec, ", ") * ")"
-        columns = "columns: $(length(gt.spec))"
-        parts = ["$align", "$columns"]
-        if !isnull(node.first_child) && node.first_child.t isa TableHeader
-            push!(parts, "fill: (x, y) => if y == 0 { rgb(\"#e5e7eb\") }")
-        end
-        println(rend.buffer, "#table(", join(parts, ", "), ",")
-    else
-        println(rend.buffer, ")")
-    end
-end
-
 # Term
 
 function write_term(gt::GridTable, rend, node, enter)
@@ -526,9 +493,6 @@ function write_term(gt::GridTable, rend, node, enter)
     end
     return nothing
 end
-
-# Visible length of a string, stripping ANSI escape codes.
-_term_visible_length(s) = length(replace(s, r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
 
 # Render a cell's children via term(), returning lines.
 # When wrap_width > 0, constrains paragraph word-wrapping to that width.
@@ -855,37 +819,6 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
     end
 end
 
-# JSON
-
-function write_json(gt::GridTable, ctx, node, enter)
-    if enter
-        colspecs = Any[]
-        for align in gt.spec
-            a =
-                align === :left ? json_el(ctx, "AlignLeft") :
-                align === :right ? json_el(ctx, "AlignRight") :
-                align === :center ? json_el(ctx, "AlignCenter") :
-                json_el(ctx, "AlignDefault")
-            push!(colspecs, Any[a, json_el(ctx, "ColWidthDefault")])
-        end
-        push_container!(ctx, colspecs)
-        push_container!(ctx, Any[])  # head rows
-        push_container!(ctx, Any[])  # body rows
-    else
-        body_rows = pop_container!(ctx)
-        head_rows = pop_container!(ctx)
-        colspecs = pop_container!(ctx)
-        caption = Any[nothing, Any[]]
-        head = Any[empty_attr(), head_rows]
-        body = Any[Any[empty_attr(), 0, Any[], body_rows]]
-        foot = Any[empty_attr(), Any[]]
-        push_element!(
-            ctx,
-            json_el(ctx, "Table", Any[empty_attr(), caption, colspecs, head, body, foot]),
-        )
-    end
-end
-
 # Markdown: render entire grid table, suppressing child traversal.
 
 function write_markdown(gt::GridTable, w, node, enter)
@@ -1050,40 +983,6 @@ function _render_grid_cell(cell_node::Node)
     lines = split(text, '\n')
     isempty(lines) && return String[""]
     return String.(lines)
-end
-
-# Split a row's cells into visual sub-rows based on column overlap.
-# Cells that cover the same fine columns must go in different sub-rows.
-# Returns Vector{Vector{Node}} — each inner vector is one visual sub-row.
-function _split_into_visual_subrows(row_cells, ncols)
-    subrows = Vector{Vector{Node}}()
-    # Track which columns are occupied in each sub-row
-    occupied = Vector{BitVector}()
-
-    for cell in row_cells
-        col = cell.t.column
-        cspan = cell.t.colspan
-        col_range = col:col+cspan-1
-
-        # Find first sub-row where this cell's columns are free
-        placed = false
-        for (sr_idx, occ) in enumerate(occupied)
-            if !any(occ[col_range])
-                push!(subrows[sr_idx], cell)
-                occ[col_range] .= true
-                placed = true
-                break
-            end
-        end
-        if !placed
-            occ = falses(ncols)
-            occ[col_range] .= true
-            push!(occupied, occ)
-            push!(subrows, [cell])
-        end
-    end
-
-    return subrows
 end
 
 # Build the set of fine-column boundary indices where cells start/end.

@@ -253,8 +253,6 @@ inline_modifier(rule::TableRule) =
 
 # HTML
 
-write_html(::Table, rend, n, ent) =
-    tag(rend, ent ? "table" : "/table", ent ? attributes(rend, n) : [])
 write_html(::TableHeader, rend, node, enter) = tag(rend, enter ? "thead" : "/thead")
 write_html(::TableBody, rend, node, enter) = tag(rend, enter ? "tbody" : "/tbody")
 write_html(::TableFoot, rend, node, enter) = tag(rend, enter ? "tfoot" : "/tfoot")
@@ -274,16 +272,6 @@ function write_html(cell::TableCell, rend, node, enter)
 end
 
 # LaTeX
-
-function write_latex(table::Table, rend, node, enter)
-    if enter
-        print(rend.buffer, "\\begin{longtable}[]{@{}")
-        join(rend.buffer, (string(align)[1] for align in table.spec))
-        println(rend.buffer, "@{}}")
-    else
-        println(rend.buffer, "\\end{longtable}")
-    end
-end
 
 function write_latex(::TableHeader, rend, node, enter)
     if enter
@@ -321,17 +309,6 @@ function write_latex(::TableCell, rend, node, enter)
 end
 
 # Typst
-
-function write_typst(table::Table, rend, node, enter)
-    if enter
-        align = "align: (" * join(table.spec, ", ") * ")"
-        columns = "columns: $(length(table.spec))"
-        fill = "fill: (x, y) => if y == 0 { rgb(\"#e5e7eb\") }"
-        println(rend.buffer, "#table($align, $columns, $fill,")
-    else
-        println(rend.buffer, ")")
-    end
-end
 
 function write_typst(::TableHeader, rend, node, enter)
     if enter
@@ -371,7 +348,7 @@ end
 function write_term(table::Table, rend, node, enter)
     if enter
         cells, widths = calculate_columns_widths(table, node) do node
-            length(replace(term(node), r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
+            _term_visible_length(term(node))
         end
         rend.context[:cells] = cells
         rend.context[:widths] = widths
@@ -511,37 +488,6 @@ end
 
 # JSON
 
-function write_json(table::Table, ctx, node, enter)
-    if enter
-        # Build colspecs from table alignment spec.
-        colspecs = Any[]
-        for align in table.spec
-            a =
-                align === :left ? json_el(ctx, "AlignLeft") :
-                align === :right ? json_el(ctx, "AlignRight") :
-                align === :center ? json_el(ctx, "AlignCenter") :
-                json_el(ctx, "AlignDefault")
-            push!(colspecs, Any[a, json_el(ctx, "ColWidthDefault")])
-        end
-        push_container!(ctx, colspecs)
-        push_container!(ctx, Any[])  # head rows
-        push_container!(ctx, Any[])  # body rows
-    else
-        body_rows = pop_container!(ctx)
-        head_rows = pop_container!(ctx)
-        colspecs = pop_container!(ctx)
-
-        caption = Any[nothing, Any[]]  # [short_caption, long_caption_blocks]
-        head = Any[empty_attr(), head_rows]
-        body = Any[Any[empty_attr(), 0, Any[], body_rows]]
-        foot = Any[empty_attr(), Any[]]
-        push_element!(
-            ctx,
-            json_el(ctx, "Table", Any[empty_attr(), caption, colspecs, head, body, foot]),
-        )
-    end
-end
-
 write_json(::TableHeader, ctx, node, enter) = nothing
 write_json(::TableBody, ctx, node, enter) = nothing
 write_json(::TableRows, ctx, node, enter) = nothing
@@ -585,6 +531,9 @@ end
 write_json(::TablePipe, ctx, node, enter) = nothing
 
 # Utilities.
+
+# Visible length of a string, stripping ANSI escape codes.
+_term_visible_length(s) = length(replace(s, r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
 
 function calculate_columns_widths(width_func, table, node)
     cells, widths = Dict{Node,Int}(), ones(Int, length(table.spec))
