@@ -693,7 +693,7 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
             end
             lines = _render_term_cell(n, cell_target)
             rendered[n] = lines
-            max_w = maximum(_term_visible_length, lines; init = 0)
+            max_w = mapreduce(_term_visible_length, max, lines; init = 0)
             if tc.colspan == 1 && tc.column <= ncols
                 col_widths[tc.column] = max(col_widths[tc.column], max_w)
             end
@@ -703,7 +703,8 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
     # Redistribute excess from spanning cells.
     for (n, ent) in table_node
         if ent && n.t isa TableCell && n.t.colspan > 1
-            max_w = maximum(_term_visible_length, get(rendered, n, String[""]); init = 0)
+            max_w =
+                mapreduce(_term_visible_length, max, get(rendered, n, String[""]); init = 0)
             tc = n.t
             combined = _spanning_width(col_widths, tc.column, tc.colspan)
             if max_w > combined
@@ -1115,7 +1116,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
         if ent && n.t isa TableCell
             lines = _render_grid_cell(n)
             rendered[n] = lines
-            max_w = maximum(length, lines; init = 0)
+            max_w = mapreduce(length, max, lines; init = 0)
             tc = n.t
             if tc.colspan == 1 && tc.column <= ncols
                 col_widths[tc.column] = max(col_widths[tc.column], max_w)
@@ -1126,7 +1127,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
     # Redistribute excess width from spanning cells.
     for (n, ent) in table_node
         if ent && n.t isa TableCell && n.t.colspan > 1
-            max_w = maximum(length, get(rendered, n, String[""]); init = 0)
+            max_w = mapreduce(length, max, get(rendered, n, String[""]); init = 0)
             tc = n.t
             combined = _spanning_width(col_widths, tc.column, tc.colspan)
             if max_w > combined
