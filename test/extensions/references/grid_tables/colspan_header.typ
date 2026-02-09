@@ -1,7 +1,7 @@
-#table(align: (left, left, left, left), columns: 4, fill: (x, y) => if y == 0 { rgb("#e5e7eb") },
+#table(align: (left, left, left, left), columns: 4, fill: (x, y) => if y < 2 { rgb("#e5e7eb") },
 table.header(
-[Location
-],[Temperature
+table.cell(rowspan: 2)[Location
+],table.cell(colspan: 3)[Temperature
 ],
 [min
 ],[mean

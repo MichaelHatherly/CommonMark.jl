@@ -335,9 +335,16 @@ function write_typst(::TableRow, rend, node, enter)
     end
 end
 
-function write_typst(::TableCell, rend, node, enter)
+function write_typst(cell::TableCell, rend, node, enter)
     if enter
-        print(rend.buffer, "[")
+        if cell.colspan > 1 || cell.rowspan > 1
+            parts = String[]
+            cell.colspan > 1 && push!(parts, "colspan: $(cell.colspan)")
+            cell.rowspan > 1 && push!(parts, "rowspan: $(cell.rowspan)")
+            print(rend.buffer, "table.cell(", join(parts, ", "), ")[")
+        else
+            print(rend.buffer, "[")
+        end
     else
         print(rend.buffer, "],")
     end

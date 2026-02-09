@@ -15,13 +15,22 @@ function write_latex(t::AnyTable, rend, node, enter)
     end
 end
 
+function _count_header_rows(header_node)
+    n = 0
+    for (node, enter) in header_node
+        enter && node.t isa TableRow && (n += 1)
+    end
+    n
+end
+
 function write_typst(t::AnyTable, rend, node, enter)
     if enter
         align = "align: (" * join(t.spec, ", ") * ")"
         columns = "columns: $(length(t.spec))"
         parts = ["$align", "$columns"]
         if !isnull(node.first_child) && node.first_child.t isa TableHeader
-            push!(parts, "fill: (x, y) => if y == 0 { rgb(\"#e5e7eb\") }")
+            nrows = _count_header_rows(node.first_child)
+            push!(parts, "fill: (x, y) => if y < $nrows { rgb(\"#e5e7eb\") }")
         end
         println(rend.buffer, "#table(", join(parts, ", "), ",")
     else
