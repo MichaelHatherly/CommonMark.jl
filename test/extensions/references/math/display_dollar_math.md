@@ -1,3 +1,3 @@
-```math
+$$
 display math
-```
+$$

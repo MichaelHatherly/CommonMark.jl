@@ -1,0 +1,13 @@
+<table><thead><tr><th align="left">
+<p>Head1</p>
+</th><th align="left">
+<p>Head2</p>
+</th></tr></thead><tbody><tr><td align="left">
+<p>Body1</p>
+</td><td align="left">
+<p>Body2</p>
+</td></tr></tbody><tfoot><tr><td align="left">
+<p>Foot1</p>
+</td><td align="left">
+<p>Foot2</p>
+</td></tr></tfoot></table>

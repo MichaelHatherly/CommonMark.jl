@@ -1,7 +1,8 @@
 """Raw HTML block. Build with `Node(HtmlBlock, html_string)`."""
 mutable struct HtmlBlock <: AbstractBlock
     html_block_type::Int
-    HtmlBlock() = new(0)
+    raw::Bool
+    HtmlBlock(; raw = false) = new(0, raw)
 end
 
 accepts_lines(::HtmlBlock) = true

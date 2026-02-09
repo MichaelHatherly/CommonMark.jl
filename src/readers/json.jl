@@ -328,6 +328,22 @@ function table_from_json(content::AbstractVector)
         end
     end
 
+    # Footer: [attrs, rows]
+    if length(content) >= 6
+        tfoot = content[6]
+        if !isempty(tfoot) && length(tfoot) >= 2
+            footer_rows = tfoot[2]
+            if !isempty(footer_rows)
+                footer = Node(TableFoot())
+                append_child(table, footer)
+                for row_data in footer_rows
+                    row = table_row_from_json(row_data, spec, false)
+                    !isnothing(row) && append_child(footer, row)
+                end
+            end
+        end
+    end
+
     return table
 end
 
@@ -349,7 +365,7 @@ function table_row_from_json(
         cell_attrs, align_info, rowspan, colspan, blocks = cell_data
 
         align = i <= length(spec) ? spec[i] : :left
-        cell = Node(TableCell(align, is_header, i))
+        cell = Node(TableCell(align, is_header, i, 1, 1))
         apply_attrs!(cell, cell_attrs)
 
         # Table cells contain blocks, but CommonMark TableCell contains inlines.

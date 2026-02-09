@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `GridTableRule` extension for Pandoc-style grid tables with colspan, alignment, headers, footers, and multiline cells [#138]
+- Add inline display dollar math (`$$...$$` within paragraphs) and preserve original math syntax in AST [#138]
+- Add `TableFoot`, `TableRows`, `rowspan`, and `colspan` support to table extension [#138]
+- Track `raw` flag on `HtmlInline`/`HtmlBlock` nodes for markdown roundtrip fidelity [#138]
+
+### Fixed
+
+- Fix markdown writer losing hard breaks (preserve as two trailing spaces) [#138]
+- Fix terminal writer width calculation and Unicode text wrapping [#138]
+- Fix attribute parser not breaking on non-whitespace after opening brace [#138]
+
 ## [v0.10.3] - 2026-02-06
 
 ### Fixed
@@ -437,3 +450,4 @@ Initial release.
 [#133]: https://github.com/MichaelHatherly/CommonMark.jl/issues/133
 [#135]: https://github.com/MichaelHatherly/CommonMark.jl/issues/135
 [#136]: https://github.com/MichaelHatherly/CommonMark.jl/issues/136
+[#138]: https://github.com/MichaelHatherly/CommonMark.jl/issues/138

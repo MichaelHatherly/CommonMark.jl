@@ -677,6 +677,23 @@ Document
       "This is after a hard break"
     Text
       "."
+  Paragraph
+    Text
+      "Two"
+    Text
+      "-"
+    Text
+      "space line break:"
+    LineBreak
+      ""
+    Text
+      "This is after a two"
+    Text
+      "-"
+    Text
+      "space hard break"
+    Text
+      "."
   Heading
     Text
       "Math"
@@ -959,6 +976,28 @@ Document
       "Display math with double dollars:"
   DisplayMath
     "\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}"
+  Paragraph
+    Text
+      "Inline display math: text "
+    Math
+      "E = mc^2"
+    Text
+      " in a sentence"
+    Text
+      "."
+  Paragraph
+    Text
+      "Multiline inline display:"
+    SoftBreak
+      ""
+    Math
+      "\\alpha + \\beta"
+    SoftBreak
+      ""
+    Text
+      "more text"
+    Text
+      "."
   Heading
     Text
       "Autolinks"

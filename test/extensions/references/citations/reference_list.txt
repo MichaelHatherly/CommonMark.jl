@@ -6,8 +6,8 @@
  Ault, Shaun V., Tyler A. Cabutto, Sean P. Heeney, Guifen Mao, and Jin Wang. 
  2018. [3mAn Overview of the Julia Programming Language. [23m
  
- Besard, Tim, Bjorn De Sutter, and Christophe Foket. 2018. [3mEffective
-[23m [3mextensible programming: Unleashing julia on gpus. [23m
+ Besard, Tim, Bjorn De Sutter, and Christophe Foket. 2018. [3mEffective extensible
+[23m [3mprogramming: Unleashing julia on gpus. [23m
  
  Bezanson, Jeff, Alan Edelman, Stefan Karpinski, and Viral B. Shah. 2017. [3m
 [23m [3mJulia: A fresh approach to numerical computing. [23m
@@ -31,8 +31,8 @@
  
  Edelman, Alan. 2015. [3mJulia: A fresh approach to parallel programming. [23mIEEE. 
  
- Elmqvist, Hilding, Toivo Henningsson, and Martin Otter. 2016. [3mSystems
-[23m [3mmodeling and programming in a unified environment based on Julia. [23mSpringer. 
+ Elmqvist, Hilding, Toivo Henningsson, and Martin Otter. 2016. [3mSystems modeling
+[23m [3mand programming in a unified environment based on Julia. [23mSpringer. 
  
  Fieker, Claus, William Hart, Tommy Hofmann, and Fredrik Johansson. 2017. [3m
 [23m [3mNemo/Hecke: computer algebra and number theory packages for the Julia
@@ -42,12 +42,11 @@
  Karmali, Avik Pal, Marco Concetto Rudilosso, Elliot Saba, and Viral Shah. 
  2018. [3mFashionable modelling with flux. [23m[34;4mhttp://arxiv.org/abs/1811.01457[39;24m. 
  
- Ge, Hong, Zoubin Ghahramani, and Kai Xu. 2018. [3mTuring: a language for
-[23m [3mflexible probabilistic inference. [23m[34;4mhttp://proceedings.mlr.press/v84/ge18b.html[39;24m.
+ Ge, Hong, Zoubin Ghahramani, and Kai Xu. 2018. [3mTuring: a language for flexible
+[23m [3mprobabilistic inference. [23m[34;4mhttp://proceedings.mlr.press/v84/ge18b.html[39;24m. 
  
- 
- Innes, Michael. 2018. [3mDon't unroll adjoint: Differentiating SSA-Form
-[23m [3mprograms. [23m[34;4mhttp://arxiv.org/abs/1810.07951[39;24m. 
+ Innes, Michael. 2018. [3mDon't unroll adjoint: Differentiating SSA-Form programs. [23m[34;4m
+[39;24m [34;4mhttp://arxiv.org/abs/1810.07951[39;24m. 
  
  Innes, Mike. 2018. [3mFlux: Elegant machine learning with julia. [23m
  doi:10.21105/joss.00602. 
@@ -63,6 +62,5 @@
 [23m [3mjulia. [23mdoi:10.5334/jors.151. [34;4m
 [39;24m [34;4mhttps://app.dimensions.ai/details/publication/pub.1085583166[39;24m. 
  
- Novosel, Rok, and Bostjan Slivnik. 2019. [3mBeyond Classical Parallel
-[23m [3mProgramming Frameworks: Chapel vs Julia. [23mSchloss Dagstuhl-Leibniz-Zentrum
- fuer Informatik. 
+ Novosel, Rok, and Bostjan Slivnik. 2019. [3mBeyond Classical Parallel Programming
+[23m [3mFrameworks: Chapel vs Julia. [23mSchloss Dagstuhl-Leibniz-Zentrum fuer Informatik. 

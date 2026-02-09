@@ -62,8 +62,16 @@ Node(::Type{TableBody}, rows::Node...) = _build(TableBody(), rows)
 
 continue_(table::TableBody, parser::Parser, container::Node) = 1
 
+"""Table footer section containing footer rows."""
+struct TableFoot <: TableComponent end
+
+Node(::Type{TableFoot}, rows::Node...) = _build(TableFoot(), rows)
+
 """Table row containing cells."""
 struct TableRow <: TableComponent end
+
+"""Grouping container for visual sub-rows of one logical row group in grid tables."""
+struct TableRows <: TableComponent end
 
 Node(::Type{TableRow}, cells::Node...) = _build(TableRow(), cells)
 
@@ -74,6 +82,8 @@ struct TableCell <: TableComponent
     align::Symbol
     header::Bool
     column::Int
+    rowspan::Int
+    colspan::Int
 end
 
 contains_inlines(::TableCell) = true
@@ -84,8 +94,10 @@ function Node(
     align::Symbol = :left,
     header::Bool = false,
     column::Int = 1,
+    rowspan::Int = 1,
+    colspan::Int = 1,
 )
-    tc = TableCell(align, header, column)
+    tc = TableCell(align, header, column, rowspan, colspan)
     _build(tc, children)
 end
 
@@ -197,7 +209,7 @@ inline_modifier(rule::TableRule) =
             if pipe.parent === block
                 # Top-level pipe must be replaced with a table cell containing
                 # everything up until the next pipe.
-                cell = Node(TableCell(spec[min(col, max_cols)], isheader, col))
+                cell = Node(TableCell(spec[min(col, max_cols)], isheader, col, 1, 1))
                 n = pipe.nxt
                 elems = Node[]
                 # Find all nodes between this pipe and the next.
@@ -227,7 +239,7 @@ inline_modifier(rule::TableRule) =
         if length(cells) < max_cols
             # Add addtional cells in this row is below number in spec.
             extra = (length(cells)+1):max_cols
-            append!(cells, (Node(TableCell(:left, isheader, n)) for n in extra))
+            append!(cells, (Node(TableCell(:left, isheader, n, 1, 1)) for n in extra))
         end
         for (nth, cell) in enumerate(cells)
             # Drop additional cells if they are longer that the spec.
@@ -241,28 +253,25 @@ inline_modifier(rule::TableRule) =
 
 # HTML
 
-write_html(::Table, rend, n, ent) =
-    tag(rend, ent ? "table" : "/table", ent ? attributes(rend, n) : [])
 write_html(::TableHeader, rend, node, enter) = tag(rend, enter ? "thead" : "/thead")
 write_html(::TableBody, rend, node, enter) = tag(rend, enter ? "tbody" : "/tbody")
+write_html(::TableFoot, rend, node, enter) = tag(rend, enter ? "tfoot" : "/tfoot")
+write_html(::TableRows, rend, node, enter) = nothing
 write_html(::TableRow, rend, node, enter) = tag(rend, enter ? "tr" : "/tr")
 
 function write_html(cell::TableCell, rend, node, enter)
     tag_name = cell.header ? "th" : "td"
-    tag(rend, enter ? "$tag_name align=\"$(cell.align)\"" : "/$tag_name")
+    if enter
+        attrs = ["align" => string(cell.align)]
+        cell.rowspan > 1 && push!(attrs, "rowspan" => string(cell.rowspan))
+        cell.colspan > 1 && push!(attrs, "colspan" => string(cell.colspan))
+        tag(rend, tag_name, attrs)
+    else
+        tag(rend, "/$tag_name")
+    end
 end
 
 # LaTeX
-
-function write_latex(table::Table, rend, node, enter)
-    if enter
-        print(rend.buffer, "\\begin{longtable}[]{@{}")
-        join(rend.buffer, (string(align)[1] for align in table.spec))
-        println(rend.buffer, "@{}}")
-    else
-        println(rend.buffer, "\\end{longtable}")
-    end
-end
 
 function write_latex(::TableHeader, rend, node, enter)
     if enter
@@ -279,6 +288,16 @@ function write_latex(::TableBody, rend, node, enter)
     end
 end
 
+write_latex(::TableRows, rend, node, enter) = nothing
+
+function write_latex(::TableFoot, rend, node, enter)
+    if enter
+        println(rend.buffer, "\\hline")
+    else
+        println(rend.buffer, "\\endlastfoot")
+    end
+end
+
 function write_latex(::TableRow, rend, node, enter)
     enter ? nothing : println(rend.buffer, "\\tabularnewline")
 end
@@ -291,17 +310,6 @@ end
 
 # Typst
 
-function write_typst(table::Table, rend, node, enter)
-    if enter
-        align = "align: (" * join(table.spec, ", ") * ")"
-        columns = "columns: $(length(table.spec))"
-        fill = "fill: (x, y) => if y == 0 { rgb(\"#e5e7eb\") }"
-        println(rend.buffer, "#table($align, $columns, $fill,")
-    else
-        println(rend.buffer, ")")
-    end
-end
-
 function write_typst(::TableHeader, rend, node, enter)
     if enter
         println(rend.buffer, "table.header(")
@@ -311,6 +319,14 @@ function write_typst(::TableHeader, rend, node, enter)
 end
 
 write_typst(::TableBody, rend, node, enter) = nothing
+write_typst(::TableRows, rend, node, enter) = nothing
+function write_typst(::TableFoot, rend, node, enter)
+    if enter
+        println(rend.buffer, "table.footer(")
+    else
+        println(rend.buffer, "),")
+    end
+end
 
 function write_typst(::TableRow, rend, node, enter)
     if enter
@@ -319,9 +335,16 @@ function write_typst(::TableRow, rend, node, enter)
     end
 end
 
-function write_typst(::TableCell, rend, node, enter)
+function write_typst(cell::TableCell, rend, node, enter)
     if enter
-        print(rend.buffer, "[")
+        if cell.colspan > 1 || cell.rowspan > 1
+            parts = String[]
+            cell.colspan > 1 && push!(parts, "colspan: $(cell.colspan)")
+            cell.rowspan > 1 && push!(parts, "rowspan: $(cell.rowspan)")
+            print(rend.buffer, "table.cell(", join(parts, ", "), ")[")
+        else
+            print(rend.buffer, "[")
+        end
     else
         print(rend.buffer, "],")
     end
@@ -332,7 +355,7 @@ end
 function write_term(table::Table, rend, node, enter)
     if enter
         cells, widths = calculate_columns_widths(table, node) do node
-            length(replace(term(node), r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
+            _term_visible_length(term(node))
         end
         rend.context[:cells] = cells
         rend.context[:widths] = widths
@@ -354,6 +377,7 @@ function write_term(table::Table, rend, node, enter)
 end
 
 function write_term(::TableHeader, rend, node, enter)
+    haskey(rend.context, :widths) || return nothing
     if !enter
         print_margin(rend)
         print(rend.format.buffer, "┠─")
@@ -364,8 +388,11 @@ function write_term(::TableHeader, rend, node, enter)
 end
 
 write_term(::TableBody, rend, node, enter) = nothing
+write_term(::TableRows, rend, node, enter) = nothing
+write_term(::TableFoot, rend, node, enter) = nothing
 
 function write_term(::TableRow, rend, node, enter)
+    haskey(rend.context, :widths) || return nothing
     if enter
         print_margin(rend)
         print(rend.format.buffer, "┃ ")
@@ -377,7 +404,12 @@ end
 
 function write_term(cell::TableCell, rend, node, enter)
     if haskey(rend.context, :widths)
-        pad = rend.context[:widths][cell.column] - rend.context[:cells][node]
+        widths = rend.context[:widths]
+        col_w = widths[cell.column]
+        for i = cell.column+1:min(cell.column + cell.colspan - 1, length(widths))
+            col_w += 3 + widths[i]  # " │ " separator + next column width
+        end
+        pad = col_w - rend.context[:cells][node]
         if enter
             if cell.align == :left
             elseif cell.align == :right
@@ -419,8 +451,8 @@ function write_markdown(table::Table, w::Writer, node, enter)
 end
 
 function write_markdown(::TableHeader, w, node, enter)
-    if enter
-    else
+    if !enter
+        haskey(w.context, :widths) || return nothing
         spec = node.parent.t.spec
         print_margin(w)
         literal(w, "|")
@@ -436,6 +468,8 @@ function write_markdown(::TableHeader, w, node, enter)
 end
 
 write_markdown(::TableBody, w, node, enter) = nothing
+write_markdown(::TableRows, w, node, enter) = nothing
+write_markdown(::TableFoot, w, node, enter) = nothing
 
 function write_markdown(::TableRow, w, node, enter)
     if enter
@@ -461,39 +495,10 @@ end
 
 # JSON
 
-function write_json(table::Table, ctx, node, enter)
-    if enter
-        # Build colspecs from table alignment spec.
-        colspecs = Any[]
-        for align in table.spec
-            a =
-                align === :left ? json_el(ctx, "AlignLeft") :
-                align === :right ? json_el(ctx, "AlignRight") :
-                align === :center ? json_el(ctx, "AlignCenter") :
-                json_el(ctx, "AlignDefault")
-            push!(colspecs, Any[a, json_el(ctx, "ColWidthDefault")])
-        end
-        push_container!(ctx, colspecs)
-        push_container!(ctx, Any[])  # head rows
-        push_container!(ctx, Any[])  # body rows
-    else
-        body_rows = pop_container!(ctx)
-        head_rows = pop_container!(ctx)
-        colspecs = pop_container!(ctx)
-
-        caption = Any[nothing, Any[]]  # [short_caption, long_caption_blocks]
-        head = Any[empty_attr(), head_rows]
-        body = Any[Any[empty_attr(), 0, Any[], body_rows]]
-        foot = Any[empty_attr(), Any[]]
-        push_element!(
-            ctx,
-            json_el(ctx, "Table", Any[empty_attr(), caption, colspecs, head, body, foot]),
-        )
-    end
-end
-
 write_json(::TableHeader, ctx, node, enter) = nothing
 write_json(::TableBody, ctx, node, enter) = nothing
+write_json(::TableRows, ctx, node, enter) = nothing
+write_json(::TableFoot, ctx, node, enter) = nothing
 
 function write_json(::TableRow, ctx, node, enter)
     if enter
@@ -504,7 +509,9 @@ function write_json(::TableRow, ctx, node, enter)
         row = Any[empty_attr(), cells]
         # Stack is: [blocks, colspecs, head_rows, body_rows]
         # head_rows = end-1, body_rows = end
-        if node.parent.t isa TableHeader
+        section = node.parent
+        section.t isa TableRows && (section = section.parent)
+        if section.t isa TableHeader
             push!(ctx.stack[end-1], row)
         else
             push!(ctx.stack[end], row)
@@ -524,13 +531,16 @@ function write_json(cell::TableCell, ctx, node, enter)
             cell.align === :center ? json_el(ctx, "AlignCenter") :
             json_el(ctx, "AlignDefault")
         blocks = isempty(inlines) ? Any[] : Any[json_el(ctx, "Plain", inlines)]
-        push_element!(ctx, Any[empty_attr(), a, 1, 1, blocks])
+        push_element!(ctx, Any[empty_attr(), a, cell.rowspan, cell.colspan, blocks])
     end
 end
 
 write_json(::TablePipe, ctx, node, enter) = nothing
 
 # Utilities.
+
+# Visible length of a string, stripping ANSI escape codes.
+_term_visible_length(s) = textwidth(replace(s, r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
 
 function calculate_columns_widths(width_func, table, node)
     cells, widths = Dict{Node,Int}(), ones(Int, length(table.spec))

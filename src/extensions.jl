@@ -1,5 +1,7 @@
 include("extensions/math.jl")
 include("extensions/tables.jl")
+include("extensions/grid_tables.jl")
+include("extensions/tables_common.jl")
 include("extensions/admonitions.jl")
 include("extensions/footnotes.jl")
 include("extensions/frontmatter.jl")

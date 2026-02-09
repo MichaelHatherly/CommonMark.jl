@@ -1,0 +1,5 @@
+<table><tbody><tr><td align="left">
+<p>Left</p>
+</td><td align="left">
+<p>Right</p>
+</td></tr></tbody></table>

@@ -19,7 +19,7 @@ end
 Render a CommonMark AST back to Markdown text.
 
 Useful for normalizing Markdown formatting or for roundtrip testing.
-Output uses opinionated formatting with no trailing whitespace.
+Output uses opinionated formatting. Hard breaks use two trailing spaces.
 
 # Examples
 
@@ -88,7 +88,16 @@ write_markdown(::Text, w, node, ent) = literal(w, node.literal)
 
 write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
 
-function write_markdown(::Union{SoftBreak,LineBreak}, w, node, ent)
+function write_markdown(::SoftBreak, w, node, ent)
+    cr(w)
+    print_margin(w)
+end
+
+function write_markdown(::LineBreak, w, node, ent)
+    # Backslash hard breaks already have the `\` from the Backslash node
+    if isnull(node.prv) || !(node.prv.t isa Backslash)
+        literal(w, "  ")
+    end
     cr(w)
     print_margin(w)
 end
@@ -110,7 +119,18 @@ function write_markdown(::Code, w, node, ent)
     literal(w, "`"^backticks)
 end
 
-write_markdown(::HtmlInline, w, node, ent) = literal(w, node.literal)
+function write_markdown(t::HtmlInline, w, node, ent)
+    if t.raw
+        num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
+            max(a, length(b.match))
+        end
+        literal(w, '`'^(num == 1 ? 2 : 1))
+        literal(w, node.literal)
+        literal(w, '`'^(num == 1 ? 2 : 1), "{=html}")
+    else
+        literal(w, node.literal)
+    end
+end
 
 function write_markdown(link::Link, w, node, ent)
     if ent
@@ -234,12 +254,21 @@ function write_markdown(code::CodeBlock, w, node, ent)
     linebreak(w, node)
 end
 
-function write_markdown(::HtmlBlock, w, node, ent)
-    for line in eachline(IOBuffer(node.literal); keep = true)
+function write_markdown(t::HtmlBlock, w, node, ent)
+    if t.raw
         print_margin(w)
-        literal(w, line)
-    end
-    if !isnull(node.nxt)
+        literal(w, "```{=html}\n")
+        for line in eachline(IOBuffer(node.literal))
+            print_margin(w)
+            literal(w, line, "\n")
+        end
+        print_margin(w)
+        literal(w, "```\n")
+    else
+        for line in eachline(IOBuffer(node.literal); keep = true)
+            print_margin(w)
+            literal(w, line)
+        end
         cr(w)
     end
     linebreak(w, node)

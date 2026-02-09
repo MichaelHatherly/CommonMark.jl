@@ -175,6 +175,9 @@ Escaped characters: \* \_ \` \[ \] \( \) \# \+ \- \. \! \{ \} \| \\
 Backslash line break:\
 This is after a hard break.
 
+Two-space line break:  
+This is after a two-space hard break.
+
 ## Math
 
 Block math:
@@ -270,13 +273,19 @@ Ellipsis… is also handled.
 
 ## Dollar Math (normalizes to Julia-style)
 
-Inline dollar math: ``x^2 + y^2 = z^2`` in a sentence.
+Inline dollar math: $x^2 + y^2 = z^2$ in a sentence.
 
 Display math with double dollars:
 
-```math
+$$
 \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
-```
+$$
+
+Inline display math: text $$E = mc^2$$ in a sentence.
+
+Multiline inline display:
+$$\alpha + \beta$$
+more text.
 
 ## Autolinks
 
@@ -295,11 +304,13 @@ A paragraph followed by *emphasized text*{.special} with inline attributes.
 
 ## Raw Content
 
-Inline raw HTML: <span class="raw"> works.
+Inline raw HTML: `<span class="raw">`{=html} works.
 
+```{=html}
 <div class="special">
   Raw HTML block content.
 </div>
+```
 
 ## Edge Cases
 

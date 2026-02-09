@@ -1,0 +1,27 @@
+<table><thead><tr><th align="left" rowspan="2">
+<p>Location</p>
+</th><th align="left" colspan="3">
+<p>Temperature</p>
+</th></tr><tr><th align="left">
+<p>min</p>
+</th><th align="left">
+<p>mean</p>
+</th><th align="left">
+<p>max</p>
+</th></tr></thead><tbody><tr><td align="left">
+<p>Chicago</p>
+</td><td align="left">
+<p>-10</p>
+</td><td align="left">
+<p>15</p>
+</td><td align="left">
+<p>35</p>
+</td></tr><tr><td align="left">
+<p>Berlin</p>
+</td><td align="left">
+<p>-5</p>
+</td><td align="left">
+<p>12</p>
+</td><td align="left">
+<p>30</p>
+</td></tr></tbody></table>

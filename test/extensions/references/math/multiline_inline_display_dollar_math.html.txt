@@ -1,0 +1,3 @@
+<p>Text
+<span class="math display">\[x^2\]</span>
+more text.</p>
