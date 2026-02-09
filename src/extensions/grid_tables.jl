@@ -247,23 +247,11 @@ Parse a row group (content lines between two full borders) into TableRow nodes.
 Handles colspan via missing + in borders and rowspan via partial borders.
 `border_above` is the separator line above this row group.
 """
-function _parse_row_group!(
-    parser,
-    parent,
-    content_lines,
-    border_above,
-    col_positions,
-    spec,
-    is_header,
-)
-    isempty(content_lines) && return
-    ncols = length(col_positions) - 1
-
-    # Split into sub-row-groups by partial borders.
-    sub_groups = Vector{Vector{String}}()  # content lines per sub-group
-    partial_borders = Vector{String}()      # border lines between sub-groups
+# Split content lines into sub-groups separated by partial border lines.
+function _split_by_partial_borders(content_lines, col_positions)
+    sub_groups = Vector{Vector{String}}()
+    partial_borders = Vector{String}()
     current = String[]
-
     for line in content_lines
         if _is_partial_border(line, col_positions)
             push!(sub_groups, current)
@@ -274,43 +262,34 @@ function _parse_row_group!(
         end
     end
     push!(sub_groups, current)
+    return sub_groups, partial_borders
+end
 
-    if length(sub_groups) == 1
-        # Simple case: no partial borders. Detect colspan from border_above.
-        above_plus = _partial_border_positions(border_above, col_positions)
-        _emit_row!(
-            parser,
-            parent,
-            sub_groups[1],
-            col_positions,
-            above_plus,
-            spec,
-            is_header,
-        )
-        return
-    end
-
-    # Multi sub-row case: detect rowspan and colspan.
+# Emit a rowspan group: multiple sub-rows with colspan/rowspan detection.
+function _emit_rowspan_group!(
+    parser,
+    parent,
+    sub_groups,
+    partial_borders,
+    border_above,
+    col_positions,
+    spec,
+    is_header,
+)
+    ncols = length(col_positions) - 1
     n_sub = length(sub_groups)
 
     sub_row_cells = Vector{Vector{NamedTuple{(:col, :colspan),Tuple{Int,Int}}}}()
 
-    # Sub-row 1: detect colspan from border_above
     above_plus = _partial_border_positions(border_above, col_positions)
     push!(sub_row_cells, _detect_colspan_from_plus(col_positions, above_plus))
 
     for k = 2:n_sub
-        border_line = partial_borders[k-1]
-        border_plus = _partial_border_positions(border_line, col_positions)
+        border_plus = _partial_border_positions(partial_borders[k-1], col_positions)
         push!(sub_row_cells, _detect_colspan_from_plus(col_positions, border_plus))
     end
 
-    # Now merge across sub-rows for rowspan.
-    # A cell in sub-row k spans into sub-row k+1 if the partial border between
-    # them does NOT have + at the cell's left boundary.
-    # We track: final_cells = list of (col, colspan, rowspan, content_line_ranges)
-
-    # Build an occupation grid: occupied[sub_row][fine_col] = cell_id or 0
+    # Build an occupation grid and cell registry for rowspan merging.
     cell_registry =
         NamedTuple{(:col, :colspan, :rowspan, :sub_rows),Tuple{Int,Int,Int,Vector{Int}}}[]
     occupied = [zeros(Int, ncols) for _ = 1:n_sub]
@@ -318,11 +297,7 @@ function _parse_row_group!(
     for sr = 1:n_sub
         for cell_def in sub_row_cells[sr]
             col, cspan = cell_def.col, cell_def.colspan
-            # Check if already occupied by a rowspan from above
-            if occupied[sr][col] != 0
-                continue
-            end
-            # Determine rowspan
+            occupied[sr][col] != 0 && continue
             rspan = 1
             for next_sr = sr+1:n_sub
                 pb = partial_borders[next_sr-1]
@@ -350,12 +325,9 @@ function _parse_row_group!(
         end
     end
 
-    # Group cells by their first sub-row into separate TableRow nodes
-    # wrapped in a TableRows container.
     group = Node(TableRows())
     append_child(parent, group)
 
-    # Build cell nodes keyed by cell_id for assignment to sub-rows.
     cell_nodes = Vector{Node}(undef, length(cell_registry))
     for (cell_id, cell_def) in enumerate(cell_registry)
         col, cspan, rspan = cell_def.col, cell_def.colspan, cell_def.rowspan
@@ -373,8 +345,6 @@ function _parse_row_group!(
         cell_nodes[cell_id] = cell_node
     end
 
-    # Emit one TableRow per visual sub-row. Rowspan cells appear only in
-    # their first sub-row.
     for sr = 1:n_sub
         row = Node(TableRow())
         append_child(group, row)
@@ -382,6 +352,44 @@ function _parse_row_group!(
             cell_def.sub_rows[1] == sr || continue
             append_child(row, cell_nodes[cell_id])
         end
+    end
+end
+
+function _parse_row_group!(
+    parser,
+    parent,
+    content_lines,
+    border_above,
+    col_positions,
+    spec,
+    is_header,
+)
+    isempty(content_lines) && return
+
+    sub_groups, partial_borders = _split_by_partial_borders(content_lines, col_positions)
+
+    if length(sub_groups) == 1
+        above_plus = _partial_border_positions(border_above, col_positions)
+        _emit_row!(
+            parser,
+            parent,
+            sub_groups[1],
+            col_positions,
+            above_plus,
+            spec,
+            is_header,
+        )
+    else
+        _emit_rowspan_group!(
+            parser,
+            parent,
+            sub_groups,
+            partial_borders,
+            border_above,
+            col_positions,
+            spec,
+            is_header,
+        )
     end
 end
 
@@ -620,21 +628,19 @@ function _write_term_partial_border(
     end
 end
 
-function _write_grid_table_term(rend, table_node, gt::GridTable)
+# Pre-render all term cells, computing column widths from content.
+function _prerender_term_cells(rend, table_node, gt::GridTable)
     spec = gt.spec
     ncols = length(spec)
 
-    # Compute proportional column targets from terminal width.
-    # Table overhead: ┃_ + _│_ * (ncols-1) + _┃ = 3*ncols + 1
     overhead = 3 * ncols + 1
     budget = available_columns(rend) - overhead
     target_widths = if budget >= ncols
         _allocate_column_widths(gt.col_widths, budget, ncols)
     else
-        fill(max(1, fld(budget, ncols)), ncols)  # best-effort for very narrow terminals
+        fill(max(1, fld(budget, ncols)), ncols)
     end
 
-    # Pre-render all cells with width-constrained wrapping.
     rendered = Dict{Node,Vector{String}}()
     col_widths = fill(1, ncols)
 
@@ -661,38 +667,18 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
     end
 
     _redistribute_spanning_widths!(col_widths, table_node, rendered, _term_visible_length)
+    return rendered, col_widths
+end
 
-    # Build group_data: each group is (subrows, after_header, before_footer)
-    # where subrows is Vector{Vector{Node}} — one inner vector per visual sub-row.
-    group_data = Vector{Tuple{Vector{Vector{Node}},Bool,Bool}}()
-    child = table_node.first_child
-    while !isnull(child)
-        section = child
-        is_header = section.t isa TableHeader
-        is_foot = section.t isa TableFoot
-        entry = section.first_child
-        while !isnull(entry)
-            is_last_in_section = isnull(entry.nxt)
-            subrows = if entry.t isa TableRows
-                _collect_tablerows_subrows(entry)
-            else
-                [_collect_row_cells(entry)]
-            end
-            after_header = is_last_in_section && is_header
-            before_footer =
-                is_last_in_section &&
-                !is_foot &&
-                !isnull(child.nxt) &&
-                child.nxt.t isa TableFoot
-            push!(group_data, (subrows, after_header, before_footer))
-            entry = entry.nxt
-        end
-        child = child.nxt
-    end
+function _write_grid_table_term(rend, table_node, gt::GridTable)
+    ncols = length(gt.spec)
+    rendered, col_widths = _prerender_term_cells(rend, table_node, gt)
 
+    group_data = _collect_row_groups(table_node)
     isempty(group_data) && return
 
-    for (grp_idx, (subrows, after_header, before_footer)) in enumerate(group_data)
+    for (grp_idx, g) in enumerate(group_data)
+        subrows, after_header, before_footer = g.subrows, g.after_header, g.before_footer
         cell_subrow_lines = _distribute_rowspan_lines(subrows, rendered)
 
         for (sr_idx, sr_cells) in enumerate(subrows)
@@ -963,6 +949,49 @@ function _collect_tablerows_subrows(tablerows_node)
     return subrows
 end
 
+# Collect row groups from a grid table, yielding per-group metadata.
+# Returns Vector of (subrows, is_header, after_header, before_footer, is_footer).
+function _collect_row_groups(table_node)
+    groups = NamedTuple{
+        (:subrows, :is_header, :after_header, :before_footer, :is_footer),
+        Tuple{Vector{Vector{Node}},Bool,Bool,Bool,Bool},
+    }[]
+    child = table_node.first_child
+    while !isnull(child)
+        section = child
+        is_header = section.t isa TableHeader
+        is_foot = section.t isa TableFoot
+        entry = section.first_child
+        while !isnull(entry)
+            is_last_in_section = isnull(entry.nxt)
+            subrows = if entry.t isa TableRows
+                _collect_tablerows_subrows(entry)
+            else
+                [_collect_row_cells(entry)]
+            end
+            after_header = is_last_in_section && is_header
+            before_footer =
+                is_last_in_section &&
+                !is_foot &&
+                !isnull(child.nxt) &&
+                child.nxt.t isa TableFoot
+            push!(
+                groups,
+                (
+                    subrows = subrows,
+                    is_header = is_header,
+                    after_header = after_header,
+                    before_footer = before_footer,
+                    is_footer = is_foot,
+                ),
+            )
+            entry = entry.nxt
+        end
+        child = child.nxt
+    end
+    return groups
+end
+
 # Flatten sub-rows into a single cell list.
 function _flatten_subrows(subrows)
     cells = Node[]
@@ -1019,45 +1048,14 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
 
     _redistribute_spanning_widths!(col_widths, table_node, rendered, length)
 
-    # Build group_data: (subrows, sep) per group.
-    group_data = Vector{Tuple{Vector{Vector{Node}},Char}}()
-    child = table_node.first_child
-    while !isnull(child)
-        section = child
-        is_header = section.t isa TableHeader
-        next_section = section.nxt
+    raw_groups = _collect_row_groups(table_node)
+    isempty(raw_groups) && return
 
-        entry = section.first_child
-        while !isnull(entry)
-            is_last = isnull(entry.nxt)
-            subrows = if entry.t isa TableRows
-                _collect_tablerows_subrows(entry)
-            else
-                [_collect_row_cells(entry)]
-            end
-
-            is_foot = section.t isa TableFoot
-            if is_last
-                if is_header
-                    sep = '='
-                elseif !isnull(next_section) && next_section.t isa TableFoot
-                    sep = '='
-                elseif is_foot
-                    sep = '='
-                else
-                    sep = '-'
-                end
-            else
-                sep = is_header ? '=' : '-'
-            end
-
-            push!(group_data, (subrows, sep))
-            entry = entry.nxt
-        end
-        child = child.nxt
+    # Derive separator char per group: '=' at section boundaries, '-' elsewhere.
+    group_data = map(raw_groups) do g
+        sep = (g.is_header || g.before_footer || g.is_footer) ? '=' : '-'
+        (g.subrows, sep)
     end
-
-    isempty(group_data) && return
 
     for (grp_idx, (subrows, sep)) in enumerate(group_data)
         cell_subrow_lines = _distribute_rowspan_lines(subrows, rendered)
