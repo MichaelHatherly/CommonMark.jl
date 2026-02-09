@@ -1,0 +1,15 @@
+<table><thead><tr><th align="left">
+<p>Outer Left</p>
+</th><th align="left">
+<p>Outer Right</p>
+</th></tr></thead><tbody><tr><td align="left"><table><tbody><tr><td align="left">
+<p>A</p>
+</td><td align="left">
+<p>B</p>
+</td></tr><tr><td align="left">
+<p>C</p>
+</td><td align="left">
+<p>D</p>
+</td></tr></tbody></table></td><td align="left">
+<p>Regular cell</p>
+</td></tr></tbody></table>

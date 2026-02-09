@@ -81,18 +81,14 @@ end
 _is_full_border(line) = occursin(re_grid_border, strip(line))
 
 function _build_grid_table(parser::Parser, lines::AbstractVector)
-    # Step 1: Find finest column grid from ALL lines.
+    # Step 1: Find finest column grid from full border lines only.
+    # Non-border lines (including partial borders for rowspan) never introduce
+    # positions beyond what the full borders define, and scanning them would
+    # pick up spurious `+---` patterns from cell content (e.g. nested tables).
     col_set = Set{Int}()
     for line in lines
-        stripped = strip(line)
         if _is_full_border(line)
             union!(col_set, findall(c -> c == '+', line))
-        else
-            for pos in findall(c -> c == '+', line)
-                if pos < lastindex(line) && line[pos+1] in ('-', '=', ':')
-                    push!(col_set, pos)
-                end
-            end
         end
     end
     col_positions = sort!(collect(col_set))
@@ -493,11 +489,12 @@ end
 function write_term(gt::GridTable, rend, node, enter)
     if enter
         _write_grid_table_term(rend, node, gt)
-        rend.context[:_saved_term_buffer] = rend.format.buffer
+        stack = get!(rend.context, :_grid_term_stack, IOBuffer[])
+        push!(stack, rend.format.buffer)
         rend.format.buffer = IOBuffer()
     else
-        rend.format.buffer = rend.context[:_saved_term_buffer]
-        delete!(rend.context, :_saved_term_buffer)
+        stack = rend.context[:_grid_term_stack]
+        rend.format.buffer = pop!(stack)
     end
     return nothing
 end
@@ -810,10 +807,16 @@ end
 function write_markdown(gt::GridTable, w, node, enter)
     if enter
         _write_grid_table_markdown(w, node, gt)
+        depth = get(w.context, :_grid_md_depth, 0)
+        w.context[:_grid_md_depth] = depth + 1
         w.enabled = false
     else
-        w.enabled = true
-        linebreak(w, node)
+        depth = w.context[:_grid_md_depth] - 1
+        w.context[:_grid_md_depth] = depth
+        if depth == 0
+            w.enabled = true
+            linebreak(w, node)
+        end
     end
     return nothing
 end

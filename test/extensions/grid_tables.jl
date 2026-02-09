@@ -228,6 +228,33 @@
     show(IOContext(buf, :displaysize => (24, 12)), MIME"text/plain"(), ast)
     @test occursin("…", String(take!(buf)))
 
+    # Nested grid table inside a cell
+    text = """
+           +-------------------------+-------------------+
+           | Outer Left              | Outer Right       |
+           +=========================+===================+
+           | +------+------+         | Regular cell      |
+           | | A    | B    |         |                   |
+           | +------+------+         |                   |
+           | | C    | D    |         |                   |
+           | +------+------+         |                   |
+           +-------------------------+-------------------+
+           """
+    ast = p(text)
+    # Outer table should have 2 columns
+    table = ast.first_child
+    @test table.t isa CommonMark.GridTable
+    @test length(table.t.spec) == 2
+    # The inner table should be parsed as block content in the cell
+    body = table.first_child.nxt  # TableBody (after TableHeader)
+    row = body.first_child
+    cell1 = row.first_child
+    # First child of left cell should be a nested GridTable
+    inner = cell1.first_child
+    @test inner.t isa CommonMark.GridTable
+    @test length(inner.t.spec) == 2
+    test_grid("nested_table", ast, "grid_tables")
+
     # Colspan cell at narrow width wraps at combined target
     text = """
            +------+------+------+
