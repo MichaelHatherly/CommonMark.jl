@@ -218,6 +218,7 @@ function _is_partial_border(line, col_positions)
     _is_full_border(line) && return false
     for pos in col_positions[2:end-1]
         if pos <= lastindex(line) &&
+           isvalid(line, pos) &&
            line[pos] == '+' &&
            pos < lastindex(line) &&
            line[pos+1] in ('-', '=', ':')
@@ -324,6 +325,8 @@ function _emit_rowspan_group!(
     group = Node(TableRows())
     append_child(parent, group)
 
+    sub_vcol_maps = [[_build_vcol_map(line) for line in sg] for sg in sub_groups]
+
     cell_nodes = Vector{Node}(undef, length(cell_registry))
     for (cell_id, cell_def) in enumerate(cell_registry)
         col, cspan, rspan = cell_def.col, cell_def.colspan, cell_def.rowspan
@@ -331,7 +334,13 @@ function _emit_rowspan_group!(
         for sr in cell_def.sub_rows
             append!(
                 cell_lines,
-                _extract_cell_lines(sub_groups[sr], col_positions, col, cspan),
+                _extract_cell_lines(
+                    sub_groups[sr],
+                    col_positions,
+                    col,
+                    cspan,
+                    sub_vcol_maps[sr],
+                ),
             )
         end
         cell_content = _strip_cell_padding(cell_lines)
@@ -389,17 +398,47 @@ function _parse_row_group!(
     end
 end
 
+# Map visual column (1-based) to byte index for non-ASCII strings.
+# Returns `nothing` for ASCII (byte == visual column). For non-ASCII,
+# returns Vector{Int} where map[vcol] = byte index of char at that column,
+# with a sentinel at the end for end-of-string slicing.
+function _build_vcol_map(s::AbstractString)
+    isascii(s) && return nothing
+    map = Int[]
+    for i in eachindex(s)
+        w = max(textwidth(s[i]), 1)
+        for _ = 1:w
+            push!(map, i)
+        end
+    end
+    push!(map, ncodeunits(s) + 1)
+    return map
+end
+
 # Extract cell content lines from raw grid lines for the given column span.
-function _extract_cell_lines(lines, col_positions, col, cspan)
-    start_col = col_positions[col] + 1
-    stop_col = col_positions[col+cspan] - 1
+function _extract_cell_lines(lines, col_positions, col, cspan, vcol_maps)
+    start_vcol = col_positions[col] + 1
+    stop_vcol = col_positions[col+cspan] - 1
     cell_lines = String[]
-    for line in lines
-        if start_col <= lastindex(line)
-            s = min(stop_col, lastindex(line))
-            push!(cell_lines, string(SubString(line, start_col, s)))
+    for (line, vmap) in zip(lines, vcol_maps)
+        if vmap === nothing
+            if start_vcol <= lastindex(line)
+                push!(
+                    cell_lines,
+                    String(SubString(line, start_vcol, min(stop_vcol, lastindex(line)))),
+                )
+            else
+                push!(cell_lines, "")
+            end
         else
-            push!(cell_lines, "")
+            sb = start_vcol <= length(vmap) ? vmap[start_vcol] : ncodeunits(line) + 1
+            if sb > ncodeunits(line)
+                push!(cell_lines, "")
+            else
+                eb =
+                    stop_vcol + 1 <= length(vmap) ? vmap[stop_vcol+1] - 1 : ncodeunits(line)
+                push!(cell_lines, String(SubString(line, sb, min(eb, ncodeunits(line)))))
+            end
         end
     end
     return cell_lines
@@ -436,13 +475,15 @@ function _emit_row!(
     isempty(content_lines) && return
 
     cells = _detect_colspan_from_plus(col_positions, above_plus)
+    vcol_maps = [_build_vcol_map(line) for line in content_lines]
 
     row = Node(TableRow())
     append_child(parent, row)
 
     for cell_def in cells
         col, cspan = cell_def.col, cell_def.colspan
-        cell_lines = _extract_cell_lines(content_lines, col_positions, col, cspan)
+        cell_lines =
+            _extract_cell_lines(content_lines, col_positions, col, cspan, vcol_maps)
 
         cell_content = _strip_cell_padding(cell_lines)
         align = col <= length(spec) ? spec[col] : :left

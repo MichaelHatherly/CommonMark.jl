@@ -255,6 +255,17 @@
     @test length(inner.t.spec) == 2
     test_grid("nested_table", ast, "grid_tables")
 
+    # Unicode (CJK) content — multi-byte chars must not cause StringIndexError
+    text = """
+           +------------+------+
+           | こんにちは | 世界 |
+           +============+======+
+           | テスト     | OK   |
+           +------------+------+
+           """
+    ast = p(text)
+    test_grid("unicode_cjk", ast, "grid_tables")
+
     # Colspan cell at narrow width wraps at combined target
     text = """
            +------+------+------+
