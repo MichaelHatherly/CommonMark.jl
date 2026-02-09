@@ -6,6 +6,6 @@ Line two</p>
 </th></tr></thead><tbody><tr><td align="left">
 <p>Body</p>
 </td><td align="left">
-<p>Multi<br />
+<p>Multi
 line too</p>
 </td></tr></tbody></table>

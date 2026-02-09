@@ -27,8 +27,6 @@ struct GridTable <: TableComponent
     col_widths::Vector{Float64}
 end
 
-continue_(::GridTable, parser::Parser, ::Node) = parser.blank ? 1 : 0
-
 const re_grid_border = r"^\+[-=:]+(\+[-=:]+)*\+\s*$"
 
 function parse_grid_table(parser::Parser, container::Node)
@@ -80,8 +78,7 @@ end
 # --- Parser internals ---
 
 # A full border starts with + and matches re_grid_border.
-_is_full_border(line) =
-    startswith(strip(line), '+') && occursin(re_grid_border, strip(line))
+_is_full_border(line) = occursin(re_grid_border, strip(line))
 
 function _build_grid_table(parser::Parser, lines::AbstractVector)
     # Step 1: Find finest column grid from ALL lines.
@@ -364,16 +361,10 @@ function _parse_row_group!(
         col, cspan, rspan = cell_def.col, cell_def.colspan, cell_def.rowspan
         cell_lines = String[]
         for sr in cell_def.sub_rows
-            start_col = col_positions[col] + 1
-            stop_col = col_positions[col+cspan] - 1
-            for line in sub_groups[sr]
-                if start_col <= lastindex(line)
-                    s = min(stop_col, lastindex(line))
-                    push!(cell_lines, string(SubString(line, start_col, s)))
-                else
-                    push!(cell_lines, "")
-                end
-            end
+            append!(
+                cell_lines,
+                _extract_cell_lines(sub_groups[sr], col_positions, col, cspan),
+            )
         end
         cell_content = _strip_cell_padding(cell_lines)
         align = col <= length(spec) ? spec[col] : :left
@@ -392,6 +383,22 @@ function _parse_row_group!(
             append_child(row, cell_nodes[cell_id])
         end
     end
+end
+
+# Extract cell content lines from raw grid lines for the given column span.
+function _extract_cell_lines(lines, col_positions, col, cspan)
+    start_col = col_positions[col] + 1
+    stop_col = col_positions[col+cspan] - 1
+    cell_lines = String[]
+    for line in lines
+        if start_col <= lastindex(line)
+            s = min(stop_col, lastindex(line))
+            push!(cell_lines, string(SubString(line, start_col, s)))
+        else
+            push!(cell_lines, "")
+        end
+    end
+    return cell_lines
 end
 
 # Detect colspan from a set of + positions in a border line.
@@ -431,17 +438,7 @@ function _emit_row!(
 
     for cell_def in cells
         col, cspan = cell_def.col, cell_def.colspan
-        start_col = col_positions[col] + 1
-        stop_col = col_positions[col+cspan] - 1
-        cell_lines = String[]
-        for line in content_lines
-            if start_col <= lastindex(line)
-                s = min(stop_col, lastindex(line))
-                push!(cell_lines, string(SubString(line, start_col, s)))
-            else
-                push!(cell_lines, "")
-            end
-        end
+        cell_lines = _extract_cell_lines(content_lines, col_positions, col, cspan)
 
         cell_content = _strip_cell_padding(cell_lines)
         align = col <= length(spec) ? spec[col] : :left
@@ -456,10 +453,7 @@ function _parse_cell_content!(parser, cell_node, cell_content)
     sub_parser = Parser()
     for rule in parser.rules
         ruleoccursin(rule, sub_parser.rules) && continue
-        try
-            enable!(sub_parser, rule)
-        catch
-        end
+        enable!(sub_parser, rule)
     end
     sub_doc = sub_parser(cell_content)
     child = sub_doc.first_child
@@ -473,8 +467,7 @@ end
 function _strip_cell_padding(lines::Vector{String})
     stripped = map(lines) do line
         s = startswith(line, ' ') ? SubString(line, 2) : line
-        s = endswith(s, ' ') ? SubString(s, 1, prevind(s, lastindex(s))) : s
-        string(s)
+        string(rstrip(s))
     end
     while !isempty(stripped) && isempty(strip(stripped[end]))
         pop!(stripped)
@@ -510,8 +503,11 @@ function write_typst(gt::GridTable, rend, node, enter)
     if enter
         align = "align: (" * join(gt.spec, ", ") * ")"
         columns = "columns: $(length(gt.spec))"
-        fill = "fill: (x, y) => if y == 0 { rgb(\"#e5e7eb\") }"
-        println(rend.buffer, "#table($align, $columns, $fill,")
+        parts = ["$align", "$columns"]
+        if !isnull(node.first_child) && node.first_child.t isa TableHeader
+            push!(parts, "fill: (x, y) => if y == 0 { rgb(\"#e5e7eb\") }")
+        end
+        println(rend.buffer, "#table(", join(parts, ", "), ",")
     else
         println(rend.buffer, ")")
     end
@@ -700,22 +696,7 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
         end
     end
 
-    # Redistribute excess from spanning cells.
-    for (n, ent) in table_node
-        if ent && n.t isa TableCell && n.t.colspan > 1
-            max_w =
-                mapreduce(_term_visible_length, max, get(rendered, n, String[""]); init = 0)
-            tc = n.t
-            combined = _spanning_width(col_widths, tc.column, tc.colspan)
-            if max_w > combined
-                excess = max_w - combined
-                per_col = cld(excess, tc.colspan)
-                for c = tc.column:tc.column+tc.colspan-1
-                    col_widths[c] += per_col
-                end
-            end
-        end
-    end
+    _redistribute_spanning_widths!(col_widths, table_node, rendered, _term_visible_length)
 
     # Build group_data: each group is (subrows, after_header, before_footer)
     # where subrows is Vector{Vector{Node}} — one inner vector per visual sub-row.
@@ -748,57 +729,10 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
     isempty(group_data) && return
 
     for (grp_idx, (subrows, after_header, before_footer)) in enumerate(group_data)
-        # Allocate rendered lines to sub-rows for rowspan cells.
-        all_cells = _flatten_subrows(subrows)
-        cell_subrow_lines = Dict{Node,Vector{Vector{String}}}()
-        for cell in all_cells
-            tc = cell.t
-            lines = get(rendered, cell, String[""])
-            if tc.rowspan > 1
-                n_visual = tc.rowspan
-                lines_per = cld(length(lines), n_visual)
-                dist = Vector{Vector{String}}()
-                for sr = 1:n_visual
-                    start_l = (sr - 1) * lines_per + 1
-                    end_l = min(sr * lines_per, length(lines))
-                    if start_l <= length(lines)
-                        push!(dist, lines[start_l:end_l])
-                    else
-                        push!(dist, String[""])
-                    end
-                end
-                cell_subrow_lines[cell] = dist
-            end
-        end
+        cell_subrow_lines = _distribute_rowspan_lines(subrows, rendered)
 
         for (sr_idx, sr_cells) in enumerate(subrows)
-            active_cells = Node[]
-            active_occupied = falses(ncols)
-
-            if sr_idx > 1
-                for prev_sr = 1:sr_idx-1
-                    for cell in subrows[prev_sr]
-                        tc = cell.t
-                        if tc.rowspan > 1 && prev_sr + tc.rowspan - 1 >= sr_idx
-                            col_range = tc.column:tc.column+tc.colspan-1
-                            if !any(active_occupied[col_range])
-                                push!(active_cells, cell)
-                                active_occupied[col_range] .= true
-                            end
-                        end
-                    end
-                end
-            end
-
-            for cell in sr_cells
-                col_range = cell.t.column:cell.t.column+cell.t.colspan-1
-                if !any(active_occupied[col_range])
-                    push!(active_cells, cell)
-                    active_occupied[col_range] .= true
-                end
-            end
-
-            sort!(active_cells; by = c -> c.t.column)
+            active_cells = _get_active_cells_for_subrow(subrows, sr_idx, ncols)
 
             # Top border for first sub-row of first group.
             if grp_idx == 1 && sr_idx == 1
@@ -818,23 +752,14 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
                 )
             end
 
-            # Get lines for each cell.
-            function get_cell_lines(cell)
-                if haskey(cell_subrow_lines, cell)
-                    dist = cell_subrow_lines[cell]
-                    cell_sr = sr_idx - _cell_start_subrow(cell, subrows) + 1
-                    if cell_sr >= 1 && cell_sr <= length(dist)
-                        return dist[cell_sr]
-                    end
-                    return String[""]
-                else
-                    return get(rendered, cell, String[""])
-                end
-            end
-
             max_lines = 1
             for cell in active_cells
-                max_lines = max(max_lines, length(get_cell_lines(cell)))
+                max_lines = max(
+                    max_lines,
+                    length(
+                        _get_cell_lines(cell, sr_idx, cell_subrow_lines, rendered, subrows),
+                    ),
+                )
             end
 
             for line_idx = 1:max_lines
@@ -843,7 +768,8 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
                     col = cell.t.column
                     cspan = cell.t.colspan
                     width = _spanning_width(col_widths, col, cspan)
-                    lines = get_cell_lines(cell)
+                    lines =
+                        _get_cell_lines(cell, sr_idx, cell_subrow_lines, rendered, subrows)
                     cell_line = line_idx <= length(lines) ? lines[line_idx] : ""
                     vis_len = _term_visible_length(cell_line)
                     pad = width - vis_len
@@ -861,23 +787,8 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
 
             # Partial border between sub-rows.
             if sr_idx < length(subrows)
-                next_occupied = falses(ncols)
-                for cell in active_cells
-                    tc = cell.t
-                    cell_start = _cell_start_subrow(cell, subrows)
-                    if cell_start + tc.rowspan - 1 > sr_idx
-                        col_range = tc.column:tc.column+tc.colspan-1
-                        next_occupied[col_range] .= true
-                    end
-                end
-                next_sr_cells = Node[]
-                for cell in subrows[sr_idx+1]
-                    col_range = cell.t.column:cell.t.column+cell.t.colspan-1
-                    if !any(next_occupied[col_range])
-                        push!(next_sr_cells, cell)
-                    end
-                end
-                sort!(next_sr_cells; by = c -> c.t.column)
+                next_occupied, next_sr_cells =
+                    _compute_partial_border_info(active_cells, subrows, sr_idx, ncols)
                 _write_term_partial_border(
                     rend,
                     col_widths,
@@ -986,6 +897,89 @@ function write_markdown(gt::GridTable, w, node, enter)
         linebreak(w, node)
     end
     return nothing
+end
+
+# --- Shared writer helpers ---
+
+# Redistribute excess width from spanning cells into col_widths.
+# `width_fn` measures a line's display width (e.g. `length` or `_term_visible_length`).
+function _redistribute_spanning_widths!(col_widths, table_node, rendered, width_fn)
+    for (n, ent) in table_node
+        if ent && n.t isa TableCell && n.t.colspan > 1
+            max_w = mapreduce(width_fn, max, get(rendered, n, String[""]); init = 0)
+            tc = n.t
+            combined = _spanning_width(col_widths, tc.column, tc.colspan)
+            if max_w > combined
+                excess = max_w - combined
+                per_col = cld(excess, tc.colspan)
+                for c = tc.column:tc.column+tc.colspan-1
+                    col_widths[c] += per_col
+                end
+            end
+        end
+    end
+end
+
+# Distribute rendered lines across sub-rows for rowspan cells.
+function _distribute_rowspan_lines(subrows, rendered)
+    all_cells = _flatten_subrows(subrows)
+    cell_subrow_lines = Dict{Node,Vector{Vector{String}}}()
+    for cell in all_cells
+        tc = cell.t
+        lines = get(rendered, cell, String[""])
+        if tc.rowspan > 1
+            n_visual = tc.rowspan
+            lines_per = cld(length(lines), n_visual)
+            dist = Vector{Vector{String}}()
+            for sr = 1:n_visual
+                start_l = (sr - 1) * lines_per + 1
+                end_l = min(sr * lines_per, length(lines))
+                if start_l <= length(lines)
+                    push!(dist, lines[start_l:end_l])
+                else
+                    push!(dist, String[""])
+                end
+            end
+            cell_subrow_lines[cell] = dist
+        end
+    end
+    return cell_subrow_lines
+end
+
+# Get lines for a cell at a given sub-row index, handling rowspan distribution.
+function _get_cell_lines(cell, sr_idx, cell_subrow_lines, rendered, subrows)
+    if haskey(cell_subrow_lines, cell)
+        dist = cell_subrow_lines[cell]
+        cell_sr = sr_idx - _cell_start_subrow(cell, subrows) + 1
+        if cell_sr >= 1 && cell_sr <= length(dist)
+            return dist[cell_sr]
+        end
+        return String[""]
+    else
+        return get(rendered, cell, String[""])
+    end
+end
+
+# Compute spanning columns and next-row cells for partial borders between sub-rows.
+function _compute_partial_border_info(active_cells, subrows, sr_idx, ncols)
+    next_occupied = falses(ncols)
+    for cell in active_cells
+        tc = cell.t
+        cell_start = _cell_start_subrow(cell, subrows)
+        if cell_start + tc.rowspan - 1 > sr_idx
+            col_range = tc.column:tc.column+tc.colspan-1
+            next_occupied[col_range] .= true
+        end
+    end
+    next_sr_cells = Node[]
+    for cell in subrows[sr_idx+1]
+        col_range = cell.t.column:cell.t.column+cell.t.colspan-1
+        if !any(next_occupied[col_range])
+            push!(next_sr_cells, cell)
+        end
+    end
+    sort!(next_sr_cells; by = c -> c.t.column)
+    return next_occupied, next_sr_cells
 end
 
 # Compute the effective width of a spanning cell: sum of spanned column widths
@@ -1124,21 +1118,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
         end
     end
 
-    # Redistribute excess width from spanning cells.
-    for (n, ent) in table_node
-        if ent && n.t isa TableCell && n.t.colspan > 1
-            max_w = mapreduce(length, max, get(rendered, n, String[""]); init = 0)
-            tc = n.t
-            combined = _spanning_width(col_widths, tc.column, tc.colspan)
-            if max_w > combined
-                excess = max_w - combined
-                per_col = cld(excess, tc.colspan)
-                for c = tc.column:tc.column+tc.colspan-1
-                    col_widths[c] += per_col
-                end
-            end
-        end
-    end
+    _redistribute_spanning_widths!(col_widths, table_node, rendered, length)
 
     # Build group_data: (subrows, sep) per group.
     group_data = Vector{Tuple{Vector{Vector{Node}},Char}}()
@@ -1181,57 +1161,10 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
     isempty(group_data) && return
 
     for (grp_idx, (subrows, sep)) in enumerate(group_data)
-        # Allocate rendered lines to sub-rows for cells with rowspan.
-        all_cells = _flatten_subrows(subrows)
-        cell_subrow_lines = Dict{Node,Vector{Vector{String}}}()
-        for cell in all_cells
-            tc = cell.t
-            lines = get(rendered, cell, String[""])
-            if tc.rowspan > 1
-                n_visual = tc.rowspan
-                lines_per = cld(length(lines), n_visual)
-                dist = Vector{Vector{String}}()
-                for sr = 1:n_visual
-                    start_l = (sr - 1) * lines_per + 1
-                    end_l = min(sr * lines_per, length(lines))
-                    if start_l <= length(lines)
-                        push!(dist, lines[start_l:end_l])
-                    else
-                        push!(dist, String[""])
-                    end
-                end
-                cell_subrow_lines[cell] = dist
-            end
-        end
+        cell_subrow_lines = _distribute_rowspan_lines(subrows, rendered)
 
         for (sr_idx, sr_cells) in enumerate(subrows)
-            active_cells = Node[]
-            active_occupied = falses(ncols)
-
-            if sr_idx > 1
-                for prev_sr = 1:sr_idx-1
-                    for cell in subrows[prev_sr]
-                        tc = cell.t
-                        if tc.rowspan > 1 && prev_sr + tc.rowspan - 1 >= sr_idx
-                            col_range = tc.column:tc.column+tc.colspan-1
-                            if !any(active_occupied[col_range])
-                                push!(active_cells, cell)
-                                active_occupied[col_range] .= true
-                            end
-                        end
-                    end
-                end
-            end
-
-            for cell in sr_cells
-                col_range = cell.t.column:cell.t.column+cell.t.colspan-1
-                if !any(active_occupied[col_range])
-                    push!(active_cells, cell)
-                    active_occupied[col_range] .= true
-                end
-            end
-
-            sort!(active_cells; by = c -> c.t.column)
+            active_cells = _get_active_cells_for_subrow(subrows, sr_idx, ncols)
 
             # Top border for first sub-row of first group.
             if grp_idx == 1 && sr_idx == 1
@@ -1246,22 +1179,14 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
                 )
             end
 
-            function get_cell_lines(cell)
-                if haskey(cell_subrow_lines, cell)
-                    dist = cell_subrow_lines[cell]
-                    cell_sr = sr_idx - _cell_start_subrow(cell, subrows) + 1
-                    if cell_sr >= 1 && cell_sr <= length(dist)
-                        return dist[cell_sr]
-                    end
-                    return String[""]
-                else
-                    return get(rendered, cell, String[""])
-                end
-            end
-
             max_lines = 1
             for cell in active_cells
-                max_lines = max(max_lines, length(get_cell_lines(cell)))
+                max_lines = max(
+                    max_lines,
+                    length(
+                        _get_cell_lines(cell, sr_idx, cell_subrow_lines, rendered, subrows),
+                    ),
+                )
             end
 
             for line_idx = 1:max_lines
@@ -1270,7 +1195,8 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
                     col = cell.t.column
                     cspan = cell.t.colspan
                     width = _spanning_width(col_widths, col, cspan)
-                    lines = get_cell_lines(cell)
+                    lines =
+                        _get_cell_lines(cell, sr_idx, cell_subrow_lines, rendered, subrows)
                     cell_line = line_idx <= length(lines) ? lines[line_idx] : ""
                     pad = width - length(cell_line)
                     literal(w, "| ", cell_line, " "^max(pad, 0), " ")
@@ -1281,23 +1207,8 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
 
             # Partial border between sub-rows.
             if sr_idx < length(subrows)
-                next_sr_cells = Node[]
-                next_occupied = falses(ncols)
-                for cell in active_cells
-                    tc = cell.t
-                    cell_start = _cell_start_subrow(cell, subrows)
-                    if cell_start + tc.rowspan - 1 > sr_idx
-                        col_range = tc.column:tc.column+tc.colspan-1
-                        next_occupied[col_range] .= true
-                    end
-                end
-                for cell in subrows[sr_idx+1]
-                    col_range = cell.t.column:cell.t.column+cell.t.colspan-1
-                    if !any(next_occupied[col_range])
-                        push!(next_sr_cells, cell)
-                    end
-                end
-                sort!(next_sr_cells; by = c -> c.t.column)
+                next_occupied, next_sr_cells =
+                    _compute_partial_border_info(active_cells, subrows, sr_idx, ncols)
                 _write_grid_partial_border(
                     w,
                     col_widths,
