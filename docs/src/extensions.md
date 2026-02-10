@@ -128,6 +128,81 @@ ast = parser("""
 html(ast)
 ```
 
+## Definition Lists
+
+Pandoc-compatible definition lists. Terms are plain text lines followed by
+definitions marked with `:` and 1–3 spaces.
+
+```@example ext
+parser = Parser()
+enable!(parser, DefinitionListRule())
+
+ast = parser("""
+Term
+:   Definition of the term.
+""")
+html(ast)
+```
+
+### Multiple Definitions
+
+A term can have several definitions.
+
+```@example ext
+ast = parser("""
+Term
+:   First definition.
+:   Second definition.
+""")
+html(ast)
+```
+
+### Multiple Terms
+
+Separate groups with blank lines. Adjacent groups merge into a single list.
+
+```@example ext
+ast = parser("""
+Apple
+:   A fruit.
+
+Orange
+:   Another fruit.
+""")
+html(ast)
+```
+
+### Loose Definitions
+
+A blank line between the term and `:` wraps content in `<p>` tags.
+
+```@example ext
+ast = parser("""
+Term
+
+:   Loose definition.
+""")
+html(ast)
+```
+
+### Block Content
+
+Definitions can contain multiple paragraphs, lists, and other block elements.
+Continuation lines are indented by 4 spaces.
+
+```@example ext
+ast = parser("""
+Term
+:   First paragraph.
+
+    Second paragraph.
+
+    - item one
+    - item two
+""")
+html(ast)
+```
+
 ## Admonitions
 
 Callout boxes for notes, warnings, tips, and other highlighted content.
