@@ -1,0 +1,15 @@
+<table><thead><tr><th align="left">
+<p>H1</p>
+</th><th align="left">
+<p>H2</p>
+</th></tr></thead><tbody><tr><td align="left">
+<p>B1</p>
+</td><td align="left">
+<p>B2</p>
+</td></tr></tbody><tfoot><tr><td align="left" rowspan="2">
+<p>F1</p>
+</td><td align="left">
+<p>FA</p>
+</td></tr><tr><td align="left">
+<p>FB</p>
+</td></tr></tfoot></table>

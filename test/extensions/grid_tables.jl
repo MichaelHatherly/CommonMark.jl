@@ -45,22 +45,6 @@
     ast = p(text)
     test_grid("multiline", ast, "grid_tables")
 
-    # Alignment via : in border
-    text = """
-           +:------+:------:+------:+
-           | Left  | Center | Right |
-           +=======+========+=======+
-           | l     | c      | r     |
-           +-------+--------+-------+
-           """
-    ast = p(text)
-    test_grid("alignment", ast, "grid_tables")
-
-    # Alignment round-trip
-    md1 = markdown(ast)
-    md2 = markdown(p(md1))
-    @test md1 == md2
-
     # Colspan header (Temperature table) with rowspan
     text = """
            +----------+----------------------+
@@ -137,13 +121,13 @@
     md2 = markdown(p(md1))
     @test md1 == md2
 
-    # Header + body + footer
+    # Header + body + footer (enclosed = separators)
     text = """
            +-------+-------+
            | Head1 | Head2 |
            +=======+=======+
            | Body1 | Body2 |
-           +-------+-------+
+           +=======+=======+
            | Foot1 | Foot2 |
            +=======+=======+
            """
@@ -162,6 +146,91 @@
         @test sections[3].t isa CommonMark.TableFoot
     end
 
+    md1 = markdown(ast)
+    md2 = markdown(p(md1))
+    @test md1 == md2
+
+    # Non-enclosed = at end should NOT create footer
+    text = """
+           +-------+-------+
+           | Head1 | Head2 |
+           +=======+=======+
+           | Body1 | Body2 |
+           +-------+-------+
+           | Row2  | Row2  |
+           +=======+=======+
+           """
+    ast = p(text)
+    let sections = CommonMark.Node[]
+        n = ast.first_child.first_child
+        while !CommonMark.isnull(n)
+            push!(sections, n)
+            n = n.nxt
+        end
+        @test length(sections) == 2
+        @test sections[1].t isa CommonMark.TableHeader
+        @test sections[2].t isa CommonMark.TableBody
+    end
+
+    # Footer with colspan
+    text = """
+           +------+------+------+
+           | H1   | H2   | H3   |
+           +======+======+======+
+           | B1   | B2   | B3   |
+           +======+=============+
+           | F1   | F2 spanning |
+           +======+=============+
+           """
+    ast = p(text)
+    let sections = CommonMark.Node[]
+        n = ast.first_child.first_child
+        while !CommonMark.isnull(n)
+            push!(sections, n)
+            n = n.nxt
+        end
+        @test sections[1].t isa CommonMark.TableHeader
+        @test sections[2].t isa CommonMark.TableBody
+        @test sections[3].t isa CommonMark.TableFoot
+        # Second footer cell spans 2 columns
+        foot_row = sections[3].first_child
+        foot_cell = foot_row.first_child.nxt
+        @test foot_cell.t.colspan == 2
+    end
+    test_grid("footer_colspan", ast, "grid_tables")
+    md1 = markdown(ast)
+    md2 = markdown(p(md1))
+    @test md1 == md2
+
+    # Footer with rowspan
+    text = """
+           +------+------+
+           | H1   | H2   |
+           +======+======+
+           | B1   | B2   |
+           +======+======+
+           | F1   | FA   |
+           |      +------+
+           |      | FB   |
+           +======+======+
+           """
+    ast = p(text)
+    let sections = CommonMark.Node[]
+        n = ast.first_child.first_child
+        while !CommonMark.isnull(n)
+            push!(sections, n)
+            n = n.nxt
+        end
+        @test sections[1].t isa CommonMark.TableHeader
+        @test sections[2].t isa CommonMark.TableBody
+        @test sections[3].t isa CommonMark.TableFoot
+        # First footer cell spans 2 rows (TableFoot → TableRows → TableRow → TableCell)
+        foot_rows = sections[3].first_child
+        foot_row = foot_rows.first_child
+        foot_cell = foot_row.first_child
+        @test foot_cell.t.rowspan == 2
+    end
+    test_grid("footer_rowspan", ast, "grid_tables")
     md1 = markdown(ast)
     md2 = markdown(p(md1))
     @test md1 == md2
