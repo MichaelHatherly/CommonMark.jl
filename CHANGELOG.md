@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `TableFoot`, `TableRows`, `rowspan`, and `colspan` fields to shared table types (used by `GridTableRule`) [#138]
 - Track `raw` flag on `HtmlInline`/`HtmlBlock` nodes for markdown roundtrip fidelity [#138]
 - Add `ShortcodeRule` extension for Hugo/Quarto-style shortcodes with configurable delimiters, parse-time handlers, and write-time transforms [#140]
+- Add `DefinitionListRule` extension for Pandoc-compatible definition lists with tight/loose rendering and multi-format output [#141]
 
 ### Fixed
 
@@ -453,3 +454,4 @@ Initial release.
 [#136]: https://github.com/MichaelHatherly/CommonMark.jl/issues/136
 [#138]: https://github.com/MichaelHatherly/CommonMark.jl/issues/138
 [#140]: https://github.com/MichaelHatherly/CommonMark.jl/issues/140
+[#141]: https://github.com/MichaelHatherly/CommonMark.jl/issues/141

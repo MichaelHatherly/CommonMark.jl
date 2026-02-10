@@ -133,7 +133,12 @@ function ends_with_blank_line(block::Node)
         if block.last_line_blank
             return true
         end
-        if !block.last_line_checked && (block.t isa List || block.t isa Item)
+        if !block.last_line_checked && (
+            block.t isa List ||
+            block.t isa Item ||
+            block.t isa DefinitionList ||
+            block.t isa DefinitionDescription
+        )
             block.last_line_checked = true
             block = block.last_child
         else
@@ -314,6 +319,8 @@ peek_nonspace(p::Parser, default = '\0') = get(p.buf, p.next_nonspace, default)
     t isa BlockQuote && return true
     t isa CodeBlock && return (t::CodeBlock).is_fenced
     t isa Item && return isnull(container.first_child) &&
+           container.sourcepos[1][1] == parser.line_number
+    t isa DefinitionDescription && return isnull(container.first_child) &&
            container.sourcepos[1][1] == parser.line_number
     return false
 end

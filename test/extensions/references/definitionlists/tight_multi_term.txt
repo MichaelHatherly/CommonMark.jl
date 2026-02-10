@@ -1,0 +1,4 @@
+ [1mTerm 1[22m
+   Definition 1
+ [1mTerm 2[22m
+   Definition 2
