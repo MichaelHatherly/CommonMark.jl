@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `GridTableRule` extension for Pandoc-style grid tables with colspan, rowspan, headers, footers, and multiline cells [#138]
 - Add inline display dollar math (`$$...$$` within paragraphs) and preserve original math syntax in AST [#138]
-- Add `TableFoot`, `TableRows`, `rowspan`, and `colspan` support to table extension [#138]
+- Add `TableFoot`, `TableRows`, `rowspan`, and `colspan` fields to shared table types (used by `GridTableRule`) [#138]
 - Track `raw` flag on `HtmlInline`/`HtmlBlock` nodes for markdown roundtrip fidelity [#138]
 - Add `ShortcodeRule` extension for Hugo/Quarto-style shortcodes with configurable delimiters, parse-time handlers, and write-time transforms [#140]
 
