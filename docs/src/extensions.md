@@ -30,6 +30,104 @@ Alignment is set with colons in the separator: `:---` left, `---:` right,
 `:---:` center. Cells can contain inline formatting. Escape literal pipes
 with backslashes.
 
+## Grid Tables
+
+Pandoc-compatible grid tables for multi-line cells, colspan, rowspan, and
+block content within cells. More powerful than pipe tables but with heavier
+syntax.
+
+```@example ext
+parser = Parser()
+enable!(parser, GridTableRule())
+
+ast = parser("""
++-------+-------+-------+
+| Head1 | Head2 | Head3 |
++=======+=======+=======+
+| Body1 | Body2 | Body3 |
++-------+-------+-------+
+| Row 2 | Row 2 | Row 2 |
++-------+-------+-------+
+""")
+html(ast)
+```
+
+### Multi-line Cells
+
+Cells can span multiple lines and contain block content like paragraphs,
+lists, and code blocks.
+
+```@example ext
+ast = parser("""
++----------+----------+
+| Line one | Single   |
+| Line two |          |
++==========+==========+
+| Body     | - Item 1 |
+|          | - Item 2 |
++----------+----------+
+""")
+html(ast)
+```
+
+### Colspan and Rowspan
+
+Omitting `+` in a border merges cells horizontally (colspan). Partial
+borders between rows merge cells vertically (rowspan).
+
+```@example ext
+ast = parser("""
++----------+----------------------+
+| Location | Temperature          |
+|          +------+------+--------+
+|          | min  | mean | max    |
++==========+======+======+========+
+| Chicago  | -10  | 15   | 35     |
++----------+------+------+--------+
+| Berlin   | -5   | 12   | 30     |
++----------+------+------+--------+
+""")
+html(ast)
+```
+
+Here "Location" spans two rows and "Temperature" spans three columns.
+
+### Footer
+
+Enclose the last rows with `=` separators to create a `<tfoot>` section.
+
+```@example ext
+ast = parser("""
++-------+-------+
+| Head1 | Head2 |
++=======+=======+
+| Body1 | Body2 |
++=======+=======+
+| Foot1 | Foot2 |
++=======+=======+
+""")
+html(ast)
+```
+
+### Nested Tables
+
+Cells can contain nested grid tables.
+
+```@example ext
+ast = parser("""
++-------------------------+---------------+
+| Outer Left              | Outer Right   |
++=========================+===============+
+| +------+------+         | Regular cell  |
+| | A    | B    |         |               |
+| +------+------+         |               |
+| | C    | D    |         |               |
+| +------+------+         |               |
++-------------------------+---------------+
+""")
+html(ast)
+```
+
 ## Admonitions
 
 Callout boxes for notes, warnings, tips, and other highlighted content.

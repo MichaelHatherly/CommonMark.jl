@@ -4,7 +4,8 @@
 Parse Pandoc-style grid tables with multi-line cells and block content.
 
 Not enabled by default. Grid tables use `+` and `-` for borders and `|` for
-column separators. Header rows use `=` instead of `-` in the separator.
+column separators. Header rows use `=` instead of `-` in the separator. Footer rows are
+enclosed by `=` separators at the bottom of the table.
 
 ```markdown
 +-------+-------+
@@ -14,8 +15,7 @@ column separators. Header rows use `=` instead of `-` in the separator.
 +-------+-------+
 ```
 
-Supports alignment (`:` in separator) and multi-line cells with block
-content (paragraphs, lists, code blocks).
+Supports multi-line cells with block content (paragraphs, lists, code blocks).
 """
 struct GridTableRule end
 
@@ -27,7 +27,7 @@ struct GridTable <: TableComponent
     col_widths::Vector{Float64}
 end
 
-const re_grid_border = r"^\+[-=:]+(\+[-=:]+)*\+\s*$"
+const re_grid_border = r"^\+[-=]+(\+[-=]+)*\+\s*$"
 
 function parse_grid_table(parser::Parser, container::Node)
     parser.indented && return 0
@@ -110,7 +110,8 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
     spec, col_widths = _parse_grid_spec(spec_border, col_positions)
 
     # Step 2: Classify lines into row groups separated by full borders
-    # that have + at ALL fine-grid positions.
+    # that have + at ALL fine-grid positions, or = borders (header/footer)
+    # which may have missing + for colspan.
     sections = Vector{Vector{String}}()
     separators = String[string(strip(lines[1]))]
     current_section = String[]
@@ -118,8 +119,10 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
     for i = 2:length(lines)
         line = lines[i]
         stripped = strip(line)
-        if _is_full_border(line) &&
-           all(p -> p <= lastindex(line) && line[p] == '+', col_positions)
+        if _is_full_border(line) && (
+            all(p -> p <= lastindex(line) && line[p] == '+', col_positions) ||
+            occursin('=', stripped)
+        )
             push!(sections, current_section)
             push!(separators, string(stripped))
             current_section = String[]
@@ -131,7 +134,10 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
     isempty(sections) && return nothing
 
     has_header = length(separators) >= 2 && occursin('=', separators[2])
-    has_footer = length(separators) > 2 && occursin('=', separators[end])
+    has_footer =
+        length(separators) > 2 &&
+        occursin('=', separators[end]) &&
+        occursin('=', separators[end-1])
     if has_header && has_footer && length(sections) == 1
         has_footer = false
     end
@@ -198,14 +204,7 @@ function _parse_grid_spec(border::AbstractString, col_positions::Vector{Int})
     for i = 1:ncols
         start = col_positions[i] + 1
         stop = col_positions[i+1] - 1
-        if stop >= start && stop <= lastindex(border)
-            seg = SubString(border, start, stop)
-            left = startswith(seg, ':')
-            right = endswith(seg, ':')
-            spec[i] = (left && right) ? :center : right ? :right : :left
-        else
-            spec[i] = :left
-        end
+        spec[i] = :left
         widths[i] = Float64(max(stop - start + 1, 1))
         total += widths[i]
     end
@@ -221,7 +220,7 @@ function _is_partial_border(line, col_positions)
            isvalid(line, pos) &&
            line[pos] == '+' &&
            pos < lastindex(line) &&
-           line[pos+1] in ('-', '=', ':')
+           line[pos+1] in ('-', '=')
             return true
         end
     end
@@ -1109,15 +1108,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
 
             # Top border for first sub-row of first group.
             if grp_idx == 1 && sr_idx == 1
-                _write_grid_border_for_cells(
-                    w,
-                    col_widths,
-                    spec,
-                    '-',
-                    active_cells,
-                    ncols;
-                    align = true,
-                )
+                _write_grid_border_for_cells(w, col_widths, spec, '-', active_cells, ncols)
             end
 
             max_lines = 1
@@ -1213,17 +1204,8 @@ function _get_active_cells_for_subrow(subrows, sr_idx, ncols)
 end
 
 # Write a border line where cell boundaries determine + placement.
-function _write_grid_border_for_cells(
-    w,
-    col_widths,
-    spec,
-    sep::Char,
-    cells,
-    ncols;
-    align::Bool = false,
-)
+function _write_grid_border_for_cells(w, col_widths, spec, sep::Char, cells, ncols)
     bounds = _cell_boundaries(cells, ncols)
-    has_all = align && length(bounds) == ncols + 1
 
     print_margin(w)
     s = string(sep)
@@ -1233,13 +1215,7 @@ function _write_grid_border_for_cells(
         else
             literal(w, s)
         end
-        a = has_all && i <= length(spec) ? spec[i] : :left
-        left_colon = has_all && a in (:left, :center)
-        right_colon = has_all && a in (:right, :center)
-        fill_len = col_widths[i] + 2 - left_colon - right_colon
-        left_colon && literal(w, ":")
-        literal(w, s^fill_len)
-        right_colon && literal(w, ":")
+        literal(w, s^(col_widths[i] + 2))
     end
     literal(w, "+")
     cr(w)
@@ -1255,9 +1231,7 @@ function _write_grid_border_between_rows(
     cells_below,
     ncols,
 )
-    bounds_above = _cell_boundaries(cells_above, ncols)
-    bounds_below = _cell_boundaries(cells_below, ncols)
-    bounds = union(bounds_above, bounds_below)
+    bounds = _cell_boundaries(cells_below, ncols)
 
     print_margin(w)
     s = string(sep)

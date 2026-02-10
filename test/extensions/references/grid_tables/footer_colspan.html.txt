@@ -1,0 +1,17 @@
+<table><thead><tr><th align="left">
+<p>H1</p>
+</th><th align="left">
+<p>H2</p>
+</th><th align="left">
+<p>H3</p>
+</th></tr></thead><tbody><tr><td align="left">
+<p>B1</p>
+</td><td align="left">
+<p>B2</p>
+</td><td align="left">
+<p>B3</p>
+</td></tr></tbody><tfoot><tr><td align="left">
+<p>F1</p>
+</td><td align="left" colspan="2">
+<p>F2 spanning</p>
+</td></tr></tfoot></table>
