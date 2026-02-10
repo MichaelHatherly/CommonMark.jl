@@ -331,6 +331,11 @@ function write_markdown(::DefinitionDescription, w, node, enter)
         push_margin!(w, 1, ":   ", " "^4)
     else
         pop_margin!(w)
+        if !isnull(node.nxt) && node.nxt.t isa DefinitionTerm
+            cr(w)
+            print_margin_rstrip(w)
+            literal(w, "\n")
+        end
     end
 end
 
