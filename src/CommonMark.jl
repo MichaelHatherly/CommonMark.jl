@@ -53,6 +53,7 @@ export AdmonitionRule,
     SubscriptRule,
     SuperscriptRule,
     TableRule,
+    ShortcodeRule,
     TaskListRule,
     TypographyRule
 
@@ -71,7 +72,8 @@ export AdmonitionRule,
         DisplayMath, Admonition, FencedDiv, FootnoteDefinition, LaTeXBlock, TypstBlock,
         Math, Strikethrough, Mark, Subscript, Superscript, LaTeXInline, TypstInline,
         GitHubAlert, TaskItem, FootnoteLink, Citation,
-        ReferenceLink, ReferenceImage, ReferenceDefinition, UnresolvedReference
+        ReferenceLink, ReferenceImage, ReferenceDefinition, UnresolvedReference,
+        Shortcode, ShortcodeBlock, ShortcodeContext
 """,
         ),
     )

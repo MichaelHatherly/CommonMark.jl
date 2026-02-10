@@ -504,6 +504,84 @@ The format name (`html`, `latex`, `typst`) is specified in the attribute.
 The parser automatically determines inline vs block from context. Custom
 formats can be added by passing type mappings to `RawContentRule`.
 
+## Shortcodes
+
+Lightweight macros that expand into content, inspired by Hugo and Quarto.
+Shortcodes use `{{< name args >}}` syntax by default. A standalone shortcode
+on its own line becomes a block-level node; otherwise it's inline.
+
+```@example ext
+parser = Parser()
+enable!(parser, ShortcodeRule())
+
+ast = parser("Text {{< ref page >}} here.")
+html(ast)
+```
+
+Block shortcodes (standalone on a line):
+
+```@example ext
+ast = parser("{{< pagebreak >}}")
+html(ast)
+```
+
+Unexpanded shortcodes pass through to output as-is, preserving the original
+syntax. This is useful when a downstream tool handles expansion.
+
+### Parse-Time Handlers
+
+Register handlers on the rule to expand shortcodes during parsing. Handlers
+receive `(name, args, ctx::ShortcodeContext)` and return a `Node`:
+
+```@example ext
+handlers = Dict{String,Function}(
+    "greeting" => (name, args, ctx) -> CommonMark.text("Hello, " * args * "!"),
+)
+parser = Parser()
+enable!(parser, ShortcodeRule(handlers=handlers))
+
+ast = parser("Say {{< greeting world >}}.")
+html(ast)
+```
+
+The `ShortcodeContext` provides `source` (file path), `sourcepos`, and
+document `meta`. Unmatched shortcodes remain in the AST for write-time
+handling.
+
+### Write-Time Transforms
+
+For format-specific expansion, use the [Transforms](@ref transforms-page)
+system to dispatch on `Shortcode` or `ShortcodeBlock`:
+
+```@example ext
+function xform(::MIME"text/html", sc::CommonMark.Shortcode, node, entering, writer)
+    if sc.name == "icon"
+        (CommonMark.Node(CommonMark.HtmlInline, "<i class=\"icon-" * sc.args * "\"></i>"), entering)
+    else
+        (node, entering)
+    end
+end
+xform(mime, ::CommonMark.AbstractContainer, node, entering, writer) =
+    (node, entering)
+
+parser = Parser()
+enable!(parser, ShortcodeRule())
+ast = parser("Click {{< icon star >}} here.")
+html(ast; transform=xform)
+```
+
+### Custom Delimiters
+
+Change delimiters to match other template systems:
+
+```@example ext
+parser = Parser()
+enable!(parser, ShortcodeRule(open="{%", close="%}"))
+
+ast = parser("{% include header %}")
+html(ast)
+```
+
 ## String Macro
 
 The `@cm_str` macro enables markdown string interpolation, embedding Julia

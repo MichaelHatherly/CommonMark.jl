@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add inline display dollar math (`$$...$$` within paragraphs) and preserve original math syntax in AST [#138]
 - Add `TableFoot`, `TableRows`, `rowspan`, and `colspan` support to table extension [#138]
 - Track `raw` flag on `HtmlInline`/`HtmlBlock` nodes for markdown roundtrip fidelity [#138]
+- Add `ShortcodeRule` extension for Hugo/Quarto-style shortcodes with configurable delimiters, parse-time handlers, and write-time transforms [#140]
 
 ### Fixed
 
@@ -451,3 +452,4 @@ Initial release.
 [#135]: https://github.com/MichaelHatherly/CommonMark.jl/issues/135
 [#136]: https://github.com/MichaelHatherly/CommonMark.jl/issues/136
 [#138]: https://github.com/MichaelHatherly/CommonMark.jl/issues/138
+[#140]: https://github.com/MichaelHatherly/CommonMark.jl/issues/140
