@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.0.0] - 2026-02-11
+
 ### Added
 
 - Add `GridTableRule` extension for Pandoc-style grid tables with colspan, rowspan, headers, footers, and multiline cells [#138]
@@ -399,6 +401,7 @@ Initial release.
 [v0.10.1]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.1
 [v0.10.2]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.2
 [v0.10.3]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.3
+[v1.0.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.0
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
