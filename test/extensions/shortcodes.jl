@@ -196,12 +196,17 @@
 
     @testset "Markdown roundtrip" begin
         p = create_parser(ShortcodeRule())
-        # Inline
-        ast = p("Text {{< sc arg >}} end.")
-        @test occursin("{{< sc arg >}}", markdown(ast))
-        # Block
-        ast = p("{{< pagebreak >}}")
-        @test occursin("{{< pagebreak >}}", markdown(ast))
+        for input in [
+            "Text {{< sc arg >}} end.",
+            "{{< pagebreak >}}",
+            "A {{< ref page >}} and {{< icon star >}}.",
+            "x {{< video src=\"url\" width=100 >}} y",
+        ]
+            ast = p(input)
+            md1 = markdown(ast)
+            md2 = markdown(p(md1))
+            @test md1 == md2
+        end
     end
 
     @testset "JSON output" begin
