@@ -5,14 +5,16 @@
 """Inline shortcode. Unexpanded shortcodes pass through to output."""
 struct Shortcode <: AbstractInline
     name::String
-    args::String
+    args::Vector{String}
+    kwargs::Vector{Pair{String,String}}
     raw::String
 end
 
 """Block-level shortcode (standalone on a line)."""
 struct ShortcodeBlock <: AbstractBlock
     name::String
-    args::String
+    args::Vector{String}
+    kwargs::Vector{Pair{String,String}}
     raw::String
 end
 
@@ -58,7 +60,10 @@ Parse shortcodes with configurable delimiters.
 
 Not enabled by default. Default delimiters match Quarto/Hugo syntax.
 
-Handlers run at parse time: `handler(name, args, ctx::ShortcodeContext) -> Node`.
+Handlers run at parse time: `handler(name, args, kwargs, ctx::ShortcodeContext) -> Node`.
+`args` is a `Vector{String}` of positional arguments, `kwargs` is a
+`Vector{Pair{String,String}}` of named `key=value` arguments. Quoted strings
+preserve spaces; backslash escapes work inside quotes.
 If a handler returns a Node, it replaces the shortcode in the AST.
 If no handler matches, the shortcode node is preserved for write-time handling
 via the writer `transform` system.
@@ -87,7 +92,7 @@ end
 
 """
 Try to parse a shortcode from current position.
-Returns `(name, args, raw)` or `nothing`.
+Returns `(name, args, kwargs, raw)` or `nothing`.
 Restores parser position on failure.
 """
 function _try_parse_shortcode(p::AbstractParser, rule::ShortcodeRule)
@@ -133,7 +138,8 @@ function _try_parse_shortcode(p::AbstractParser, rule::ShortcodeRule)
                 read(p, Char)
             end
             raw = String(bytes(p, start_pos, position(p) - 1))
-            return (name, string(args), raw)
+            parsed_args, parsed_kwargs = _parse_shortcode_args(string(args))
+            return (name, parsed_args, parsed_kwargs, raw)
         end
         read(p, Char)
     end
@@ -141,6 +147,60 @@ function _try_parse_shortcode(p::AbstractParser, rule::ShortcodeRule)
     # No close delimiter found
     seek(p, start_pos)
     return nothing
+end
+
+"""Parse shortcode args string into positional args and named kwargs."""
+function _parse_shortcode_args(s::AbstractString)
+    args = String[]
+    kwargs = Pair{String,String}[]
+    isempty(s) && return (args, kwargs)
+    buf = IOBuffer()
+    in_quote = nothing  # nothing, '"', or '\''
+    eq_pos = 0          # position of first unquoted '=' in current token
+    token_len = 0
+    escaped = false
+    for c in s
+        if escaped
+            write(buf, c)
+            token_len += 1
+            escaped = false
+        elseif in_quote !== nothing && c == '\\'
+            escaped = true
+        elseif in_quote !== nothing
+            if c == in_quote
+                in_quote = nothing
+            else
+                write(buf, c)
+                token_len += 1
+            end
+        elseif c == '"' || c == '\''
+            in_quote = c
+        elseif isspace(c)
+            _flush_shortcode_token!(buf, args, kwargs, eq_pos)
+            eq_pos = 0
+            token_len = 0
+        else
+            write(buf, c)
+            token_len += 1
+            if c == '=' && eq_pos == 0
+                eq_pos = token_len
+            end
+        end
+    end
+    _flush_shortcode_token!(buf, args, kwargs, eq_pos)
+    return (args, kwargs)
+end
+
+function _flush_shortcode_token!(buf::IOBuffer, args, kwargs, eq_pos)
+    position(buf) == 0 && return
+    token = String(take!(buf))
+    if eq_pos > 1
+        key = token[1:prevind(token, eq_pos)]
+        val = token[nextind(token, eq_pos):end]
+        push!(kwargs, key => val)
+    else
+        push!(args, token)
+    end
 end
 
 function _is_solo_shortcode(literal::AbstractString, rule::ShortcodeRule)
@@ -161,13 +221,13 @@ inline_rule(rule::ShortcodeRule) =
     Rule(1, string(first(rule.open))) do p, block
         result = _try_parse_shortcode(p, rule)
         result === nothing && return false
-        name, args, raw = result
+        name, args, kwargs, raw = result
         handler = get(rule.handlers, name, nothing)
         if handler !== nothing
             ctx = _shortcode_context(block)
-            append_child(block, handler(name, args, ctx))
+            append_child(block, handler(name, args, kwargs, ctx))
         else
-            append_child(block, Node(Shortcode(name, args, raw)))
+            append_child(block, Node(Shortcode(name, args, kwargs, raw)))
         end
         return true
     end
@@ -181,12 +241,12 @@ block_modifier(rule::ShortcodeRule) =
         node.t isa Paragraph || return nothing
         result = _is_solo_shortcode(node.literal, rule)
         result === nothing && return nothing
-        name, args, raw = result
+        name, args, kwargs, raw = result
 
         handler = get(rule.handlers, name, nothing)
         if handler !== nothing
             ctx = _shortcode_context(parser, node.sourcepos)
-            replacement = handler(name, args, ctx)
+            replacement = handler(name, args, kwargs, ctx)
             node.t = replacement.t
             node.literal = replacement.literal
             while !isnull(replacement.first_child)
@@ -195,7 +255,7 @@ block_modifier(rule::ShortcodeRule) =
                 append_child(node, child)
             end
         else
-            node.t = ShortcodeBlock(name, args, raw)
+            node.t = ShortcodeBlock(name, args, kwargs, raw)
             node.literal = ""
         end
         return nothing

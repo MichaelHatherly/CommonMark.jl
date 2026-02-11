@@ -15,7 +15,8 @@
         ast = p("{{< pagebreak >}}")
         @test ast.first_child.t isa CommonMark.ShortcodeBlock
         @test ast.first_child.t.name == "pagebreak"
-        @test ast.first_child.t.args == ""
+        @test ast.first_child.t.args == String[]
+        @test ast.first_child.t.kwargs == Pair{String,String}[]
     end
 
     @testset "block with surrounding whitespace" begin
@@ -23,7 +24,7 @@
         ast = p("  {{< video url >}}  ")
         @test ast.first_child.t isa CommonMark.ShortcodeBlock
         @test ast.first_child.t.name == "video"
-        @test ast.first_child.t.args == "url"
+        @test ast.first_child.t.args == ["url"]
     end
 
     @testset "multiple inline" begin
@@ -39,7 +40,8 @@
         p = create_parser(ShortcodeRule())
         ast = p("{{< pagebreak >}}")
         @test ast.first_child.t.name == "pagebreak"
-        @test ast.first_child.t.args == ""
+        @test ast.first_child.t.args == String[]
+        @test ast.first_child.t.kwargs == Pair{String,String}[]
     end
 
     @testset "with args" begin
@@ -58,7 +60,8 @@
         end
         @test sc !== nothing
         @test sc.name == "video"
-        @test sc.args == "src=\"url\" width=100"
+        @test sc.args == String[]
+        @test sc.kwargs == ["src" => "url", "width" => "100"]
     end
 
     @testset "custom delimiters" begin
@@ -66,7 +69,7 @@
         ast = p("{% include header %}")
         @test ast.first_child.t isa CommonMark.ShortcodeBlock
         @test ast.first_child.t.name == "include"
-        @test ast.first_child.t.args == "header"
+        @test ast.first_child.t.args == ["header"]
     end
 
     @testset "unclosed shortcode" begin
@@ -92,11 +95,78 @@
         @test ast.first_child.t isa CommonMark.Paragraph
     end
 
+    # --- Argument parsing ---
+
+    @testset "positional args" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("{{< ref page anchor >}}")
+        sc = ast.first_child.t
+        @test sc.args == ["page", "anchor"]
+        @test sc.kwargs == Pair{String,String}[]
+    end
+
+    @testset "named args" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("{{< video src=url autoplay=true >}}")
+        sc = ast.first_child.t
+        @test sc.args == String[]
+        @test sc.kwargs == ["src" => "url", "autoplay" => "true"]
+    end
+
+    @testset "quoted positional" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("{{< ref \"my page\" >}}")
+        @test ast.first_child.t.args == ["my page"]
+    end
+
+    @testset "single-quoted positional" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("{{< ref 'my page' >}}")
+        @test ast.first_child.t.args == ["my page"]
+    end
+
+    @testset "named arg with quoted value" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("{{< video src=\"my url\" >}}")
+        @test ast.first_child.t.kwargs == ["src" => "my url"]
+    end
+
+    @testset "mixed positional and named" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("{{< video \"my file.mp4\" width=100 >}}")
+        sc = ast.first_child.t
+        @test sc.args == ["my file.mp4"]
+        @test sc.kwargs == ["width" => "100"]
+    end
+
+    @testset "equals in quoted value" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("{{< param key=\"a=b\" >}}")
+        @test ast.first_child.t.kwargs == ["key" => "a=b"]
+    end
+
+    @testset "escaped quotes" begin
+        p = create_parser(ShortcodeRule())
+        ast = p("x {{< sc \"say \\\"hello\\\"\" >}} y")
+        node = ast.first_child
+        child = node.first_child
+        sc = nothing
+        while !CommonMark.isnull(child)
+            if child.t isa CommonMark.Shortcode
+                sc = child.t
+                break
+            end
+            child = child.nxt
+        end
+        @test sc !== nothing
+        @test sc.args == ["say \"hello\""]
+    end
+
     # --- Handlers ---
 
     @testset "parse-time handler inline" begin
         handlers = Dict{String,Function}(
-            "greeting" => (name, args, ctx) -> CommonMark.text("expanded"),
+            "greeting" => (name, args, kwargs, ctx) -> CommonMark.text("expanded"),
         )
         p = create_parser(ShortcodeRule(handlers = handlers))
         ast = p("Hello {{< greeting >}} world.")
@@ -108,7 +178,7 @@
     @testset "handler with context" begin
         seen_source = Ref("")
         handlers = Dict{String,Function}(
-            "check" => (name, args, ctx) -> begin
+            "check" => (name, args, kwargs, ctx) -> begin
                 seen_source[] = ctx.source
                 CommonMark.text("ok")
             end,
@@ -121,7 +191,7 @@
     @testset "handler for block shortcode" begin
         handlers = Dict{String,Function}(
             "replaced" =>
-                (name, args, ctx) -> CommonMark.Node(
+                (name, args, kwargs, ctx) -> CommonMark.Node(
                     CommonMark.Paragraph,
                     CommonMark.text("replaced content"),
                 ),
@@ -134,8 +204,9 @@
     end
 
     @testset "unknown shortcode with handlers" begin
-        handlers =
-            Dict{String,Function}("known" => (name, args, ctx) -> CommonMark.text("yes"))
+        handlers = Dict{String,Function}(
+            "known" => (name, args, kwargs, ctx) -> CommonMark.text("yes"),
+        )
         p = create_parser(ShortcodeRule(handlers = handlers))
         # Unknown shortcode stays as-is
         ast = p("{{< unknown arg >}}")
@@ -146,7 +217,7 @@
     @testset "handler returning container with children" begin
         handlers = Dict{String,Function}(
             "multi" =>
-                (name, args, ctx) -> begin
+                (name, args, kwargs, ctx) -> begin
                     CommonMark.Node(
                         CommonMark.Paragraph,
                         CommonMark.text("child1 "),
@@ -159,6 +230,19 @@
         out = html(ast)
         @test occursin("child1", out)
         @test occursin("child2", out)
+    end
+
+    @testset "handler receiving kwargs" begin
+        handlers = Dict{String,Function}(
+            "link" =>
+                (name, args, kwargs, ctx) -> begin
+                    href = last(first(p for p in kwargs if first(p) == "href"))
+                    CommonMark.text(href)
+                end,
+        )
+        p = create_parser(ShortcodeRule(handlers = handlers))
+        ast = p("{{< link href=\"https://example.com\" >}}")
+        @test occursin("https://example.com", html(ast))
     end
 
     # --- Writers ---
