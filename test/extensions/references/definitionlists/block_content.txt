@@ -1,0 +1,4 @@
+ [1mTerm[22m
+   Paragraph 1
+   
+   Paragraph 2

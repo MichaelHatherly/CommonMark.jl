@@ -44,6 +44,7 @@ accepts_lines(::DefinitionDescription) = false
 
 can_contain(::DefinitionList, t) = t isa DefinitionTerm || t isa DefinitionDescription
 can_contain(::DefinitionTerm, t) = false
+# Prevents nested definition lists, matching Pandoc behavior.
 can_contain(::DefinitionDescription, t) =
     !(t isa Item) &&
     !(t isa DefinitionList) &&
@@ -285,8 +286,10 @@ end
 # Typst
 
 function write_typst(::DefinitionList, w, node, enter)
-    enter || return
-    nothing
+    if !enter
+        cr(w)
+        linebreak(w, node)
+    end
 end
 
 function write_typst(::DefinitionTerm, w, node, enter)
@@ -298,14 +301,36 @@ function write_typst(::DefinitionTerm, w, node, enter)
     end
 end
 
+function _typst_use_block(node)
+    dl = node.parent.t::DefinitionList
+    !dl.tight && return true
+    # Multiple children in this DD
+    !isnull(node.first_child) && !isnull(node.first_child.nxt) && return true
+    # Adjacent DD sibling (multi-def)
+    (!isnull(node.prv) && node.prv.t isa DefinitionDescription) && return true
+    (!isnull(node.nxt) && node.nxt.t isa DefinitionDescription) && return true
+    return false
+end
+
 function write_typst(::DefinitionDescription, w, node, enter)
+    use_block = _typst_use_block(node)
+    is_first = isnull(node.prv) || node.prv.t isa DefinitionTerm
+    is_last = isnull(node.nxt) || node.nxt.t isa DefinitionTerm
     if enter
-        # Content follows the ": " from DefinitionTerm
-    else
-        cr(w)
-        if !isnull(node.nxt) && node.nxt.t isa DefinitionTerm
-            # Next sibling is a new term
+        if use_block && is_first
+            literal(w, "#block[\n")
         end
+        if !is_first
+            cr(w)
+            literal(w, "\n")
+        end
+    else
+        if use_block && is_last
+            cr(w)
+            print_margin(w)
+            literal(w, "]\n")
+        end
+        cr(w)
     end
 end
 

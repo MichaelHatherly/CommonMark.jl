@@ -27,19 +27,13 @@
     test_dl("loose_single", p("Term\n\n:   Definition"), "definitionlists")
 
     # Inline formatting in terms
-    test_dl(
-        "term_inline",
-        p("*Emphasized* term\n:   Definition"),
-        "definitionlists",
-        formats = [:html],
-    )
+    test_dl("term_inline", p("*Emphasized* term\n:   Definition"), "definitionlists")
 
     # Block content in definitions (multi-paragraph)
     test_dl(
         "block_content",
         p("Term\n:   Paragraph 1\n\n    Paragraph 2"),
         "definitionlists",
-        formats = [:html],
     )
 
     # Nested list in definition
@@ -47,16 +41,10 @@
         "nested_list",
         p("Term\n:   Definition\n\n    - item 1\n    - item 2"),
         "definitionlists",
-        formats = [:html],
     )
 
     # Definition list in blockquote
-    test_dl(
-        "in_blockquote",
-        p("> Term\n> :   Definition"),
-        "definitionlists",
-        formats = [:html],
-    )
+    test_dl("in_blockquote", p("> Term\n> :   Definition"), "definitionlists")
 
     # Adjacent definition lists merge
     @testset "adjacent lists merge" begin

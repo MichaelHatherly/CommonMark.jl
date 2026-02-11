@@ -1,0 +1,2 @@
+*Emphasized* term
+:   Definition
