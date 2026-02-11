@@ -146,6 +146,9 @@ function write_html(::Paragraph, r, n, ent)
             return
         end
     end
+    if !isnull(grandparent) && grandparent.t isa DefinitionList && grandparent.t.tight
+        return
+    end
     if ent
         attrs = attributes(r, n)
         cr(r)

@@ -1,0 +1,2 @@
+ [1m[3mEmphasized[23m term[22m
+   Definition

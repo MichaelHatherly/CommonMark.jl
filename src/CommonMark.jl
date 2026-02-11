@@ -54,6 +54,7 @@ export AdmonitionRule,
     SuperscriptRule,
     TableRule,
     ShortcodeRule,
+    DefinitionListRule,
     TaskListRule,
     TypographyRule
 
@@ -73,7 +74,8 @@ export AdmonitionRule,
         Math, Strikethrough, Mark, Subscript, Superscript, LaTeXInline, TypstInline,
         GitHubAlert, TaskItem, FootnoteLink, Citation,
         ReferenceLink, ReferenceImage, ReferenceDefinition, UnresolvedReference,
-        Shortcode, ShortcodeBlock, ShortcodeContext
+        Shortcode, ShortcodeBlock, ShortcodeContext,
+        DefinitionList, DefinitionTerm, DefinitionDescription
 """,
         ),
     )

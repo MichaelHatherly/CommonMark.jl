@@ -1,0 +1,6 @@
+ [1mTerm[22m
+   Definition
+   
+    ● item 1
+    
+    ● item 2
