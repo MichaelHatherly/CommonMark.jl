@@ -114,7 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use IOBuffer for literal accumulation and pre-allocate delimiter strings to reduce allocations [#108]
 - Lazy initialization for Node.meta to reduce memory allocations during parsing [#107]
 
-- Require JSON.jl v1 (drop support for 0.20, 0.21) [#93]
+- Require JSON.jl 0.21+ (drop support for 0.20) [#93]
 
 ## [v0.9.0] - 2025-03-06
 

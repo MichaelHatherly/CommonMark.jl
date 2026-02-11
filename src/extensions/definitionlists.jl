@@ -393,9 +393,6 @@ function write_term(::DefinitionDescription, rend, node, enter)
         push_margin!(rend, "  ", crayon"")
     else
         pop_margin!(rend)
-        if !isnull(node.nxt) && node.nxt.t isa DefinitionTerm
-            # blank line before next term
-        end
     end
 end
 

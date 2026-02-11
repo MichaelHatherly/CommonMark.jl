@@ -329,8 +329,7 @@ function write_typst(::TableFoot, rend, node, enter)
 end
 
 function write_typst(::TableRow, rend, node, enter)
-    if enter
-    else
+    if !enter
         println(rend.buffer)
     end
 end

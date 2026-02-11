@@ -169,7 +169,8 @@ function _init_parser(mod::Module, name::AbstractString)::Parser
             try
                 p = obj()
                 isa(p, Parser) && return p
-            catch
+            catch err
+                @debug "Failed to call parser factory $name" exception = err
             end
         end
     end
