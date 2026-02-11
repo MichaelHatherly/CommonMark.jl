@@ -606,11 +606,11 @@ syntax. This is useful when a downstream tool handles expansion.
 ### Parse-Time Handlers
 
 Register handlers on the rule to expand shortcodes during parsing. Handlers
-receive `(name, args, ctx::ShortcodeContext)` and return a `Node`:
+receive `(name, args, kwargs, ctx::ShortcodeContext)` and return a `Node`:
 
 ```@example ext
 handlers = Dict{String,Function}(
-    "greeting" => (name, args, ctx) -> CommonMark.text("Hello, " * args * "!"),
+    "greeting" => (name, args, kwargs, ctx) -> CommonMark.text("Hello, " * first(args) * "!"),
 )
 parser = Parser()
 enable!(parser, ShortcodeRule(handlers=handlers))
@@ -631,7 +631,7 @@ system to dispatch on `Shortcode` or `ShortcodeBlock`:
 ```@example ext
 function xform(::MIME"text/html", sc::CommonMark.Shortcode, node, entering, writer)
     if sc.name == "icon"
-        (CommonMark.Node(CommonMark.HtmlInline, "<i class=\"icon-" * sc.args * "\"></i>"), entering)
+        (CommonMark.Node(CommonMark.HtmlInline, "<i class=\"icon-" * first(sc.args) * "\"></i>"), entering)
     else
         (node, entering)
     end
