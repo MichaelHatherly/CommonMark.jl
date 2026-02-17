@@ -324,6 +324,19 @@
     @test length(inner.t.spec) == 2
     test_grid("nested_table", ast, "grid_tables")
 
+    # Grid table with TableRule enabled — no extra empty columns from pipe inline_modifier
+    p_both = create_parser([GridTableRule(), TableRule()])
+    text = """
+           +-------+-------+
+           | Head1 | Head2 |
+           +=======+=======+
+           | Body1 | Body2 |
+           +-------+-------+
+           """
+    ast = p_both(text)
+    cells = [n for (n, e) in ast if e && n.t isa CommonMark.TableCell]
+    @test length(cells) == 4  # 2 header + 2 body, no extras
+
     # Unicode (CJK) content — multi-byte chars must not cause StringIndexError
     text = """
            +------------+------+

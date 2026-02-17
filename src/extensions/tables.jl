@@ -199,6 +199,7 @@ inline_rule(rule::TableRule) =
 inline_modifier(rule::TableRule) =
     Rule(100) do parser, block
         block.t isa TableRow || return
+        block.parent.parent.t isa Table || return
         isheader = block.parent.t isa TableHeader
         spec = block.parent.parent.t.spec
         max_cols = length(spec)
