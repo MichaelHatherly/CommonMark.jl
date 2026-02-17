@@ -82,4 +82,8 @@
     text = "Text\n\$\$\nx^2\n\$\$\nmore text."
     ast = p(text)
     test_math("multiline_inline_display_dollar_math", ast, "math")
+
+    # Empty inline dollar math roundtrip: `$ $` must not become `$$`
+    ast = p(raw"$ $")
+    @test markdown(ast) == "\$ \$\n"
 end

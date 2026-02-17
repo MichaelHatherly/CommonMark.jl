@@ -89,8 +89,12 @@ write_markdown(::Text, w, node, ent) = literal(w, node.literal)
 write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
 
 function write_markdown(::SoftBreak, w, node, ent)
-    cr(w)
-    print_margin(w)
+    if node.parent.t isa Heading
+        literal(w, " ")
+    else
+        cr(w)
+        print_margin(w)
+    end
 end
 
 function write_markdown(::LineBreak, w, node, ent)

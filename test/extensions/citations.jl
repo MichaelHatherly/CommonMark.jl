@@ -41,6 +41,21 @@
     # Many authors.
     test(bib, p("[@bezanson2017]"), "bracketed_many")
 
+    # Citation ID boundary tests (Pandoc internal-punctuation rule).
+    cite_id(ast) = first(n.t.id for (n, e) in ast if e && n.t isa CommonMark.Citation)
+
+    # Trailing punctuation terminates the citation key.
+    @test cite_id(p("@cite~")) == "cite"
+
+    # Consecutive punctuation terminates the key.
+    @test cite_id(p("@cite--bar")) == "cite"
+
+    # Single punctuation between word chars is internal.
+    @test cite_id(p("@foo~bar")) == "foo~bar"
+
+    # Consecutive different punctuation terminates.
+    @test cite_id(p("@cite~:bar")) == "cite"
+
     # Reference lists.
     p = create_parser([CitationRule(), AttributeRule()])
 

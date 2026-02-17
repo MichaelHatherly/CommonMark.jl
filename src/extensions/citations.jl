@@ -33,7 +33,10 @@ end
 
 inline_rule(rule::CitationRule) =
     Rule(1, "@") do parser, block
-        m = consume(parser, match(r"@[_\w\d][_\w\d:#$%&\-\+\?\<\>~/]*", parser))
+        m = consume(
+            parser,
+            match(r"@[_\w\d](?:[_\w\d]|[:#$%&\-\+\?\<\>~/](?=[_\w\d]))*", parser),
+        )
         m === nothing && return false
         bs = parser.brackets
         opener = bs !== nothing && is_bracket(bs.node, "[")
