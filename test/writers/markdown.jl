@@ -117,6 +117,11 @@
     @test occursin("\\\"", md)  # quotes escaped
     @test markdown(p(md)) == md  # roundtrip works
 
+    # Multi-line setext heading roundtrip: SoftBreak collapses to space in ATX
+    ast = p("heading\ncontinued\n======")
+    md = markdown(ast)
+    @test markdown(p(md)) == md
+
     # Inline code backtick handling - use odd counts to avoid math syntax
     # No backticks in content → single backtick delimiter
     @test markdown(p("`simple`")) == "`simple`\n"
