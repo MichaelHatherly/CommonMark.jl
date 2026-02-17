@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix citation regex greedily consuming trailing/consecutive punctuation, matching Pandoc's internal-punctuation rule [#145]
+- Fix pipe table `inline_modifier` adding empty columns to grid table rows [#145]
+- Fix multi-line setext heading losing content on markdown roundtrip [#145]
+- Fix empty inline dollar math (`$ $`) becoming display math (`$$`) on roundtrip [#145]
+
 ## [v1.0.0] - 2026-02-11
 
 ### Added
@@ -458,3 +465,4 @@ Initial release.
 [#138]: https://github.com/MichaelHatherly/CommonMark.jl/issues/138
 [#140]: https://github.com/MichaelHatherly/CommonMark.jl/issues/140
 [#141]: https://github.com/MichaelHatherly/CommonMark.jl/issues/141
+[#145]: https://github.com/MichaelHatherly/CommonMark.jl/issues/145
