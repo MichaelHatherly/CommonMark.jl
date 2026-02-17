@@ -193,7 +193,11 @@ end
 function write_markdown(m::Math, w, node, ent)
     if m.dollar
         delim = m.display ? "\$\$" : "\$"
-        literal(w, delim, node.literal, delim)
+        content = node.literal
+        if !m.display && isempty(content)
+            content = " "
+        end
+        literal(w, delim, content, delim)
     else
         num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
             max(a, length(b.match))
