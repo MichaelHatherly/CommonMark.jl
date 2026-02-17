@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.0.1] - 2026-02-17
+
 ### Fixed
 
 - Fix citation regex greedily consuming trailing/consecutive punctuation, matching Pandoc's internal-punctuation rule [#145]
@@ -409,6 +411,7 @@ Initial release.
 [v0.10.2]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.2
 [v0.10.3]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.3
 [v1.0.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.0
+[v1.0.1]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.1
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
