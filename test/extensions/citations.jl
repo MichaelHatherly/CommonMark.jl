@@ -41,6 +41,11 @@
     # Many authors.
     test(bib, p("[@bezanson2017]"), "bracketed_many")
 
+    # Citations inside link text must not emit a nested `<a>` (issue #149).
+
+    test(bib, p("[See @innes2018](https://example.com/)"), "linked_unbracketed")
+    test(bib, p("[See [@innes2018]](https://example.com/)"), "linked_bracketed")
+
     # Citation ID boundary tests (Pandoc internal-punctuation rule).
     cite_id(ast) = first(n.t.id for (n, e) in ast if e && n.t isa CommonMark.Citation)
 
