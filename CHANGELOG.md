@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix `CitationRule` emitting nested `<a>` (HTML) and nested `\href`/`\hyperlink` (LaTeX) when a citation appears inside link text. Suppress the inner bibliography hyperlink when the citation has a `Link` ancestor [#150]
+
 ## [v1.0.1] - 2026-02-17
 
 ### Fixed

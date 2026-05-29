@@ -96,11 +96,25 @@ block_modifier(::CitationRule) =
 
 # Writers. TODO: implement real CSL for citation styling.
 
+# Citations inside a `Link` would emit nested `<a>` (HTML) or nested
+# `\href`/`\hyperlink` (LaTeX). HTML5 §4.5.1 forbids the former and browsers
+# rewrite the DOM; LaTeX nesting is undefined. Skip the inner hyperlink in
+# that case.
+function inside_link(n::Node)
+    p = n.parent
+    while !isnull(p)
+        p.t isa Link && return true
+        p = p.parent
+    end
+    return false
+end
+
 function write_html(c::Citation, w, n, ent)
     tag(w, "span", attributes(w, n, ["class" => "citation"]))
-    tag(w, "a", ["href" => "#ref-$(c.id)"])
+    linked = !inside_link(n)
+    linked && tag(w, "a", ["href" => "#ref-$(c.id)"])
     literal(w, CSL.author_year(w.env, c.id))
-    tag(w, "/a")
+    linked && tag(w, "/a")
     tag(w, "/span")
 end
 
@@ -115,7 +129,11 @@ function write_latex(c::Citation, w, n, ent)
         else
             name = CSL.author_year(w.env, c.id)
             name = name === nothing ? c.id : name
-            literal(w, "\\protect\\hyperlink{ref-", c.id, "}{", name, "}")
+            if inside_link(n)
+                literal(w, name)
+            else
+                literal(w, "\\protect\\hyperlink{ref-", c.id, "}{", name, "}")
+            end
         end
     end
     return nothing
