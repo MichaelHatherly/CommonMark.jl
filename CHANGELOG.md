@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.0.2] - 2026-05-29
+
 ### Fixed
 
 - Fix `CitationRule` emitting nested `<a>` (HTML) and nested `\href`/`\hyperlink` (LaTeX) when a citation appears inside link text. Suppress the inner bibliography hyperlink when the citation has a `Link` ancestor [#150]
@@ -416,6 +418,7 @@ Initial release.
 [v0.10.3]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v0.10.3
 [v1.0.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.0
 [v1.0.1]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.1
+[v1.0.2]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.2
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
@@ -473,3 +476,4 @@ Initial release.
 [#140]: https://github.com/MichaelHatherly/CommonMark.jl/issues/140
 [#141]: https://github.com/MichaelHatherly/CommonMark.jl/issues/141
 [#145]: https://github.com/MichaelHatherly/CommonMark.jl/issues/145
+[#150]: https://github.com/MichaelHatherly/CommonMark.jl/issues/150
