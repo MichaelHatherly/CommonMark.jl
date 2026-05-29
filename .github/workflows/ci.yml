@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
       - run: julia --project=.format .format/format.jl
       - run: git diff --color --exit-code
 
@@ -59,13 +59,27 @@ jobs:
         exclude:
           - version: 'min'
             os: windows-latest
+          - os: macOS-latest
+            arch: x64
+        include:
+          - version: 'min'
+            os: macOS-latest
+            arch: x64
+            force_arch: true
+          - version: '1'
+            os: macOS-latest
+            arch: aarch64
+          - version: 'nightly'
+            os: macOS-latest
+            arch: aarch64
     steps:
       - uses: actions/checkout@v6
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
           include-all-prereleases: true
+          force-arch: ${{ matrix.force_arch || false }}
       - uses: pandoc/actions/setup@v1
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
