@@ -81,7 +81,7 @@ jobs:
           include-all-prereleases: true
           force-arch: ${{ matrix.force_arch || false }}
       - uses: pandoc/actions/setup@v1
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         continue-on-error: ${{ matrix.version == 'nightly' }}
