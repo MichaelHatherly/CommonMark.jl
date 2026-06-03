@@ -109,9 +109,9 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
 
     spec, col_widths = _parse_grid_spec(spec_border, col_positions)
 
-    # Step 2: Classify lines into row groups separated by full borders
-    # that have + at ALL fine-grid positions, or = borders (header/footer)
-    # which may have missing + for colspan.
+    # Step 2: Classify lines into row groups. Any full-width `+...+` border is a
+    # row-group separator; an interior `+` omitted to merge columns (colspan) is
+    # allowed. Partial (rowspan) borders start with `|` and stay within a section.
     sections = Vector{Vector{String}}()
     separators = String[string(strip(lines[1]))]
     current_section = String[]
@@ -119,10 +119,7 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
     for i in 2:length(lines)
         line = lines[i]
         stripped = strip(line)
-        if _is_full_border(line) && (
-                all(p -> p <= lastindex(line) && line[p] == '+', col_positions) ||
-                    occursin('=', stripped)
-            )
+        if _is_full_border(line)
             push!(sections, current_section)
             push!(separators, string(stripped))
             current_section = String[]
@@ -154,6 +151,7 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
             head,
             sections[1],
             separators[1],
+            separators[2],
             col_positions,
             spec,
             true,
@@ -171,6 +169,7 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
                 body,
                 sections[i],
                 separators[i],
+                separators[i + 1],
                 col_positions,
                 spec,
                 false,
@@ -186,6 +185,7 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
             foot,
             sections[footer_start],
             separators[footer_start],
+            separators[footer_start + 1],
             col_positions,
             spec,
             false,
@@ -365,6 +365,7 @@ function _parse_row_group!(
         parent,
         content_lines,
         border_above,
+        border_below,
         col_positions,
         spec,
         is_header,
@@ -375,12 +376,14 @@ function _parse_row_group!(
 
     return if length(sub_groups) == 1
         above_plus = _partial_border_positions(border_above, col_positions)
+        below_plus = _partial_border_positions(border_below, col_positions)
         _emit_row!(
             parser,
             parent,
             sub_groups[1],
             col_positions,
             above_plus,
+            below_plus,
             spec,
             is_header,
         )
@@ -444,6 +447,35 @@ function _extract_cell_lines(lines, col_positions, col, cspan, vcol_maps)
     return cell_lines
 end
 
+# True when the content line has a `|` at visual column `vcol`.
+function _line_pipe_at(line, vmap, vcol)
+    if vmap === nothing
+        return vcol <= lastindex(line) && line[vcol] == '|'
+    else
+        vcol <= length(vmap) || return false
+        b = vmap[vcol]
+        return b <= ncodeunits(line) && isvalid(line, b) && line[b] == '|'
+    end
+end
+
+# Interior column boundaries that genuinely divide cells in this row. A boundary
+# divides only when both bordering separators carry a `+` there and every
+# content line carries a `|` there. A boundary missing any of these merges the
+# columns on either side (colspan); a `|` at a merged boundary is literal text.
+function _row_divisions(content_lines, vcol_maps, col_positions, above_plus, below_plus)
+    ncols = length(col_positions) - 1
+    divisions = Set{Int}()
+    for k in 2:ncols
+        p = col_positions[k]
+        (p in above_plus && p in below_plus) || continue
+        all(
+            ((line, vmap),) -> _line_pipe_at(line, vmap, p),
+            zip(content_lines, vcol_maps),
+        ) && push!(divisions, p)
+    end
+    return divisions
+end
+
 # Detect colspan from a set of + positions in a border line.
 function _detect_colspan_from_plus(col_positions, plus_set::Set{Int})
     ncols = length(col_positions) - 1
@@ -469,13 +501,16 @@ function _emit_row!(
         content_lines,
         col_positions,
         above_plus,
+        below_plus,
         spec,
         is_header,
     )
     isempty(content_lines) && return
 
-    cells = _detect_colspan_from_plus(col_positions, above_plus)
     vcol_maps = [_build_vcol_map(line) for line in content_lines]
+    divisions =
+        _row_divisions(content_lines, vcol_maps, col_positions, above_plus, below_plus)
+    cells = _detect_colspan_from_plus(col_positions, divisions)
 
     row = Node(TableRow())
     append_child(parent, row)
@@ -1238,7 +1273,10 @@ function _write_grid_border_between_rows(
         cells_below,
         ncols,
     )
-    bounds = _cell_boundaries(cells_below, ncols)
+    bounds = union(
+        _cell_boundaries(cells_above, ncols),
+        _cell_boundaries(cells_below, ncols),
+    )
 
     print_margin(w)
     s = string(sep)

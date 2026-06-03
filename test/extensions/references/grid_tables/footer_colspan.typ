@@ -6,8 +6,7 @@ table.header(
 ],
 ),
 [B1
-],[B2
-],[B3
+],table.cell(colspan: 2)[B2   | B3
 ],
 table.footer(
 [F1

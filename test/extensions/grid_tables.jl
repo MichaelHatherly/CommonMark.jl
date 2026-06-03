@@ -115,6 +115,24 @@
     +------+------+------+
     """
     ast = p(text)
+    # Body row 2 omits the internal `|`, so columns 1-2 merge into one cell.
+    # The merged content must stay intact ("wide span", not "wide"/"pan" with
+    # the boundary character dropped).
+    let body = ast.first_child.first_child
+        row2 = body.first_child.nxt
+        cells = CommonMark.Node[]
+        n = row2.first_child
+        while !CommonMark.isnull(n)
+            push!(cells, n)
+            n = n.nxt
+        end
+        @test length(cells) == 2
+        @test cells[1].t.colspan == 2
+        @test cells[2].t.colspan == 1
+    end
+    out = html(ast)
+    @test occursin("colspan=\"2\"", out)
+    @test occursin("wide span", out)
     test_grid("colspan_body", ast, "grid_tables")
 
     md1 = markdown(ast)
@@ -196,6 +214,18 @@
         foot_row = sections[3].first_child
         foot_cell = foot_row.first_child.nxt
         @test foot_cell.t.colspan == 2
+        # The body row above the merging separator inherits the merge: its
+        # columns 2-3 collapse into one spanning cell.
+        body_row = sections[2].first_child
+        body_cells = CommonMark.Node[]
+        let n = body_row.first_child
+            while !CommonMark.isnull(n)
+                push!(body_cells, n)
+                n = n.nxt
+            end
+        end
+        @test length(body_cells) == 2
+        @test body_cells[2].t.colspan == 2
     end
     test_grid("footer_colspan", ast, "grid_tables")
     md1 = markdown(ast)

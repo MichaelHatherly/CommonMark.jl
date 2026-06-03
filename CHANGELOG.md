@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `DefinitionListRule` JSON output emitting terms and definitions as flat siblings instead of Pandoc's nested (term, definitions) pairs [#154]
 - Fix Typst writer producing inline code whose backticks merged with the delimiters or were misread as a language tag (e.g. `` `code` ``) [#154]
 - Fix `TableRule` rendering padding cells of a short row with `align="left"` instead of the column's declared alignment [#156]
+- Fix `GridTableRule` ignoring colspan in body rows and dropping the character sitting on a column boundary; a body row that omits an internal `|`, or sits above a separator that merges columns, now spans those columns with its content intact [#157]
 
 ## [v1.0.2] - 2026-05-29
 
@@ -495,3 +496,4 @@ Initial release.
 [#150]: https://github.com/MichaelHatherly/CommonMark.jl/issues/150
 [#154]: https://github.com/MichaelHatherly/CommonMark.jl/issues/154
 [#156]: https://github.com/MichaelHatherly/CommonMark.jl/issues/156
+[#157]: https://github.com/MichaelHatherly/CommonMark.jl/issues/157
