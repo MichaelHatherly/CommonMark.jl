@@ -5,14 +5,14 @@
 
 import BenchmarkTools
 import CommonMark
-import JSON3
+import JSON
 
 const SUITE = BenchmarkTools.BenchmarkGroup()
 
 # Load test data
 const SPEC_MD =
     read(joinpath(@__DIR__, "..", "test", "samples", "cmark", "spec.md"), String)
-const SPEC_JSON = JSON3.read(read(joinpath(@__DIR__, "..", "test", "spec.json"), String))
+const SPEC_JSON = JSON.parse(read(joinpath(@__DIR__, "..", "test", "spec.json"), String))
 
 # Smaller test inputs for micro-benchmarks
 const SIMPLE_MD = """
@@ -87,7 +87,7 @@ SUITE["parse"]["spec_md"] = BenchmarkTools.@benchmarkable $PARSER($SPEC_MD)
 # All spec JSON cases
 SUITE["parse"]["spec_cases_all"] = BenchmarkTools.@benchmarkable begin
     for case in $SPEC_JSON
-        $PARSER(case.markdown)
+        $PARSER(case["markdown"])
     end
 end
 

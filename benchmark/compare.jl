@@ -1,11 +1,11 @@
 # Benchmark comparison script
 # Generates markdown report comparing two benchmark results
 
-import JSON3
+import JSON
 import Printf: @sprintf
 
 function load_results(path)
-    JSON3.read(read(path, String))
+    JSON.parse(read(path, String))
 end
 
 function format_time(ns)
@@ -66,8 +66,8 @@ function compare_and_report(baseline_path, current_path, output_path)
     baseline = load_results(baseline_path)
     current = load_results(current_path)
 
-    base_benchmarks = baseline.benchmarks
-    curr_benchmarks = current.benchmarks
+    base_benchmarks = baseline["benchmarks"]
+    curr_benchmarks = current["benchmarks"]
 
     # Collect all benchmark names
     all_names = union(keys(base_benchmarks), keys(curr_benchmarks))
@@ -79,11 +79,11 @@ function compare_and_report(baseline_path, current_path, output_path)
     println(io)
     println(
         io,
-        "**Baseline:** `$(get(get(baseline, :git, Dict()), :commit, "unknown")[1:min(7,end)])`",
+        "**Baseline:** `$(get(get(baseline, "git", Dict()), "commit", "unknown")[1:min(7,end)])`",
     )
     println(
         io,
-        "**Current:** `$(get(get(current, :git, Dict()), :commit, "unknown")[1:min(7,end)])`",
+        "**Current:** `$(get(get(current, "git", Dict()), "commit", "unknown")[1:min(7,end)])`",
     )
     println(io)
 
@@ -103,20 +103,20 @@ function compare_and_report(baseline_path, current_path, output_path)
     improvements = String[]
 
     for name in sorted_names
-        base = get(base_benchmarks, Symbol(name), nothing)
-        curr = get(curr_benchmarks, Symbol(name), nothing)
+        base = get(base_benchmarks, name, nothing)
+        curr = get(curr_benchmarks, name, nothing)
 
         if base === nothing || curr === nothing
             println(io, "| $name | - | - | - | ⚪ new/removed |")
             continue
         end
 
-        base_time = base.time_ns.median
-        curr_time = curr.time_ns.median
-        base_mem = base.memory_bytes
-        curr_mem = curr.memory_bytes
-        base_alloc = base.allocations
-        curr_alloc = curr.allocations
+        base_time = base["time_ns"]["median"]
+        curr_time = curr["time_ns"]["median"]
+        base_mem = base["memory_bytes"]
+        curr_mem = curr["memory_bytes"]
+        base_alloc = base["allocations"]
+        curr_alloc = curr["allocations"]
 
         time_change = format_change(base_time, curr_time)
         mem_change = format_change(base_mem, curr_mem)
