@@ -165,3 +165,19 @@ end
     ast = p("[a](b(c) )\n")
     @test occursin("<a href=\"b(c)\">a</a>", html(ast))
 end
+
+@testitem "link label length boundary" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+
+    # The spec allows up to 999 characters inside the brackets.
+    label999 = repeat("a", 999)
+    ast = p("[$label999]\n\n[$label999]: /url\n")
+    @test occursin("<a href=\"/url\">", html(ast))
+
+    # 1000 characters exceeds the limit and must not resolve.
+    label1000 = repeat("a", 1000)
+    ast = p("[$label1000]\n\n[$label1000]: /url\n")
+    @test !occursin("<a href", html(ast))
+end

@@ -95,7 +95,7 @@ end
 
 function parse_link_label(parser::InlineParser)
     m = consume(parser, match(reLinkLabel, parser))
-    return (m === nothing || length(m.match) ≥ 1000) ? 0 : ncodeunits(m.match)
+    return (m === nothing || length(m.match) > 1001) ? 0 : ncodeunits(m.match)
 end
 
 function parse_open_bracket(parser::InlineParser, block::Node)
