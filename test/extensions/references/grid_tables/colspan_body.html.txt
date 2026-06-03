@@ -4,10 +4,8 @@
 <p>B</p>
 </td><td align="left">
 <p>C</p>
-</td></tr><tr><td align="left">
-<p>wide</p>
-</td><td align="left">
-<p>pan</p>
+</td></tr><tr><td align="left" colspan="2">
+<p>wide span</p>
 </td><td align="left">
 <p>solo</p>
 </td></tr></tbody></table>

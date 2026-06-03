@@ -6,10 +6,8 @@
 <p>H3</p>
 </th></tr></thead><tbody><tr><td align="left">
 <p>B1</p>
-</td><td align="left">
-<p>B2</p>
-</td><td align="left">
-<p>B3</p>
+</td><td align="left" colspan="2">
+<p>B2   | B3</p>
 </td></tr></tbody><tfoot><tr><td align="left">
 <p>F1</p>
 </td><td align="left" colspan="2">

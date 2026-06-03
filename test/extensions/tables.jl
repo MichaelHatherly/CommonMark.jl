@@ -140,3 +140,18 @@ end
     tables = [n for (n, entering) in ast if entering && n.t isa CommonMark.Table]
     @test length(tables) == 1
 end
+
+@testitem "tables short row alignment" tags = [:extensions, :tables] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(TableRule())
+
+    # A row with fewer cells than the spec gets empty padding cells. Those cells
+    # must follow the column's declared alignment, not default to left.
+    ast = p("| h1 | h2 | h3 |\n|:-|:-:|-:|\n| only |\n")
+    out = html(ast)
+    @test occursin("<td align=\"left\">only</td>", out)
+    @test occursin("<td align=\"center\"></td>", out)
+    @test occursin("<td align=\"right\"></td>", out)
+end

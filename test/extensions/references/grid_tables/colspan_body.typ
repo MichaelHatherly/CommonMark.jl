@@ -3,8 +3,7 @@
 ],[B
 ],[C
 ],
-[wide
-],[pan
+table.cell(colspan: 2)[wide span
 ],[solo
 ],
 )
