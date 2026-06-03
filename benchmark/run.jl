@@ -5,7 +5,7 @@
 # Outputs JSON with benchmark results and metadata for historical tracking.
 
 import BenchmarkTools
-import JSON3
+import JSON
 import Dates
 
 include("benchmarks.jl")
@@ -96,14 +96,14 @@ function main()
     if output_file !== nothing
         mkpath(dirname(output_file))
         open(output_file, "w") do io
-            JSON3.pretty(io, results)
+            JSON.json(io, results; pretty = true)
         end
         println("\nResults written to: $output_file")
     else
         println("\n", "="^60)
         println("RESULTS")
         println("="^60)
-        JSON3.pretty(stdout, results)
+        JSON.json(stdout, results; pretty = true)
         println()
     end
 

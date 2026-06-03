@@ -21,15 +21,15 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
 
-      - uses: julia-actions/setup-julia@v3
+      - uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v3.0.2
         with:
           version: '1'
 
-      - uses: julia-actions/cache@v3
+      - uses: julia-actions/cache@a45e8fa8be21c18a06b7177052533149e61e9b38 # v3.1.0
         with:
           cache-name: benchmark
 
@@ -53,9 +53,9 @@ jobs:
           # Try to get the latest baseline from gh-pages branch
           git fetch origin gh-pages 2>/dev/null || true
           if git show origin/gh-pages:benchmarks/results/latest.json > benchmark-output/baseline.json 2>/dev/null; then
-            echo "BASELINE_EXISTS=true" >> $GITHUB_ENV
+            echo "BASELINE_EXISTS=true" >> "$GITHUB_ENV"
           else
-            echo "BASELINE_EXISTS=false" >> $GITHUB_ENV
+            echo "BASELINE_EXISTS=false" >> "$GITHUB_ENV"
             echo "No baseline found"
           fi
 
@@ -74,14 +74,15 @@ jobs:
 
       - name: Write job summary
         run: |
-          echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Benchmark Results" >> "$GITHUB_STEP_SUMMARY"
           if [ -f benchmark-output/comparison.md ]; then
-            cat benchmark-output/comparison.md >> $GITHUB_STEP_SUMMARY
+            cat benchmark-output/comparison.md >> "$GITHUB_STEP_SUMMARY"
           else
+            # shellcheck disable=SC2016 # $ interpolations below are Julia, not shell
             julia --project=benchmark -e '
-              import JSON3
-              results = JSON3.read(read("benchmark-output/results.json", String))
-              benchmarks = results.benchmarks
+              import JSON
+              results = JSON.parse(read("benchmark-output/results.json", String))
+              benchmarks = results["benchmarks"]
 
               format_time(ns) = ns < 1000 ? "$(round(Int, ns)) ns" :
                                 ns < 1e6 ? "$(round(ns/1e3, digits=1)) μs" :
@@ -95,15 +96,15 @@ jobs:
               println("| Benchmark | Time (median) | Memory | Allocs |")
               println("|-----------|---------------|--------|--------|")
               for name in sort(collect(keys(benchmarks)))
-                b = benchmarks[Symbol(name)]
-                println("| $name | $(format_time(b.time_ns.median)) | $(format_mem(b.memory_bytes)) | $(b.allocations) |")
+                b = benchmarks[name]
+                println("| $name | $(format_time(b["time_ns"]["median"])) | $(format_mem(b["memory_bytes"])) | $(b["allocations"]) |")
               end
-            ' >> $GITHUB_STEP_SUMMARY
+            ' >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Comment PR with link
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
@@ -143,7 +144,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Get commit info
-          COMMIT_SHA=$(git rev-parse HEAD)
           COMMIT_SHORT=$(git rev-parse --short HEAD)
           TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
 
@@ -167,25 +167,25 @@ jobs:
 
           # Update index
           julia --project=/tmp/benchmark -e '
-            import JSON3
+            import JSON
 
             results_dir = "benchmarks/results"
             files = filter(f -> endswith(f, ".json") && f != "latest.json" && f != "index.json", readdir(results_dir))
 
             index = []
             for f in files
-              data = JSON3.read(read(joinpath(results_dir, f), String))
+              data = JSON.parse(read(joinpath(results_dir, f), String))
               push!(index, Dict(
                 "file" => f,
-                "timestamp" => get(data, :timestamp, "unknown"),
-                "commit" => get(get(data, :git, Dict()), :commit, "unknown"),
-                "branch" => get(get(data, :git, Dict()), :branch, "unknown"),
+                "timestamp" => get(data, "timestamp", "unknown"),
+                "commit" => get(get(data, "git", Dict()), "commit", "unknown"),
+                "branch" => get(get(data, "git", Dict()), "branch", "unknown"),
               ))
             end
 
             sort!(index, by=x->x["timestamp"], rev=true)
             open(joinpath(results_dir, "index.json"), "w") do io
-              JSON3.pretty(io, index)
+              JSON.json(io, index; pretty = true)
             end
           '
 
@@ -195,7 +195,7 @@ jobs:
           git push origin gh-pages
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: benchmark-results
           path: benchmark-output/
