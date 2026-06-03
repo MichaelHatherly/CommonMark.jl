@@ -26,7 +26,7 @@ trypeek(p::AbstractParser, ::Type{UInt8}, default = nothing) =
 trypeek(p::AbstractParser, ::Type{Char}, default = nothing) =
     get(String(p.buf), thisind(p), default)
 
-function Base.read(p::AbstractParser, ::Type{T}) where {T<:Union{Char,UInt8}}
+function Base.read(p::AbstractParser, ::Type{T}) where {T <: Union{Char, UInt8}}
     obj = peek(p, T)
     seek(p, nextind(p))
     return obj
@@ -46,8 +46,8 @@ or(::Nothing, default) = default
 prev(p::AbstractParser, ::Type{Char}) = String(p.buf)[prevind(p)]
 next(p::AbstractParser, ::Type{Char}) = String(p.buf)[nextind(p)]
 
-prev(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p)-1]
-next(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p)+1]
+prev(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p) - 1]
+next(p::AbstractParser, ::Type{UInt8}) = p.buf[position(p) + 1]
 
 tryprev(p::AbstractParser, ::Type{Char}, default = nothing) =
     get(String(p.buf), prevind(p), default)

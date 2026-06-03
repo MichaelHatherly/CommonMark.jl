@@ -1,23 +1,23 @@
 function writer(
-    mime,
-    file::AbstractString,
-    ast::Node,
-    env = Dict{String,Any}();
-    transform = default_transform,
-    kws...,
-)
+        mime,
+        file::AbstractString,
+        ast::Node,
+        env = Dict{String, Any}();
+        transform = default_transform,
+        kws...,
+    )
     env = merge(env, Dict("outputfile" => file))
-    open(io -> writer(io, mime, ast, env; transform = transform, kws...), file, "w")
+    return open(io -> writer(io, mime, ast, env; transform = transform, kws...), file, "w")
 end
 function writer(
-    mime,
-    io::IO,
-    ast::Node,
-    env = nothing;
-    transform = default_transform,
-    kws...,
-)
-    writer(io, mime, ast, env; transform = transform, kws...)
+        mime,
+        io::IO,
+        ast::Node,
+        env = nothing;
+        transform = default_transform,
+        kws...,
+    )
+    return writer(io, mime, ast, env; transform = transform, kws...)
 end
 function writer(mime, ast::Node, env = nothing; transform = default_transform, kws...)
     io = IOBuffer()
@@ -26,34 +26,34 @@ function writer(mime, ast::Node, env = nothing; transform = default_transform, k
 end
 
 function writer(
-    io::IO,
-    mime::MIME,
-    ast::Node,
-    env::Dict;
-    transform = default_transform,
-    kws...,
-)
+        io::IO,
+        mime::MIME,
+        ast::Node,
+        env::Dict;
+        transform = default_transform,
+        kws...,
+    )
     # Merge all metadata provided, priority is right-to-left.
     env = recursive_merge(
         default_config(),
         env,
         frontmatter(ast),
-        something(ast.meta, Dict{String,Any}()),
+        something(ast.meta, Dict{String, Any}()),
     )
-    show(io, mime, ast, env; transform = transform, kws...)
+    return show(io, mime, ast, env; transform = transform, kws...)
 end
 function writer(
-    io::IO,
-    mime::MIME,
-    ast::Node,
-    ::Nothing;
-    transform = default_transform,
-    kws...,
-)
-    show(io, mime, ast; transform = transform, kws...)
+        io::IO,
+        mime::MIME,
+        ast::Node,
+        ::Nothing;
+        transform = default_transform,
+        kws...,
+    )
+    return show(io, mime, ast; transform = transform, kws...)
 end
 
-default_config() = Dict{String,Any}(
+default_config() = Dict{String, Any}(
     "authors" => [],
     "curdir" => pwd(),
     "title" => "",
@@ -61,7 +61,7 @@ default_config() = Dict{String,Any}(
     "abstract" => "",
     "keywords" => [],
     "lang" => "en",
-    "latex" => Dict{String,Any}("documentclass" => "article"),
+    "latex" => Dict{String, Any}("documentclass" => "article"),
 )
 
 recursive_merge(ds::AbstractDict...) = merge(recursive_merge, ds...)
@@ -91,24 +91,24 @@ author: Jane Doe
 frontmatter(ast)  # Dict("title" => "My Document", "author" => "Jane Doe")
 ```
 """
-frontmatter(n::Node) = has_frontmatter(n) ? n.first_child.t.data : Dict{String,Any}()
+frontmatter(n::Node) = has_frontmatter(n) ? n.first_child.t.data : Dict{String, Any}()
 has_frontmatter(n::Node) = !isnull(n.first_child) && n.first_child.t isa FrontMatter
 
-mutable struct Writer{F,I<:IO,T}
+mutable struct Writer{F, I <: IO, T}
     format::F
     buffer::I
     last::Char
     enabled::Bool
-    context::Dict{Symbol,Any}
-    env::Dict{String,Any}
+    context::Dict{Symbol, Any}
+    env::Dict{String, Any}
     transform::T
 end
 Writer(
     format,
     buffer = IOBuffer(),
-    env = Dict{String,Any}();
+    env = Dict{String, Any}();
     transform = default_transform,
-) = Writer(format, buffer, '\n', true, Dict{Symbol,Any}(), env, transform)
+) = Writer(format, buffer, '\n', true, Dict{Symbol, Any}(), env, transform)
 
 Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
 Base.get!(f::Function, w::Writer, k::Symbol) = get!(f, w.context, k)
@@ -180,5 +180,6 @@ function ast_dump(io::IO, ast::Node)
             println(io, ' '^(indent + 4), repr(node.literal))
         end
     end
+    return
 end
 ast_dump(ast::Node) = ast_dump(stdout, ast)

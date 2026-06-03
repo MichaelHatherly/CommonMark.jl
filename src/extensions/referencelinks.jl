@@ -98,50 +98,50 @@ const REFLINK_STYLES = (:full, :collapsed, :shortcut)
 
 """Reference-style link. Build with `Node(ReferenceLink, children...; dest, label, title="", style=:full)`."""
 function Node(
-    ::Type{ReferenceLink},
-    children...;
-    dest::AbstractString,
-    label::AbstractString,
-    title::AbstractString = "",
-    style::Symbol = :full,
-)
+        ::Type{ReferenceLink},
+        children...;
+        dest::AbstractString,
+        label::AbstractString,
+        title::AbstractString = "",
+        style::Symbol = :full,
+    )
     style in REFLINK_STYLES || error("style must be one of $REFLINK_STYLES")
-    _build(ReferenceLink(dest, title, label, style), children)
+    return _build(ReferenceLink(dest, title, label, style), children)
 end
 
 """Reference-style image. Build with `Node(ReferenceImage, children...; dest, label, title="", style=:full)`."""
 function Node(
-    ::Type{ReferenceImage},
-    children...;
-    dest::AbstractString,
-    label::AbstractString,
-    title::AbstractString = "",
-    style::Symbol = :full,
-)
+        ::Type{ReferenceImage},
+        children...;
+        dest::AbstractString,
+        label::AbstractString,
+        title::AbstractString = "",
+        style::Symbol = :full,
+    )
     style in REFLINK_STYLES || error("style must be one of $REFLINK_STYLES")
-    _build(ReferenceImage(dest, title, label, style), children)
+    return _build(ReferenceImage(dest, title, label, style), children)
 end
 
 """Reference definition. Build with `Node(ReferenceDefinition; label, dest, title="")`."""
 function Node(
-    ::Type{ReferenceDefinition};
-    label::AbstractString,
-    dest::AbstractString,
-    title::AbstractString = "",
-)
-    Node(ReferenceDefinition(label, dest, title))
+        ::Type{ReferenceDefinition};
+        label::AbstractString,
+        dest::AbstractString,
+        title::AbstractString = "",
+    )
+    return Node(ReferenceDefinition(label, dest, title))
 end
 
 """Unresolved reference. Build with `Node(UnresolvedReference, children...; label, style=:shortcut, image=false)`."""
 function Node(
-    ::Type{UnresolvedReference},
-    children...;
-    label::AbstractString,
-    style::Symbol = :shortcut,
-    image::Bool = false,
-)
+        ::Type{UnresolvedReference},
+        children...;
+        label::AbstractString,
+        style::Symbol = :shortcut,
+        image::Bool = false,
+    )
     style in REFLINK_STYLES || error("style must be one of $REFLINK_STYLES")
-    _build(UnresolvedReference(label, style, image), children)
+    return _build(UnresolvedReference(label, style, image), children)
 end
 
 # Inline rule - intercepts reference links before standard LinkRule
@@ -247,8 +247,8 @@ function parse_reference_close_bracket(parser::InlineParser, block::Node)
         dest, title = link
         node = Node(
             is_image ?
-            ReferenceImage(dest, title === nothing ? "" : title, label, style) :
-            ReferenceLink(dest, title === nothing ? "" : title, label, style),
+                ReferenceImage(dest, title === nothing ? "" : title, label, style) :
+                ReferenceLink(dest, title === nothing ? "" : title, label, style),
         )
     end
 
@@ -284,61 +284,60 @@ inline_rule(::ReferenceLinkRule) = Rule(parse_reference_close_bracket, 0.5, "]")
 
 # Block rule - captures reference definitions in place
 
-block_rule(::ReferenceLinkRule) =
-    Rule(0.5, "[") do parser, container
-        parser.indented && return 0
+block_rule(::ReferenceLinkRule) = Rule(0.5, "[") do parser, container
+    parser.indented && return 0
 
-        ln = rest_from_nonspace(parser)
+    ln = rest_from_nonspace(parser)
 
-        # Match [label]: pattern - label can contain anything except unescaped [ or ]
-        m = match(r"^\[([^\[\]\\]|\\.){1,999}\]:", ln)
-        m === nothing && return 0
+    # Match [label]: pattern - label can contain anything except unescaped [ or ]
+    m = match(r"^\[([^\[\]\\]|\\.){1,999}\]:", ln)
+    m === nothing && return 0
 
-        # Extract label (strip brackets and colon)
-        label_with_brackets = m.match[1:end-1]  # remove trailing :
-        label = chop(label_with_brackets; head = 1, tail = 1)  # remove [ and ]
+    # Extract label (strip brackets and colon)
+    label_with_brackets = m.match[1:(end - 1)]  # remove trailing :
+    label = chop(label_with_brackets; head = 1, tail = 1)  # remove [ and ]
 
-        # Parse rest of line for destination and title
-        rest = SubString(ln, ncodeunits(m.match) + 1)
+    # Parse rest of line for destination and title
+    rest = SubString(ln, ncodeunits(m.match) + 1)
 
-        # Skip leading whitespace
-        rest_stripped = lstrip(rest)
-        isempty(rest_stripped) && return 0  # no destination
+    # Skip leading whitespace
+    rest_stripped = lstrip(rest)
+    isempty(rest_stripped) && return 0  # no destination
 
-        # Use InlineParser to parse destination and title
-        inline_parser = parser.inline_parser
-        inline_parser.buf = String(rest_stripped)
-        seek(inline_parser, 1)
+    # Use InlineParser to parse destination and title
+    inline_parser = parser.inline_parser
+    inline_parser.buf = String(rest_stripped)
+    seek(inline_parser, 1)
 
-        dest = parse_link_destination(inline_parser)
-        dest === nothing && return 0
+    dest = parse_link_destination(inline_parser)
+    dest === nothing && return 0
 
-        # Try to parse title
-        title = ""
-        chomp_ws(inline_parser)
-        if position(inline_parser) > 1
-            t = parse_link_title(inline_parser)
-            t !== nothing && (title = t)
-        end
-
-        # Verify we consumed the meaningful content (allow trailing whitespace)
-        remaining = SubString(inline_parser.buf, position(inline_parser))
-        if !all(isspace, remaining)
-            return 0  # extra content after definition
-        end
-
-        # Create the definition node
-        close_unmatched_blocks(parser)
-        add_child(parser, ReferenceDefinition(label, dest, title), parser.next_nonspace)
-
-        # Add to refmap for inline link resolution (first definition wins)
-        normlabel = normalize_reference(label)
-        haskey(parser.refmap, normlabel) || (parser.refmap[normlabel] = (dest, title))
-
-        # Consume the entire line
-        advance_offset(parser, length(parser.buf) - parser.next_nonspace + 1, false)
-        return 2  # leaf block
+    # Try to parse title
+    title = ""
+    chomp_ws(inline_parser)
+    if position(inline_parser) > 1
+        t = parse_link_title(inline_parser)
+        t !== nothing && (title = t)
     end
+
+    # Verify we consumed the meaningful content (allow trailing whitespace)
+    remaining = SubString(inline_parser.buf, position(inline_parser))
+    if !all(isspace, remaining)
+        return 0  # extra content after definition
+    end
+
+    # Create the definition node
+    close_unmatched_blocks(parser)
+    add_child(parser, ReferenceDefinition(label, dest, title), parser.next_nonspace)
+
+    # Add to refmap for inline link resolution (first definition wins)
+    normlabel = normalize_reference(label)
+    haskey(parser.refmap, normlabel) || (parser.refmap[normlabel] = (dest, title))
+
+    # Consume the entire line
+    advance_offset(parser, length(parser.buf) - parser.next_nonspace + 1, false)
+    return 2  # leaf block
+end
 
 #
 # Writers
@@ -347,7 +346,7 @@ block_rule(::ReferenceLinkRule) =
 # Markdown - output reference style
 
 function write_markdown(ref::ReferenceLink, w, node, ent)
-    if ent
+    return if ent
         literal(w, "[")
     else
         if ref.style === :full
@@ -361,7 +360,7 @@ function write_markdown(ref::ReferenceLink, w, node, ent)
 end
 
 function write_markdown(ref::ReferenceImage, w, node, ent)
-    if ent
+    return if ent
         literal(w, "![")
     else
         if ref.style === :full
@@ -377,7 +376,7 @@ end
 # HTML - same as regular Link/Image
 
 function write_html(ref::ReferenceLink, r, n, ent)
-    if ent
+    return if ent
         attrs = []
         if !(r.format.safe && potentially_unsafe(ref.destination))
             push!(attrs, "href" => escape_xml(ref.destination))
@@ -392,7 +391,7 @@ function write_html(ref::ReferenceLink, r, n, ent)
 end
 
 function write_html(ref::ReferenceImage, r, n, ent)
-    if ent
+    return if ent
         if r.format.disable_tags == 0
             if r.format.safe && potentially_unsafe(ref.destination)
                 literal(r, "<img src=\"\" alt=\"")
@@ -415,16 +414,16 @@ end
 # LaTeX
 
 function write_latex(ref::ReferenceLink, w, node, ent)
-    if ent
+    return if ent
         type, n = startswith(ref.destination, '#') ? ("hyperlink", 1) : ("href", 0)
-        literal(w, "\\$type{$(chop(ref.destination; head=n, tail=0))}{")
+        literal(w, "\\$type{$(chop(ref.destination; head = n, tail = 0))}{")
     else
         literal(w, "}")
     end
 end
 
 function write_latex(ref::ReferenceImage, w, node, ent)
-    if ent
+    return if ent
         cr(w)
         literal(w, "\\begin{figure}\n")
         literal(w, "\\centering\n")
@@ -441,7 +440,7 @@ end
 
 function write_term(ref::ReferenceLink, render, node, enter)
     style = crayon"blue underline"
-    if enter
+    return if enter
         print_literal(render, style)
         push_inline!(render, style)
     else
@@ -452,7 +451,7 @@ end
 
 function write_term(ref::ReferenceImage, render, node, enter)
     style = crayon"green"
-    if enter
+    return if enter
         print_literal(render, style)
         push_inline!(render, style)
     else
@@ -464,7 +463,7 @@ end
 # Typst
 
 function write_typst(ref::ReferenceLink, w, node, ent)
-    if ent
+    return if ent
         literal(w, "#link(", repr(ref.destination), ")[")
     else
         literal(w, "]")
@@ -472,7 +471,7 @@ function write_typst(ref::ReferenceLink, w, node, ent)
 end
 
 function write_typst(ref::ReferenceImage, w, node, ent)
-    if ent
+    return if ent
         literal(w, "#figure(image(", repr(ref.destination), "), caption: [")
     else
         literal(w, "])")
@@ -486,7 +485,7 @@ function write_markdown(def::ReferenceDefinition, w, node, ent)
     literal(w, "[", def.label, "]: ", def.destination)
     isempty(def.title) || literal(w, " \"", escape_markdown_title(def.title), "\"")
     cr(w)
-    linebreak(w, node)
+    return linebreak(w, node)
 end
 
 write_html(::ReferenceDefinition, r, n, ent) = nothing
@@ -499,7 +498,7 @@ write_typst(::ReferenceDefinition, w, n, ent) = nothing
 # For shortcut style, we output [text] or ![text] directly
 
 function write_markdown(ref::UnresolvedReference, w, node, ent)
-    if ent
+    return if ent
         # Only use image flag for shortcut style - for full/collapsed, ![ is in preceding Text
         use_image = ref.image && ref.style === :shortcut
         literal(w, use_image ? "![" : "[")
@@ -510,7 +509,7 @@ end
 
 # HTML - output as text (no link)
 function write_html(ref::UnresolvedReference, r, n, ent)
-    if ent
+    return if ent
         use_image = ref.image && ref.style === :shortcut
         literal(r, use_image ? "![" : "[")
     else
@@ -520,7 +519,7 @@ end
 
 # LaTeX - output as text
 function write_latex(ref::UnresolvedReference, w, node, ent)
-    if ent
+    return if ent
         use_image = ref.image && ref.style === :shortcut
         literal(w, use_image ? "![" : "[")
     else
@@ -531,7 +530,7 @@ end
 # Term - output as warning style
 function write_term(ref::UnresolvedReference, render, node, enter)
     style = crayon"red"
-    if enter
+    return if enter
         use_image = ref.image && ref.style === :shortcut
         print_literal(render, style, use_image ? "![" : "[")
         push_inline!(render, style)
@@ -543,7 +542,7 @@ end
 
 # Typst - output as text
 function write_typst(ref::UnresolvedReference, w, node, ent)
-    if ent
+    return if ent
         use_image = ref.image && ref.style === :shortcut
         literal(w, use_image ? "![" : "[")
     else
@@ -554,7 +553,7 @@ end
 # JSON - same as regular Link/Image
 
 function write_json(ref::ReferenceLink, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -565,7 +564,7 @@ function write_json(ref::ReferenceLink, ctx, node, enter)
 end
 
 function write_json(ref::ReferenceImage, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -578,7 +577,7 @@ end
 write_json(::ReferenceDefinition, ctx, node, enter) = nothing
 
 function write_json(ref::UnresolvedReference, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else

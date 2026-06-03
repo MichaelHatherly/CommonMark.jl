@@ -1,6 +1,6 @@
 struct FrontMatter <: AbstractBlock
     fence::String
-    data::Dict{String,Any}
+    data::Dict{String, Any}
     FrontMatter(fence) = new(fence, Dict())
 end
 
@@ -74,25 +74,24 @@ struct FrontMatterRule
     yaml::Function
 
     function FrontMatterRule(; fs...)
-        λ = str -> Dict{String,Any}()
+        λ = str -> Dict{String, Any}()
         return new(get(fs, :json, λ), get(fs, :toml, λ), get(fs, :yaml, λ))
     end
 end
 
 block_rule(::FrontMatterRule) = Rule(parse_front_matter, 0.5, ";+-")
-block_modifier(f::FrontMatterRule) =
-    Rule(0.5) do parser, node
-        if node.t isa FrontMatter
-            fence = node.t.fence
-            λ = fence == ";;;" ? f.json : fence == "+++" ? f.toml : f.yaml
-            try
-                merge!(node.t.data, λ(node.literal))
-            catch err
-                node.literal = string(err)
-            end
+block_modifier(f::FrontMatterRule) = Rule(0.5) do parser, node
+    if node.t isa FrontMatter
+        fence = node.t.fence
+        λ = fence == ";;;" ? f.json : fence == "+++" ? f.toml : f.yaml
+        try
+            merge!(node.t.data, λ(node.literal))
+        catch err
+            node.literal = string(err)
         end
-        return nothing
     end
+    return nothing
+end
 
 # Frontmatter isn't displayed in the resulting output.
 
@@ -106,7 +105,7 @@ function write_markdown(f::FrontMatter, w, node, ent)
     # If frontmatter is not well-formed then it won't be round-trippable.
     literal(w, node.literal)
     literal(w, f.fence, "\n")
-    linebreak(w, node)
+    return linebreak(w, node)
 end
 
 # Frontmatter is handled at the top-level in JSON writer (populates meta).

@@ -31,7 +31,7 @@
     @test html(p("^**bold super**^")) == "<p><sup><strong>bold super</strong></sup></p>\n"
     @test html(p("*~sub in italic~*")) == "<p><em><sub>sub in italic</sub></em></p>\n"
     @test html(p("**^super in bold^**")) ==
-          "<p><strong><sup>super in bold</sup></strong></p>\n"
+        "<p><strong><sup>super in bold</sup></strong></p>\n"
 
     # ==========================================
     # Three-level nesting

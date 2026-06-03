@@ -57,20 +57,20 @@
     test_interpolation("interpolated_string", ast, "interpolation")
 
     # Interpolated values are not linked to their macroexpansion origin.
-    asts = [cm"Value = **$(each)**" for each = 1:3]
+    asts = [cm"Value = **$(each)**" for each in 1:3]
     test_interpolation("interpolated_values_1", asts[1], "interpolation")
     test_interpolation("interpolated_values_2", asts[2], "interpolation")
     test_interpolation("interpolated_values_3", asts[3], "interpolation")
 
     # Interpolating collections.
-    worlds = [HTML("<div>world $i</div>") for i = 1:3]
+    worlds = [HTML("<div>world $i</div>") for i in 1:3]
     test_interpolation("interpolated_collection", cm"Hello $(worlds)", "interpolation")
 
-    worlds = (HTML("<div>world $i</div>") for i = 1:3)
+    worlds = (HTML("<div>world $i</div>") for i in 1:3)
     @test html(cm"Hello $(worlds)") ==
-          "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
+        "<p>Hello <span class=\"julia-value\"><div>world 1</div> <div>world 2</div> <div>world 3</div> </span></p>\n"
 
-    worlds = Tuple(HTML("<div>world $i</div>") for i = 1:3)
+    worlds = Tuple(HTML("<div>world $i</div>") for i in 1:3)
     test_interpolation("interpolated_tuple", cm"Hello $(worlds)", "interpolation")
 
     # Make sure that the evaluation of values happens at runtime.

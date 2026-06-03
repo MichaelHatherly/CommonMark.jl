@@ -13,7 +13,7 @@ function parse_string(parser::InlineParser, block::Node)
         char = trypeek(parser, Char, '\0')
         # Fast path for ASCII triggers, fallback to dict for non-ASCII
         is_trigger = if char <= '\x7f'
-            @inbounds parser.trigger_table[Int(char)+1]
+            @inbounds parser.trigger_table[Int(char) + 1]
         else
             haskey(parser.inline_parsers, char)
         end

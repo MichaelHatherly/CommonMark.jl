@@ -7,7 +7,7 @@ end
 function Node(::Type{Citation}, id::AbstractString; brackets::Bool = false)
     node = Node(Citation(id, brackets))
     node.literal = "@$id"
-    node
+    return node
 end
 
 struct CitationBracket <: AbstractBlock end
@@ -31,68 +31,65 @@ struct CitationRule
     CitationRule() = new([])
 end
 
-inline_rule(rule::CitationRule) =
-    Rule(1, "@") do parser, block
-        m = consume(
-            parser,
-            match(r"@[_\w\d](?:[_\w\d]|[:#$%&\-\+\?\<\>~/](?=[_\w\d]))*", parser),
-        )
-        m === nothing && return false
-        bs = parser.brackets
-        opener = bs !== nothing && is_bracket(bs.node, "[")
-        citation = Node(Citation(chop(m.match; head = 1, tail = 0), opener))
-        citation.literal = m.match
-        append_child(block, citation)
-        push!(rule.cites, citation)
-        return true
-    end
+inline_rule(rule::CitationRule) = Rule(1, "@") do parser, block
+    m = consume(
+        parser,
+        match(r"@[_\w\d](?:[_\w\d]|[:#$%&\-\+\?\<\>~/](?=[_\w\d]))*", parser),
+    )
+    m === nothing && return false
+    bs = parser.brackets
+    opener = bs !== nothing && is_bracket(bs.node, "[")
+    citation = Node(Citation(chop(m.match; head = 1, tail = 0), opener))
+    citation.literal = m.match
+    append_child(block, citation)
+    push!(rule.cites, citation)
+    return true
+end
 
 is_bracket(n::Node, c) = n.literal == c && n.t isa Text
 
-inline_modifier(rule::CitationRule) =
-    Rule(1) do parser, block
-        openers = Set{Node}()
-        closers = Set{Node}()
-        while !isempty(rule.cites)
-            cite = pop!(rule.cites)
-            if cite.t.brackets
-                opener = closer = cite
-                while !isnull(opener.prv)
-                    opener = opener.prv
-                    opener in openers && @goto SKIP
-                    opener.t isa Citation && break
-                    if is_bracket(opener, "[")
-                        opener.t = CitationBracket()
-                        push!(openers, opener)
-                        break
-                    end
+inline_modifier(rule::CitationRule) = Rule(1) do parser, block
+    openers = Set{Node}()
+    closers = Set{Node}()
+    while !isempty(rule.cites)
+        cite = pop!(rule.cites)
+        if cite.t.brackets
+            opener = closer = cite
+            while !isnull(opener.prv)
+                opener = opener.prv
+                opener in openers && @goto SKIP
+                opener.t isa Citation && break
+                if is_bracket(opener, "[")
+                    opener.t = CitationBracket()
+                    push!(openers, opener)
+                    break
                 end
-                while !isnull(closer.nxt)
-                    closer = closer.nxt
-                    closer in closers && @goto SKIP
-                    closer.t isa Citation && break
-                    if is_bracket(closer, "]")
-                        closer.t = CitationBracket()
-                        push!(closers, closer)
-                        break
-                    end
-                end
-                @label SKIP
             end
+            while !isnull(closer.nxt)
+                closer = closer.nxt
+                closer in closers && @goto SKIP
+                closer.t isa Citation && break
+                if is_bracket(closer, "]")
+                    closer.t = CitationBracket()
+                    push!(closers, closer)
+                    break
+                end
+            end
+            @label SKIP
         end
     end
+end
 
 struct References <: AbstractBlock end
 
-block_modifier(::CitationRule) =
-    Rule(10) do parser, b
-        if !isnull(b.parent) && b.parent.t isa Document
-            if hasmeta(b, "id") && getmeta(b, "id", "") == "refs"
-                insert_after(b, Node(References()))
-            end
+block_modifier(::CitationRule) = Rule(10) do parser, b
+    if !isnull(b.parent) && b.parent.t isa Document
+        if hasmeta(b, "id") && getmeta(b, "id", "") == "refs"
+            insert_after(b, Node(References()))
         end
-        return nothing
     end
+    return nothing
+end
 
 # Writers. TODO: implement real CSL for citation styling.
 
@@ -115,7 +112,7 @@ function write_html(c::Citation, w, n, ent)
     linked && tag(w, "a", ["href" => "#ref-$(c.id)"])
     literal(w, CSL.author_year(w.env, c.id))
     linked && tag(w, "/a")
-    tag(w, "/span")
+    return tag(w, "/span")
 end
 
 function write_latex(c::Citation, w, n, ent)
@@ -148,7 +145,7 @@ function write_term(c::Citation, w, n, ent)
     push_inline!(w, style)
     print_literal(w, CSL.author_year(w.env, c.id))
     pop_inline!(w)
-    print_literal(w, inv(style))
+    return print_literal(w, inv(style))
 end
 
 write_html(::CitationBracket, w, n, ent) = literal(w, n.literal == "[" ? "(" : ")")
@@ -168,7 +165,7 @@ function write_json(c::Citation, ctx, node, enter)
         "citationNoteNum" => 0,
         "citationHash" => 0,
     )
-    push_element!(
+    return push_element!(
         ctx,
         json_el(ctx, "Cite", Any[Any[citation], text_to_inlines(ctx, "@" * c.id)]),
     )
@@ -184,7 +181,7 @@ write_typst(::References, w, n, ent) = nothing # unsupported
 
 function write_references(f, writer)
     ast = build_references(get(writer.env, "references", nothing))
-    f(writer, ast)
+    return f(writer, ast)
 end
 
 struct ReferenceList <: AbstractBlock end
@@ -242,71 +239,71 @@ end
 
 module CSL
 
-rget(f, col, key, keys...) = contains(col, key) ? rget(f, col[key], keys...) : f()
-rget(f, col, key) = tryget(f, col, key)
-tryget(f, d, key) = contains(d, key) ? d[key] : f()
-contains(d::AbstractDict, key) = haskey(d, key)
-contains(v::AbstractVector, index) = index in keys(v)
-contains(others...) = false
+    rget(f, col, key, keys...) = contains(col, key) ? rget(f, col[key], keys...) : f()
+    rget(f, col, key) = tryget(f, col, key)
+    tryget(f, d, key) = contains(d, key) ? d[key] : f()
+    contains(d::AbstractDict, key) = haskey(d, key)
+    contains(v::AbstractVector, index) = index in keys(v)
+    contains(others...) = false
 
-year(item) = rget(() -> nothing, item, "issued", "date-parts", 1, 1)
-authors(item) =
-    filter(d -> d isa AbstractDict && haskey(d, "family"), rget(() -> [], item, "author"))
-title(item) = rget(() -> nothing, item, "title")
+    year(item) = rget(() -> nothing, item, "issued", "date-parts", 1, 1)
+    authors(item) =
+        filter(d -> d isa AbstractDict && haskey(d, "family"), rget(() -> [], item, "author"))
+    title(item) = rget(() -> nothing, item, "title")
 
-function year(env::AbstractDict, id::AbstractString)
-    y = year(get_item(env, id))
-    return y === nothing ? "@$id" : y
-end
-
-author_short(item) = get(() -> get(item, "given", ""), item, "family")
-
-function authors_short(item)
-    names = sort(authors(item); by = author_short)
-    n = length(names)
-    n === 0 && return "Unknown"
-    1 ≤ n ≤ 2 && return join(author_short.(names), " and ")
-    n === 3 && return join(author_short.(names), ", ", ", and ")
-    return author_short(names[1]) * " et al."
-end
-
-function author_long(item, first)
-    family = get(item, "family", "")
-    given = get(item, "given", "")
-    given == "" && return family
-    family == "" && return given
-    return first ? "$family, $given" : "$given $family"
-end
-
-function authors_long(item)
-    names = sort(authors(item); by = author_short)
-    return join((author_long(a, n == 1) for (n, a) in enumerate(names)), ", ", ", and ")
-end
-
-mapbib(items::AbstractVector) =
-    Dict{String,Dict}(item["id"] => item for item in items if haskey(item, "id"))
-
-function get_item(env, id)
-    if haskey(env, "references")
-        refs = get!(() -> mapbib(env["references"]), env, "ref-map")
-        haskey(refs, id) && return refs[id]
+    function year(env::AbstractDict, id::AbstractString)
+        y = year(get_item(env, id))
+        return y === nothing ? "@$id" : y
     end
-    return nothing
-end
 
-function author_year(env::AbstractDict, id::AbstractString)
-    item = get_item(env, id)
-    return item === nothing ? "@$id" : author_year(item)
-end
-author_year(item) = "$(authors_short(item)) $(year(item))"
+    author_short(item) = get(() -> get(item, "given", ""), item, "family")
 
-publisher(d) = _publisher(get(d, "publisher-place", nothing), get(d, "publisher", nothing))
-_publisher(place, name) = "$place: $name"
-_publisher(::Nothing, name::AbstractString) = name
-_publisher(place::AbstractString, ::Nothing) = place
-_publisher(::Nothing, ::Nothing) = nothing
+    function authors_short(item)
+        names = sort(authors(item); by = author_short)
+        n = length(names)
+        n === 0 && return "Unknown"
+        1 ≤ n ≤ 2 && return join(author_short.(names), " and ")
+        n === 3 && return join(author_short.(names), ", ", ", and ")
+        return author_short(names[1]) * " et al."
+    end
 
-url(d) = get(d, "URL", nothing)
-doi(d) = get(d, "DOI", nothing)
+    function author_long(item, first)
+        family = get(item, "family", "")
+        given = get(item, "given", "")
+        given == "" && return family
+        family == "" && return given
+        return first ? "$family, $given" : "$given $family"
+    end
+
+    function authors_long(item)
+        names = sort(authors(item); by = author_short)
+        return join((author_long(a, n == 1) for (n, a) in enumerate(names)), ", ", ", and ")
+    end
+
+    mapbib(items::AbstractVector) =
+        Dict{String, Dict}(item["id"] => item for item in items if haskey(item, "id"))
+
+    function get_item(env, id)
+        if haskey(env, "references")
+            refs = get!(() -> mapbib(env["references"]), env, "ref-map")
+            haskey(refs, id) && return refs[id]
+        end
+        return nothing
+    end
+
+    function author_year(env::AbstractDict, id::AbstractString)
+        item = get_item(env, id)
+        return item === nothing ? "@$id" : author_year(item)
+    end
+    author_year(item) = "$(authors_short(item)) $(year(item))"
+
+    publisher(d) = _publisher(get(d, "publisher-place", nothing), get(d, "publisher", nothing))
+    _publisher(place, name) = "$place: $name"
+    _publisher(::Nothing, name::AbstractString) = name
+    _publisher(place::AbstractString, ::Nothing) = place
+    _publisher(::Nothing, ::Nothing) = nothing
+
+    url(d) = get(d, "URL", nothing)
+    doi(d) = get(d, "DOI", nothing)
 
 end

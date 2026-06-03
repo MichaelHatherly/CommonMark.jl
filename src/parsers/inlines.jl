@@ -28,16 +28,16 @@ mutable struct Delimiter
     numdelims::Int
     origdelims::Int
     node::Node
-    previous::Union{Nothing,Delimiter}
-    next::Union{Nothing,Delimiter}
+    previous::Union{Nothing, Delimiter}
+    next::Union{Nothing, Delimiter}
     can_open::Bool
     can_close::Bool
 end
 
 mutable struct Bracket
     node::Node
-    previous::Union{Nothing,Bracket}
-    previousDelimiter::Union{Nothing,Delimiter}
+    previous::Union{Nothing, Bracket}
+    previousDelimiter::Union{Nothing, Delimiter}
     index::Int
     image::Bool
     active::Bool
@@ -50,19 +50,19 @@ mutable struct InlineParser <: AbstractParser
     pos::Int
     len::Int
     # extra
-    brackets::Union{Nothing,Bracket}
-    delimiters::Union{Nothing,Delimiter}
-    refmap::Dict{String,Any}
-    inline_parsers::Dict{Char,Vector{Function}}
+    brackets::Union{Nothing, Bracket}
+    delimiters::Union{Nothing, Delimiter}
+    refmap::Dict{String, Any}
+    inline_parsers::Dict{Char, Vector{Function}}
     modifiers::Vector{Function}
     # Delimiter-based inline registries
-    delim_nodes::Dict{Tuple{Char,Int},Type{<:AbstractInline}}
-    flanking_rules::Dict{Char,Symbol}
+    delim_nodes::Dict{Tuple{Char, Int}, Type{<:AbstractInline}}
+    flanking_rules::Dict{Char, Symbol}
     odd_match_chars::Set{Char}
     # Precomputed emphasis lookups (derived from delim_nodes)
     delim_chars::Set{Char}
-    delim_counts::Dict{Char,Vector{Int}}
-    delim_max::Dict{Char,Int}
+    delim_counts::Dict{Char, Vector{Int}}
+    delim_max::Dict{Char, Int}
     # Fast lookup for ASCII trigger characters (indexed by codepoint+1)
     # Non-ASCII triggers fall back to haskey on inline_parsers
     trigger_table::BitVector
@@ -77,12 +77,12 @@ mutable struct InlineParser <: AbstractParser
         parser.refmap = Dict()
         parser.inline_parsers = Dict()
         parser.modifiers = Function[]
-        parser.delim_nodes = Dict{Tuple{Char,Int},Type{<:AbstractInline}}()
-        parser.flanking_rules = Dict{Char,Symbol}()
+        parser.delim_nodes = Dict{Tuple{Char, Int}, Type{<:AbstractInline}}()
+        parser.flanking_rules = Dict{Char, Symbol}()
         parser.odd_match_chars = Set{Char}()
         parser.delim_chars = Set{Char}()
-        parser.delim_counts = Dict{Char,Vector{Int}}()
-        parser.delim_max = Dict{Char,Int}()
+        parser.delim_counts = Dict{Char, Vector{Int}}()
+        parser.delim_max = Dict{Char, Int}()
         parser.trigger_table = falses(128)
         return parser
     end
@@ -102,6 +102,7 @@ function rebuild_delim_lookups!(ip::InlineParser)
         sort!(counts, rev = true)
         ip.delim_max[char] = first(counts)
     end
+    return
 end
 
 include("inlines/code.jl")
@@ -153,6 +154,7 @@ function parse_inlines(parser::InlineParser, block::Node)
     for fn in parser.modifiers
         fn(parser, block)
     end
+    return
 end
 
 parse(parser::InlineParser, block::Node) = parse_inlines(parser, block)

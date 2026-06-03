@@ -7,12 +7,12 @@ end
 Base.print(io::IO, cs::CrayonStack) = print(io, cs.crayons[end])
 
 function CrayonStack(; incremental::Bool = false)
-    CrayonStack(
+    return CrayonStack(
         incremental,
         [
             Crayon(
-                ANSIColor(0x9, COLORS_16, !incremental),
-                ANSIColor(0x9, COLORS_16, !incremental),
+                ANSIColor(0x09, COLORS_16, !incremental),
+                ANSIColor(0x09, COLORS_16, !incremental),
                 ANSIStyle(false, !incremental),
                 ANSIStyle(false, !incremental),
                 ANSIStyle(false, !incremental),
@@ -87,8 +87,8 @@ function Base.pop!(cs::CrayonStack)
     pc = cs.crayons[end]
     if length(cs.crayons) == 1
         pc = Crayon(
-            ANSIColor(0x9, COLORS_16, true),
-            ANSIColor(0x9, COLORS_16, true),
+            ANSIColor(0x09, COLORS_16, true),
+            ANSIColor(0x09, COLORS_16, true),
             ANSIStyle(false, true),
             ANSIStyle(false, true),
             ANSIStyle(false, true),

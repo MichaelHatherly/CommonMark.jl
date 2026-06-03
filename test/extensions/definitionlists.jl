@@ -65,15 +65,15 @@
     # Roundtrip test
     @testset "markdown roundtrip" begin
         for input in [
-            "Term\n:   Definition\n",
-            "Term\n:   Definition 1\n:   Definition 2\n",
-            "Term 1\n:   Definition 1\n\nTerm 2\n:   Definition 2\n",
-            "Term\n\n:   Definition\n",
-            "*Emphasized* term\n:   Definition\n",
-            "Term\n:   Paragraph 1\n\n    Paragraph 2\n",
-            "Term\n:   Definition\n\n    - item 1\n    - item 2\n",
-            "> Term\n> :   Definition\n",
-        ]
+                "Term\n:   Definition\n",
+                "Term\n:   Definition 1\n:   Definition 2\n",
+                "Term 1\n:   Definition 1\n\nTerm 2\n:   Definition 2\n",
+                "Term\n\n:   Definition\n",
+                "*Emphasized* term\n:   Definition\n",
+                "Term\n:   Paragraph 1\n\n    Paragraph 2\n",
+                "Term\n:   Definition\n\n    - item 1\n    - item 2\n",
+                "> Term\n> :   Definition\n",
+            ]
             ast = p(input)
             md1 = markdown(ast)
             md2 = markdown(p(md1))

@@ -20,9 +20,9 @@ function HTMLunescape(s)
     @assert startswith(s, '&')
     if startswith(s, "&#")
         num = if startswith(s, "&#X") || startswith(s, "&#x")
-            Base.parse(UInt32, s[4:end-1]; base = 16)
+            Base.parse(UInt32, s[4:(end - 1)]; base = 16)
         else
-            Base.parse(UInt32, s[3:end-1])
+            Base.parse(UInt32, s[3:(end - 1)])
         end
         return (num == 0 || !isvalid(Char, num)) ? "\uFFFD" : string(Char(num))
     else

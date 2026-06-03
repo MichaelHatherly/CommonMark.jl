@@ -38,16 +38,16 @@ write_html(::Mark, r, n, ent) = tag(r, ent ? "mark" : "/mark", ent ? attributes(
 
 function write_latex(::Mark, w, n, ent)
     # Requires \usepackage{soul}
-    print(w.buffer, ent ? "\\hl{" : "}")
+    return print(w.buffer, ent ? "\\hl{" : "}")
 end
 
 function write_typst(::Mark, w, n, ent)
-    print(w.buffer, ent ? "#highlight[" : "]")
+    return print(w.buffer, ent ? "#highlight[" : "]")
 end
 
 function write_term(::Mark, w, n, ent)
     style = crayon"negative"
-    if ent
+    return if ent
         print_literal(w, style)
         push_inline!(w, style)
     else
@@ -57,11 +57,11 @@ function write_term(::Mark, w, n, ent)
 end
 
 function write_markdown(::Mark, w, n, ent)
-    literal(w, "==")
+    return literal(w, "==")
 end
 
 function write_json(::Mark, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else

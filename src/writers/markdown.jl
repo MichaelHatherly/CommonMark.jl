@@ -1,12 +1,12 @@
 # Public.
 
 function Base.show(
-    io::IO,
-    ::MIME"text/markdown",
-    ast::Node,
-    env = Dict{String,Any}();
-    transform = default_transform,
-)
+        io::IO,
+        ::MIME"text/markdown",
+        ast::Node,
+        env = Dict{String, Any}();
+        transform = default_transform,
+    )
     w = Writer(Markdown(io), io, env; transform = transform)
     write_markdown(w, ast)
     return nothing
@@ -35,7 +35,7 @@ markdown(args...; kws...) = writer(MIME"text/markdown"(), args...; kws...)
 
 mime_to_str(::MIME"text/markdown") = "markdown"
 
-mutable struct Markdown{I<:IO}
+mutable struct Markdown{I <: IO}
     buffer::I
     indent::Int
     margin::Vector{MarginSegment}
@@ -57,7 +57,7 @@ function print_margin_rstrip(w)
             end
         end
     end
-    literal(w, rstrip(margin))
+    return literal(w, rstrip(margin))
 end
 
 function write_markdown(writer::Writer, ast::Node)
@@ -66,6 +66,7 @@ function write_markdown(writer::Writer, ast::Node)
         node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_markdown(node.t, writer, node, entering)
     end
+    return
 end
 
 function linebreak(w, node)
@@ -89,7 +90,7 @@ write_markdown(::Text, w, node, ent) = literal(w, node.literal)
 write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
 
 function write_markdown(::SoftBreak, w, node, ent)
-    if node.parent.t isa Heading
+    return if node.parent.t isa Heading
         literal(w, " ")
     else
         cr(w)
@@ -103,7 +104,7 @@ function write_markdown(::LineBreak, w, node, ent)
         literal(w, "  ")
     end
     cr(w)
-    print_margin(w)
+    return print_margin(w)
 end
 
 function write_markdown(::Code, w, node, ent)
@@ -120,11 +121,11 @@ function write_markdown(::Code, w, node, ent)
     pad && literal(w, " ")
     literal(w, content)
     pad && literal(w, " ")
-    literal(w, "`"^backticks)
+    return literal(w, "`"^backticks)
 end
 
 function write_markdown(t::HtmlInline, w, node, ent)
-    if t.raw
+    return if t.raw
         num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
             max(a, length(b.match))
         end
@@ -137,7 +138,7 @@ function write_markdown(t::HtmlInline, w, node, ent)
 end
 
 function write_markdown(link::Link, w, node, ent)
-    if ent
+    return if ent
         literal(w, "[")
     else
         literal(w, "](", link.destination)
@@ -147,7 +148,7 @@ function write_markdown(link::Link, w, node, ent)
 end
 
 function write_markdown(image::Image, w, node, ent)
-    if ent
+    return if ent
         literal(w, "![")
     else
         literal(w, "](", image.destination)
@@ -161,7 +162,7 @@ write_markdown(::Emph, w, node, ent) = literal(w, node.literal)
 write_markdown(::Strong, w, node, ent) = literal(w, node.literal)
 
 function write_markdown(::Paragraph, w, node, ent)
-    if ent
+    return if ent
         print_margin(w)
     else
         cr(w)
@@ -170,7 +171,7 @@ function write_markdown(::Paragraph, w, node, ent)
 end
 
 function write_markdown(heading::Heading, w, node, ent)
-    if ent
+    return if ent
         print_margin(w)
         literal(w, "#"^heading.level, " ")
     else
@@ -180,7 +181,7 @@ function write_markdown(heading::Heading, w, node, ent)
 end
 
 function write_markdown(::BlockQuote, w, node, ent)
-    if ent
+    return if ent
         push_margin!(w, ">")
         push_margin!(w, " ")
     else
@@ -193,7 +194,7 @@ function write_markdown(::BlockQuote, w, node, ent)
 end
 
 function write_markdown(list::List, w, node, ent)
-    if ent
+    return if ent
         w.format.list_depth += 1
         push!(w.format.list_item_number, list.list_data.start)
     else
@@ -205,7 +206,7 @@ function write_markdown(list::List, w, node, ent)
 end
 
 function write_markdown(item::Item, w, node, enter)
-    if enter
+    return if enter
         if item.list_data.type === :ordered
             number = lpad(string(w.format.list_item_number[end], ". "), 4, " ")
             w.format.list_item_number[end] += 1
@@ -232,7 +233,7 @@ function write_markdown(::ThematicBreak, w, node, ent)
     print_margin(w)
     literal(w, "* * *")
     cr(w)
-    linebreak(w, node)
+    return linebreak(w, node)
 end
 
 function write_markdown(code::CodeBlock, w, node, ent)
@@ -255,7 +256,7 @@ function write_markdown(code::CodeBlock, w, node, ent)
             literal(w, ' '^indent, line)
         end
     end
-    linebreak(w, node)
+    return linebreak(w, node)
 end
 
 function write_markdown(t::HtmlBlock, w, node, ent)
@@ -275,5 +276,5 @@ function write_markdown(t::HtmlBlock, w, node, ent)
         end
         cr(w)
     end
-    linebreak(w, node)
+    return linebreak(w, node)
 end

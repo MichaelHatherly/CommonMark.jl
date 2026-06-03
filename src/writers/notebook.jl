@@ -1,12 +1,12 @@
 # Public.
 
 function Base.show(
-    io::IO,
-    ::MIME"application/x-ipynb+json",
-    ast::Node,
-    env = Dict{String,Any}();
-    transform = default_transform,
-)
+        io::IO,
+        ::MIME"application/x-ipynb+json",
+        ast::Node,
+        env = Dict{String, Any}();
+        transform = default_transform,
+    )
     json = Dict(
         "cells" => [],
         "metadata" => Dict(
@@ -57,10 +57,10 @@ mime_to_str(::MIME"application/x-ipynb+json") = "notebook"
 
 function write_notebook(json, node, enter, env)
     split_lines = str -> collect(eachline(IOBuffer(str); keep = true))
-    if !isnull(node) &&
-       node.t isa CodeBlock &&
-       node.parent.t isa Document &&
-       node.t.info == "julia"
+    return if !isnull(node) &&
+            node.t isa CodeBlock &&
+            node.parent.t isa Document &&
+            node.t.info == "julia"
         # Toplevel Julia codeblocks become code cells.
         cell = Dict(
             "cell_type" => "code",
@@ -88,14 +88,14 @@ function write_notebook(json, node, enter, env)
     end
 end
 
-struct StringContext{T<:IO} <: IO
+struct StringContext{T <: IO} <: IO
     io::T
 end
 
-Base.write(io::StringContext, byte::UInt8) = write(io.io, ESCAPED_ARRAY[byte+1])
+Base.write(io::StringContext, byte::UInt8) = write(io.io, ESCAPED_ARRAY[byte + 1])
 
 # JSON writer context with formatting options.
-struct JSONWriter{T<:IO}
+struct JSONWriter{T <: IO}
     io::T
     indent::Int
     sorted::Bool
@@ -111,7 +111,7 @@ _json(io::IO, x; indent::Int = 0, sorted::Bool = true) =
 function _json(w::JSONWriter, str::AbstractString)
     write(w.io, STRING_DELIM)
     print(StringContext(w.io), str)
-    write(w.io, STRING_DELIM)
+    return write(w.io, STRING_DELIM)
 end
 _json(w::JSONWriter, ::Nothing) = print(w.io, "null")
 _json(w::JSONWriter, num::Real) = print(w.io, num)
@@ -130,7 +130,7 @@ function _json(w::JSONWriter, dict::AbstractDict)
     if !isempty(ks) && w.indent > 0
         print(w.io, "\n", " "^(w.indent * w.depth))
     end
-    print(w.io, "}")
+    return print(w.io, "}")
 end
 
 function _json(w::JSONWriter, vec::AbstractVector)
@@ -144,7 +144,7 @@ function _json(w::JSONWriter, vec::AbstractVector)
     if !isempty(vec) && w.indent > 0
         print(w.io, "\n", " "^(w.indent * w.depth))
     end
-    print(w.io, "]")
+    return print(w.io, "]")
 end
 
 # The following bytes have significant meaning in JSON
@@ -199,8 +199,8 @@ const ESCAPES = Dict(
 
 const REVERSE_ESCAPES = Dict(reverse(p) for p in ESCAPES)
 const ESCAPED_ARRAY = Vector{Vector{UInt8}}(undef, 256)
-for c = 0x00:0xFF
-    ESCAPED_ARRAY[c+1] = if c == SOLIDUS
+for c in 0x00:0xFF
+    ESCAPED_ARRAY[c + 1] = if c == SOLIDUS
         [SOLIDUS]  # don't escape this one
     elseif c ≥ 0x80
         [c]  # UTF-8 character copied verbatim

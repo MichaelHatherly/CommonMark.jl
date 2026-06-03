@@ -12,7 +12,7 @@
     @test html(p("^**bold**^")) == "<p><sup><strong>bold</strong></sup></p>\n"
     @test html(p("^*italic*^")) == "<p><sup><em>italic</em></sup></p>\n"
     @test html(p("*^italic superscript^*")) ==
-          "<p><em><sup>italic superscript</sup></em></p>\n"
+        "<p><em><sup>italic superscript</sup></em></p>\n"
 
     # Unclosed superscript
     @test html(p("^unclosed")) == "<p>^unclosed</p>\n"
@@ -31,7 +31,7 @@
 
     # Multiple in paragraph
     @test html(p("^first^ and ^second^")) ==
-          "<p><sup>first</sup> and <sup>second</sup></p>\n"
+        "<p><sup>first</sup> and <sup>second</sup></p>\n"
 
     # Combined with subscript
     p2 = create_parser([SubscriptRule(), SuperscriptRule()])

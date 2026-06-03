@@ -26,7 +26,8 @@ EOF
 
 ### Code Formatting
 ```bash
-just format
+just fmt        # Format in-place with Runic
+just fmt-check  # Check formatting without modifying (CI)
 ```
 
 ### Building

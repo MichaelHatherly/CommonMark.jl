@@ -31,7 +31,7 @@ function Base.getproperty(doc::LazyCommonMarkDoc, s::Symbol)
         @assert length(docstrs) == 1 "meta only valid for single docstr"
         return docstrs[1].data
     end
-    getfield(doc, s)
+    return getfield(doc, s)
 end
 
 function _parse_doc(doc::LazyCommonMarkDoc)
@@ -48,7 +48,7 @@ function _parse_doc(doc::LazyCommonMarkDoc)
             end
 
             # Parse with source location from docstring metadata
-            kws = Dict{Symbol,Any}()
+            kws = Dict{Symbol, Any}()
             haskey(docstr.data, :path) && (kws[:source] = docstr.data[:path])
             haskey(docstr.data, :linenumber) && (kws[:line] = docstr.data[:linenumber])
             haskey(docstr.data, :module) && (kws[:module] = docstr.data[:module])
@@ -62,7 +62,7 @@ function _parse_doc(doc::LazyCommonMarkDoc)
         end
         doc.parsed = result
     end
-    doc.parsed
+    return doc.parsed
 end
 
 Base.show(io::IO, ::MIME"text/plain", doc::LazyCommonMarkDoc) =
@@ -74,7 +74,7 @@ function Docs.catdoc(docs::LazyCommonMarkDoc...)
     for doc in docs
         append!(all_docstrs, doc.docstrs)
     end
-    LazyCommonMarkDoc(all_docstrs, parser)
+    return LazyCommonMarkDoc(all_docstrs, parser)
 end
 
 """
@@ -93,7 +93,7 @@ Optionally pass a custom `Parser` with extensions enabled:
 """
 macro docstring_parser(parser = nothing)
     p = parser === nothing ? :(Parser()) : parser
-    quote
+    return quote
         let p = $p
             for (binding, multidoc) in Docs.meta($(__module__))
                 for (sig, docstr) in multidoc.docs

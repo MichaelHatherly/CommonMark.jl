@@ -16,7 +16,7 @@
         @test ast.first_child.t isa CommonMark.ShortcodeBlock
         @test ast.first_child.t.name == "pagebreak"
         @test ast.first_child.t.args == String[]
-        @test ast.first_child.t.kwargs == Pair{String,String}[]
+        @test ast.first_child.t.kwargs == Pair{String, String}[]
     end
 
     @testset "block with surrounding whitespace" begin
@@ -41,7 +41,7 @@
         ast = p("{{< pagebreak >}}")
         @test ast.first_child.t.name == "pagebreak"
         @test ast.first_child.t.args == String[]
-        @test ast.first_child.t.kwargs == Pair{String,String}[]
+        @test ast.first_child.t.kwargs == Pair{String, String}[]
     end
 
     @testset "with args" begin
@@ -102,7 +102,7 @@
         ast = p("{{< ref page anchor >}}")
         sc = ast.first_child.t
         @test sc.args == ["page", "anchor"]
-        @test sc.kwargs == Pair{String,String}[]
+        @test sc.kwargs == Pair{String, String}[]
     end
 
     @testset "named args" begin
@@ -165,7 +165,7 @@
     # --- Handlers ---
 
     @testset "parse-time handler inline" begin
-        handlers = Dict{String,Function}(
+        handlers = Dict{String, Function}(
             "greeting" => (name, args, kwargs, ctx) -> CommonMark.text("expanded"),
         )
         p = create_parser(ShortcodeRule(handlers = handlers))
@@ -177,7 +177,7 @@
 
     @testset "handler with context" begin
         seen_source = Ref("")
-        handlers = Dict{String,Function}(
+        handlers = Dict{String, Function}(
             "check" => (name, args, kwargs, ctx) -> begin
                 seen_source[] = ctx.source
                 CommonMark.text("ok")
@@ -189,12 +189,12 @@
     end
 
     @testset "handler for block shortcode" begin
-        handlers = Dict{String,Function}(
+        handlers = Dict{String, Function}(
             "replaced" =>
                 (name, args, kwargs, ctx) -> CommonMark.Node(
-                    CommonMark.Paragraph,
-                    CommonMark.text("replaced content"),
-                ),
+                CommonMark.Paragraph,
+                CommonMark.text("replaced content"),
+            ),
         )
         p = create_parser(ShortcodeRule(handlers = handlers))
         ast = p("{{< replaced >}}")
@@ -204,7 +204,7 @@
     end
 
     @testset "unknown shortcode with handlers" begin
-        handlers = Dict{String,Function}(
+        handlers = Dict{String, Function}(
             "known" => (name, args, kwargs, ctx) -> CommonMark.text("yes"),
         )
         p = create_parser(ShortcodeRule(handlers = handlers))
@@ -215,15 +215,15 @@
     end
 
     @testset "handler returning container with children" begin
-        handlers = Dict{String,Function}(
+        handlers = Dict{String, Function}(
             "multi" =>
                 (name, args, kwargs, ctx) -> begin
-                    CommonMark.Node(
-                        CommonMark.Paragraph,
-                        CommonMark.text("child1 "),
-                        CommonMark.text("child2"),
-                    )
-                end,
+                CommonMark.Node(
+                    CommonMark.Paragraph,
+                    CommonMark.text("child1 "),
+                    CommonMark.text("child2"),
+                )
+            end,
         )
         p = create_parser(ShortcodeRule(handlers = handlers))
         ast = p("{{< multi >}}")
@@ -233,12 +233,12 @@
     end
 
     @testset "handler receiving kwargs" begin
-        handlers = Dict{String,Function}(
+        handlers = Dict{String, Function}(
             "link" =>
                 (name, args, kwargs, ctx) -> begin
-                    href = last(first(p for p in kwargs if first(p) == "href"))
-                    CommonMark.text(href)
-                end,
+                href = last(first(p for p in kwargs if first(p) == "href"))
+                CommonMark.text(href)
+            end,
         )
         p = create_parser(ShortcodeRule(handlers = handlers))
         ast = p("{{< link href=\"https://example.com\" >}}")
@@ -281,11 +281,11 @@
     @testset "Markdown roundtrip" begin
         p = create_parser(ShortcodeRule())
         for input in [
-            "Text {{< sc arg >}} end.",
-            "{{< pagebreak >}}",
-            "A {{< ref page >}} and {{< icon star >}}.",
-            "x {{< video src=\"url\" width=100 >}} y",
-        ]
+                "Text {{< sc arg >}} end.",
+                "{{< pagebreak >}}",
+                "A {{< ref page >}} and {{< icon star >}}.",
+                "x {{< video src=\"url\" width=100 >}} y",
+            ]
             ast = p(input)
             md1 = markdown(ast)
             md2 = markdown(p(md1))
@@ -309,12 +309,12 @@
 
     @testset "write-time transform" begin
         function my_transform(
-            ::MIME"text/html",
-            sc::CommonMark.Shortcode,
-            node,
-            entering,
-            writer,
-        )
+                ::MIME"text/html",
+                sc::CommonMark.Shortcode,
+                node,
+                entering,
+                writer,
+            )
             if sc.name == "hr"
                 n = CommonMark.Node(CommonMark.HtmlInline())
                 n.literal = "<hr>"

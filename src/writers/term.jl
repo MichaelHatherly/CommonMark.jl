@@ -1,12 +1,12 @@
 # Public.
 
 function Base.show(
-    io::IO,
-    ::MIME"text/plain",
-    ast::Node,
-    env = Dict{String,Any}();
-    transform = default_transform,
-)
+        io::IO,
+        ::MIME"text/plain",
+        ast::Node,
+        env = Dict{String, Any}();
+        transform = default_transform,
+    )
     w = Writer(Term(), io, env; transform = transform)
     write_term(w, ast)
     # Writing is done to an intermediate buffer and then written to the
@@ -189,6 +189,7 @@ function write_term(writer::Writer, ast::Node)
         node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_term(node.t, writer, node, entering)
     end
+    return
 end
 
 # Utilities.
@@ -238,11 +239,11 @@ Adds new segmant to the margin buffer. `count` determines how many time
 `initial` is printed. After that, the width of `rest` is printed instead.
 """
 function push_margin!(
-    r::Writer,
-    count::Integer,
-    initial::AbstractString,
-    rest::AbstractString,
-)
+        r::Writer,
+        count::Integer,
+        initial::AbstractString,
+        rest::AbstractString,
+    )
     width = Base.Unicode.textwidth(rest)
     r.format.indent += width
     seg = MarginSegment(initial, width, count)
@@ -303,6 +304,7 @@ function print_margin(r::Writer)
             seg.count > 0 && (seg.count -= 1)
         end
     end
+    return
 end
 
 function maybe_print_margin(r, node::Node)
@@ -324,7 +326,7 @@ function print_literal(r::Writer{Term}, parts...)
     # use printing them.
     available_columns(r) < 5 && return
 
-    if r.format.wrap < 0
+    return if r.format.wrap < 0
         # We just print everything normally here, allowing for the possibility
         # of bad automatic line wrapping by the terminal.
         for part in parts
@@ -355,7 +357,7 @@ end
 function print_literal_part(r::Writer{Term}, lit::AbstractString, rec = 0)
     width = Base.Unicode.textwidth(lit)
     space = (available_columns(r) - r.format.wrap) + ispunct(get(lit, 1, '\0'))
-    if width <= space
+    return if width <= space
         print(r.format.buffer, lit)
         r.format.wrap += width
     else
@@ -378,7 +380,7 @@ print_literal_part(r::Writer{Term}, c::Crayon) = print(r.format.buffer, c)
 # Rendering to terminal.
 
 function write_term(::Document, render, node, enter)
-    if enter
+    return if enter
         push_margin!(render, LEFT_MARGIN, crayon"")
     else
         pop_margin!(render)
@@ -395,19 +397,19 @@ function write_term(::Text, render, node, enter)
             text = to_superscript(text)
         end
     end
-    print_literal(render, text)
+    return print_literal(render, text)
 end
 
 write_term(::Backslash, w, node, ent) = nothing
 
 function write_term(::SoftBreak, render, node, enter)
-    print_literal(render, " ")
+    return print_literal(render, " ")
 end
 
 function write_term(::LineBreak, render, node, enter)
     print(render.format.buffer, "\n")
     print_margin(render)
-    render.format.wrap = render.format.wrap < 0 ? -1 : 0
+    return render.format.wrap = render.format.wrap < 0 ? -1 : 0
 end
 
 function write_term(::Code, render, node, enter)
@@ -416,7 +418,7 @@ function write_term(::Code, render, node, enter)
     push_inline!(render, style)
     print_literal(render, node.literal)
     pop_inline!(render)
-    print_literal(render, inv(style))
+    return print_literal(render, inv(style))
 end
 
 function write_term(::HtmlInline, render, node, enter)
@@ -425,12 +427,12 @@ function write_term(::HtmlInline, render, node, enter)
     push_inline!(render, style)
     print_literal(render, node.literal)
     pop_inline!(render)
-    print_literal(render, inv(style))
+    return print_literal(render, inv(style))
 end
 
 function write_term(::Link, render, node, enter)
     style = crayon"blue underline"
-    if enter
+    return if enter
         print_literal(render, style)
         push_inline!(render, style)
     else
@@ -441,7 +443,7 @@ end
 
 function write_term(::Image, render, node, enter)
     style = crayon"green"
-    if enter
+    return if enter
         print_literal(render, style)
         push_inline!(render, style)
     else
@@ -452,7 +454,7 @@ end
 
 function write_term(::Emph, render, node, enter)
     style = crayon"italics"
-    if enter
+    return if enter
         print_literal(render, style)
         push_inline!(render, style)
     else
@@ -463,7 +465,7 @@ end
 
 function write_term(::Strong, render, node, enter)
     style = crayon"bold"
-    if enter
+    return if enter
         print_literal(render, style)
         push_inline!(render, style)
     else
@@ -473,7 +475,7 @@ function write_term(::Strong, render, node, enter)
 end
 
 function write_term(::Paragraph, render, node, enter)
-    if enter
+    return if enter
         render.format.wrap = 0
         print_margin(render)
     else
@@ -487,7 +489,7 @@ function write_term(::Paragraph, render, node, enter)
 end
 
 function write_term(heading::Heading, render, node, enter)
-    if enter
+    return if enter
         print_margin(render)
         style = crayon"blue bold"
         print_literal(render, style, "#"^heading.level, inv(style), " ")
@@ -501,7 +503,7 @@ function write_term(heading::Heading, render, node, enter)
 end
 
 function write_term(::BlockQuote, render, node, enter)
-    if enter
+    return if enter
         push_margin!(render, "│", crayon"bold")
         push_margin!(render, " ", crayon"")
     else
@@ -516,7 +518,7 @@ function write_term(::BlockQuote, render, node, enter)
 end
 
 function write_term(list::List, render, node, enter)
-    if enter
+    return if enter
         render.format.list_depth += 1
         push!(render.format.list_item_number, list.list_data.start)
         push_margin!(render, " ", crayon"")
@@ -532,7 +534,7 @@ function write_term(list::List, render, node, enter)
 end
 
 function write_term(item::Item, render, node, enter)
-    if enter
+    return if enter
         if item.list_data.type === :ordered
             number = string(render.format.list_item_number[end], ". ")
             render.format.list_item_number[end] += 1
@@ -557,7 +559,7 @@ function write_term(::ThematicBreak, render, node, enter)
     stars = " § "
     padding = '═'^padding_between(available_columns(render), length(stars))
     print_literal(render, style, padding, stars, padding, inv(style), "\n")
-    if !isnull(node.nxt)
+    return if !isnull(node.nxt)
         print_margin(render)
         print_literal(render, "\n")
     end
@@ -571,7 +573,7 @@ function write_term(::CodeBlock, render, node, enter)
         print_literal(render, "  ", pipe, "│", inv(pipe), " ")
         print_literal(render, style, line, inv(style), "\n")
     end
-    if !isnull(node.nxt)
+    return if !isnull(node.nxt)
         print_margin(render)
         print_literal(render, "\n")
     end
@@ -583,7 +585,7 @@ function write_term(::HtmlBlock, render, node, enter)
         print_margin(render)
         print_literal(render, style, line, inv(style), "\n")
     end
-    if !isnull(node.nxt)
+    return if !isnull(node.nxt)
         print_margin(render)
         print_literal(render, "\n")
     end

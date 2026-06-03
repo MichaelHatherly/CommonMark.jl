@@ -25,28 +25,27 @@ end
 
 const reInterpHere = r"^\$"
 
-inline_rule(ji::JuliaInterpolationRule) =
-    Rule(1, "\$") do p, node
-        dollar = match(reInterpHere, p)
-        if dollar === nothing || length(dollar.match) > 1
+inline_rule(ji::JuliaInterpolationRule) = Rule(1, "\$") do p, node
+    dollar = match(reInterpHere, p)
+    if dollar === nothing || length(dollar.match) > 1
+        return false
+    else
+        consume(p, dollar)
+        after_opener, count = position(p), length(dollar.match)
+        ex, after_expr = Meta.parse(rest(p), 1; greedy = false, raise = false)
+        after_expr += after_opener
+        if Meta.isexpr(ex, [:error, :incomplete])
+            # Bails out on Julia parse errors, do we rather want to propagate them?
             return false
         else
-            consume(p, dollar)
-            after_opener, count = position(p), length(dollar.match)
-            ex, after_expr = Meta.parse(rest(p), 1; greedy = false, raise = false)
-            after_expr += after_opener
-            if Meta.isexpr(ex, [:error, :incomplete])
-                # Bails out on Julia parse errors, do we rather want to propagate them?
-                return false
-            else
-                seek(p, after_expr - 1) # Offset Meta.parse end position.
-                ref = JuliaExpression(length(ji.captured) + 1, ex)
-                push!(ji.captured, ref)
-                append_child(node, Node(ref))
-                return true
-            end
+            seek(p, after_expr - 1) # Offset Meta.parse end position.
+            ref = JuliaExpression(length(ji.captured) + 1, ex)
+            push!(ji.captured, ref)
+            append_child(node, Node(ref))
+            return true
         end
     end
+end
 
 export @cm_str
 
@@ -123,11 +122,13 @@ macro cm_str(str, name = "jmd")
     # values.
     expr = Expr(:block, :(values = []))
     for v in ji.captured
-        push!(expr.args, :(
-            let x = $(esc(v.ex))
-                push!(values, x)
-            end
-        ))
+        push!(
+            expr.args, :(
+                let x = $(esc(v.ex))
+                    push!(values, x)
+                end
+            )
+        )
     end
     push!(expr.args, :(_interp!($ast, $(ji.captured), values)))
     return expr
@@ -186,24 +187,24 @@ end
 function write_html(jv::JuliaExpression, rend, node, enter)
     tag(rend, "span", attributes(rend, node, ["class" => "julia-expr"]))
     print(rend.buffer, sprint(print, '$', "($(jv.ex))"))
-    tag(rend, "/span")
+    return tag(rend, "/span")
 end
 
 function write_latex(jv::JuliaExpression, rend, node, enter)
     print(rend.buffer, "\\texttt{", '\\', '$', '(')
     latex_escape(rend, string(jv.ex))
-    print(rend.buffer, ")}")
+    return print(rend.buffer, ")}")
 end
 
 function write_typst(jv::JuliaExpression, rend, node, enter)
-    print(rend.buffer, string(jv.ex))
+    return print(rend.buffer, string(jv.ex))
 end
 
 function write_term(jv::JuliaExpression, rend, node, enter)
     style = crayon"yellow"
     push_inline!(rend, style)
     print_literal(rend, style, sprint(print, '$', "($(jv.ex))"), inv(style))
-    pop_inline!(rend)
+    return pop_inline!(rend)
 end
 
 # JuliaValue
@@ -211,18 +212,19 @@ end
 function write_html(jv::JuliaValue, rend, node, enter)
     tag(rend, "span", attributes(rend, node, ["class" => "julia-value"]))
     print(rend.buffer, sprint(_showas, MIME("text/html"), jv.ref; context = rend.buffer))
-    tag(rend, "/span")
+    return tag(rend, "/span")
 end
 
 function write_latex(jv::JuliaValue, rend, node, enter)
-    print(rend.buffer, sprint(_showas, MIME("text/latex"), jv.ref))
+    return print(rend.buffer, sprint(_showas, MIME("text/latex"), jv.ref))
 end
 
-function _showas(io::IO, m::MIME, collection::Union{Tuple,AbstractArray,Base.Generator})
+function _showas(io::IO, m::MIME, collection::Union{Tuple, AbstractArray, Base.Generator})
     for each in collection
         _showas(io, m, each)
         print(io, " ")
     end
+    return
 end
 _showas(io::IO, m::MIME, obj) = showable(m, obj) ? show(io, m, obj) : print(io, obj)
 
@@ -230,22 +232,22 @@ function write_term(jv::JuliaValue, rend, node, enter)
     style = crayon"yellow"
     push_inline!(rend, style)
     print_literal(rend, style, sprint(print, jv.ref), inv(style))
-    pop_inline!(rend)
+    return pop_inline!(rend)
 end
 
 function write_typst(jv::JuliaValue, rend, node, enter)
-    literal(rend, sprint(print, jv.ref))
+    return literal(rend, sprint(print, jv.ref))
 end
 
 # Markdown output should be roundtrip-able, so printout the interpolated
 # expression rather than it's value.
-write_markdown(jv::Union{JuliaExpression,JuliaValue}, rend, node, ent) =
+write_markdown(jv::Union{JuliaExpression, JuliaValue}, rend, node, ent) =
     print(rend.buffer, '$', "($(jv.ex))")
 
 # Render evaluated values as text.
 function write_json(jv::JuliaValue, ctx, node, enter)
     enter || return
-    append!(current(ctx), text_to_inlines(string(jv.ref)))
+    return append!(current(ctx), text_to_inlines(string(jv.ref)))
 end
 
 write_json(::JuliaExpression, ctx, node, enter) = nothing

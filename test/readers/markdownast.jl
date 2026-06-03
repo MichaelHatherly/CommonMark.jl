@@ -152,11 +152,13 @@
         @testset "extensions" begin
             @testset "table" begin
                 p = CommonMark.enable!(CommonMark.Parser(), CommonMark.TableRule())
-                cm = p("""
-                | A | B |
-                |:--|--:|
-                | 1 | 2 |
-                """)
+                cm = p(
+                    """
+                    | A | B |
+                    |:--|--:|
+                    | 1 | 2 |
+                    """
+                )
                 mast = MarkdownAST.Node(cm)
                 table = first(mast.children)
                 @test table.element isa MarkdownAST.Table
@@ -165,10 +167,12 @@
 
             @testset "admonition" begin
                 p = CommonMark.enable!(CommonMark.Parser(), CommonMark.AdmonitionRule())
-                cm = p("""
-                !!! note "Title"
-                    Content
-                """)
+                cm = p(
+                    """
+                    !!! note "Title"
+                        Content
+                    """
+                )
                 mast = MarkdownAST.Node(cm)
                 adm = first(mast.children)
                 @test adm.element isa MarkdownAST.Admonition
@@ -199,11 +203,13 @@
 
             @testset "footnotes" begin
                 p = CommonMark.enable!(CommonMark.Parser(), CommonMark.FootnoteRule())
-                cm = p("""
-                Text[^1].
+                cm = p(
+                    """
+                    Text[^1].
 
-                [^1]: Footnote content.
-                """)
+                    [^1]: Footnote content.
+                    """
+                )
                 mast = MarkdownAST.Node(cm)
                 children = collect(mast.children)
                 @test any(n -> n.element isa MarkdownAST.FootnoteDefinition, children)
@@ -492,24 +498,26 @@
 
         @testset "complex document round-trip" begin
             p = CommonMark.enable!(CommonMark.Parser(), CommonMark.TableRule())
-            original = p("""
-            # Title
+            original = p(
+                """
+                # Title
 
-            Some text with **bold**.
+                Some text with **bold**.
 
-            - item 1
-            - item 2
+                - item 1
+                - item 2
 
-            | A | B |
-            |---|---|
-            | 1 | 2 |
+                | A | B |
+                |---|---|
+                | 1 | 2 |
 
-            > Quote
+                > Quote
 
-            ```julia
-            code()
-            ```
-            """)
+                ```julia
+                code()
+                ```
+                """
+            )
             mast = MarkdownAST.Node(original)
             roundtrip = CommonMark.Node(mast)
 

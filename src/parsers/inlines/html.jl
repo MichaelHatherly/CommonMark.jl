@@ -7,7 +7,7 @@ end
 function Node(::Type{HtmlInline}, html::AbstractString)
     node = Node(HtmlInline())
     node.literal = html
-    node
+    return node
 end
 
 function parse_html_tag(parser::InlineParser, block::Node)

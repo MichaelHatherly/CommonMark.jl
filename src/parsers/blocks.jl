@@ -59,7 +59,7 @@ Equivalent to chaining [`enable!`](@ref) and [`disable!`](@ref) calls.
 """
 mutable struct Parser <: AbstractParser
     doc::Node
-    block_starts::Dict{Char,Vector{Function}}
+    block_starts::Dict{Char, Vector{Function}}
     tip::Node
     oldtip::Node
     buf::String
@@ -75,12 +75,12 @@ mutable struct Parser <: AbstractParser
     partially_consumed_tab::Bool
     all_closed::Bool
     last_matched_container::Node
-    refmap::Dict{String,Tuple{String,String}}
+    refmap::Dict{String, Tuple{String, String}}
     last_line_length::Int
     inline_parser::InlineParser
     rules::Vector{Any}
     modifiers::Vector{Function}
-    priorities::IdDict{Function,Float64}
+    priorities::IdDict{Function, Float64}
 
     function Parser(; enable::Vector = [], disable::Vector = [])
         parser = new()
@@ -106,7 +106,7 @@ mutable struct Parser <: AbstractParser
         parser.inline_parser = InlineParser()
         parser.rules = []
         parser.modifiers = Function[]
-        parser.priorities = IdDict{Function,Float64}()
+        parser.priorities = IdDict{Function, Float64}()
 
         # Enable the standard CommonMark rule set.
         enable!(parser, COMMONMARK_BLOCK_RULES)
@@ -134,11 +134,11 @@ function ends_with_blank_line(block::Node)
             return true
         end
         if !block.last_line_checked && (
-            block.t isa List ||
-            block.t isa Item ||
-            block.t isa DefinitionList ||
-            block.t isa DefinitionDescription
-        )
+                block.t isa List ||
+                    block.t isa Item ||
+                    block.t isa DefinitionList ||
+                    block.t isa DefinitionDescription
+            )
             block.last_line_checked = true
             block = block.last_child
         else
@@ -161,7 +161,7 @@ can_contain(::Document, t) = !(t isa Item)
 function Node(::Type{Document}, children...)
     node = _build(Document(), children)
     _heal_footnotes!(node)
-    node
+    return node
 end
 
 function _heal_footnotes!(doc::Node)
@@ -181,6 +181,7 @@ function _heal_footnotes!(doc::Node)
             n.t = FootnoteLink(n.t.id, rule)
         end
     end
+    return
 end
 
 include("blocks/lists.jl")
@@ -218,12 +219,12 @@ function add_line(parser::Parser)
     if parser.partially_consumed_tab
         parser.pos += 1
         chars_to_tab = 4 - (parser.column % 4)
-        for _ = 1:chars_to_tab
+        for _ in 1:chars_to_tab
             write(buf, ' ')
         end
     end
     write(buf, SubString(parser.buf, parser.pos))
-    write(buf, '\n')
+    return write(buf, '\n')
 end
 
 function add_child(parser::Parser, tag::AbstractContainer, offset::Integer)
@@ -271,13 +272,13 @@ function find_next_nonspace(parser::Parser)
     parser.next_nonspace = i
     parser.next_nonspace_column = cols
     parser.indent = parser.next_nonspace_column - parser.column
-    parser.indented = parser.indent ≥ CODE_INDENT
+    return parser.indented = parser.indent ≥ CODE_INDENT
 end
 
 function advance_next_nonspace(parser::Parser)
     parser.pos = parser.next_nonspace
     parser.column = parser.next_nonspace_column
-    parser.partially_consumed_tab = false
+    return parser.partially_consumed_tab = false
 end
 
 function advance_offset(parser::Parser, count::Integer, columns::Bool)
@@ -307,6 +308,7 @@ function advance_offset(parser::Parser, count::Integer, columns::Bool)
         end
         c = get(buf, parser.pos, '\0')
     end
+    return
 end
 
 advance_to_end(parser::Parser) = advance_offset(parser, typemax(Int), false)
@@ -319,9 +321,9 @@ peek_nonspace(p::Parser, default = '\0') = get(p.buf, p.next_nonspace, default)
     t isa BlockQuote && return true
     t isa CodeBlock && return (t::CodeBlock).is_fenced
     t isa Item && return isnull(container.first_child) &&
-           container.sourcepos[1][1] == parser.line_number
+        container.sourcepos[1][1] == parser.line_number
     t isa DefinitionDescription && return isnull(container.first_child) &&
-           container.sourcepos[1][1] == parser.line_number
+        container.sourcepos[1][1] == parser.line_number
     return false
 end
 
@@ -518,6 +520,7 @@ function process_inlines(parser::Parser, block::Node)
             end
         end
     end
+    return
 end
 
 contains_inlines(t) = false
@@ -528,7 +531,7 @@ function parse(parser::Parser, my_input::IO; kws...)
     parser.doc = Node(Document(), ((1, 1), (0, 0)))
     isempty(kws) || mergemeta!(parser.doc, Dict(string(k) => v for (k, v) in kws))
     parser.tip = parser.doc
-    parser.refmap = Dict{String,Tuple{String,String}}()
+    parser.refmap = Dict{String, Tuple{String, String}}()
     parser.line_number = getmeta(parser.doc, "line", 1) - 1
     parser.last_line_length = 0
     parser.pos = 1

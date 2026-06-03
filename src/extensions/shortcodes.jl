@@ -6,7 +6,7 @@
 struct Shortcode <: AbstractInline
     name::String
     args::Vector{String}
-    kwargs::Vector{Pair{String,String}}
+    kwargs::Vector{Pair{String, String}}
     raw::String
 end
 
@@ -14,7 +14,7 @@ end
 struct ShortcodeBlock <: AbstractBlock
     name::String
     args::Vector{String}
-    kwargs::Vector{Pair{String,String}}
+    kwargs::Vector{Pair{String, String}}
     raw::String
 end
 
@@ -26,14 +26,14 @@ end
 struct ShortcodeContext
     source::String
     sourcepos::SourcePos
-    meta::Dict{String,Any}
+    meta::Dict{String, Any}
 end
 
 function _shortcode_context(parser::Parser, sourcepos::SourcePos)
-    ShortcodeContext(
+    return ShortcodeContext(
         getmeta(parser.doc, "source", ""),
         sourcepos,
-        something(parser.doc.meta, Dict{String,Any}()),
+        something(parser.doc.meta, Dict{String, Any}()),
     )
 end
 
@@ -42,10 +42,10 @@ function _shortcode_context(block::Node)
     while !isnull(doc.parent)
         doc = doc.parent
     end
-    ShortcodeContext(
+    return ShortcodeContext(
         getmeta(doc, "source", ""),
         block.sourcepos,
-        something(doc.meta, Dict{String,Any}()),
+        something(doc.meta, Dict{String, Any}()),
     )
 end
 
@@ -76,13 +76,13 @@ Block (standalone): {{< pagebreak >}}
 struct ShortcodeRule
     open::String
     close::String
-    handlers::Dict{String,Function}
+    handlers::Dict{String, Function}
     function ShortcodeRule(;
-        open::String = "{{<",
-        close::String = ">}}",
-        handlers::Dict{String,Function} = Dict{String,Function}(),
-    )
-        new(open, close, handlers)
+            open::String = "{{<",
+            close::String = ">}}",
+            handlers::Dict{String, Function} = Dict{String, Function}(),
+        )
+        return new(open, close, handlers)
     end
 end
 
@@ -152,7 +152,7 @@ end
 """Parse shortcode args string into positional args and named kwargs."""
 function _parse_shortcode_args(s::AbstractString)
     args = String[]
-    kwargs = Pair{String,String}[]
+    kwargs = Pair{String, String}[]
     isempty(s) && return (args, kwargs)
     buf = IOBuffer()
     in_quote = nothing  # nothing, '"', or '\''
@@ -189,7 +189,7 @@ end
 function _flush_shortcode_token!(buf::IOBuffer, args, kwargs, eq_pos)
     position(buf) == 0 && return
     token = String(take!(buf))
-    if eq_pos > 1
+    return if eq_pos > 1
         key = token[1:prevind(token, eq_pos)]
         val = token[nextind(token, eq_pos):end]
         push!(kwargs, key => val)
@@ -212,49 +212,47 @@ end
 # Inline rule
 #
 
-inline_rule(rule::ShortcodeRule) =
-    Rule(1, string(first(rule.open))) do p, block
-        result = _try_parse_shortcode(p, rule)
-        result === nothing && return false
-        name, args, kwargs, raw = result
-        handler = get(rule.handlers, name, nothing)
-        if handler !== nothing
-            ctx = _shortcode_context(block)
-            append_child(block, handler(name, args, kwargs, ctx))
-        else
-            append_child(block, Node(Shortcode(name, args, kwargs, raw)))
-        end
-        return true
+inline_rule(rule::ShortcodeRule) = Rule(1, string(first(rule.open))) do p, block
+    result = _try_parse_shortcode(p, rule)
+    result === nothing && return false
+    name, args, kwargs, raw = result
+    handler = get(rule.handlers, name, nothing)
+    if handler !== nothing
+        ctx = _shortcode_context(block)
+        append_child(block, handler(name, args, kwargs, ctx))
+    else
+        append_child(block, Node(Shortcode(name, args, kwargs, raw)))
     end
+    return true
+end
 
 #
 # Block modifier
 #
 
-block_modifier(rule::ShortcodeRule) =
-    Rule(2) do parser, node
-        node.t isa Paragraph || return nothing
-        result = _is_solo_shortcode(node.literal, rule)
-        result === nothing && return nothing
-        name, args, kwargs, raw = result
+block_modifier(rule::ShortcodeRule) = Rule(2) do parser, node
+    node.t isa Paragraph || return nothing
+    result = _is_solo_shortcode(node.literal, rule)
+    result === nothing && return nothing
+    name, args, kwargs, raw = result
 
-        handler = get(rule.handlers, name, nothing)
-        if handler !== nothing
-            ctx = _shortcode_context(parser, node.sourcepos)
-            replacement = handler(name, args, kwargs, ctx)
-            node.t = replacement.t
-            node.literal = replacement.literal
-            while !isnull(replacement.first_child)
-                child = replacement.first_child
-                unlink(child)
-                append_child(node, child)
-            end
-        else
-            node.t = ShortcodeBlock(name, args, kwargs, raw)
-            node.literal = ""
+    handler = get(rule.handlers, name, nothing)
+    if handler !== nothing
+        ctx = _shortcode_context(parser, node.sourcepos)
+        replacement = handler(name, args, kwargs, ctx)
+        node.t = replacement.t
+        node.literal = replacement.literal
+        while !isnull(replacement.first_child)
+            child = replacement.first_child
+            unlink(child)
+            append_child(node, child)
         end
-        return nothing
+    else
+        node.t = ShortcodeBlock(name, args, kwargs, raw)
+        node.literal = ""
     end
+    return nothing
+end
 
 #
 # Writers
@@ -271,35 +269,35 @@ write_markdown(sc::Shortcode, w, n, ent) = literal(w, sc.raw)
 function write_html(sc::ShortcodeBlock, w, n, ent)
     cr(w)
     literal(w, sc.raw)
-    cr(w)
+    return cr(w)
 end
 function write_latex(sc::ShortcodeBlock, w, n, ent)
     cr(w)
     literal(w, sc.raw)
-    cr(w)
+    return cr(w)
 end
 function write_typst(sc::ShortcodeBlock, w, n, ent)
     cr(w)
     literal(w, sc.raw)
-    cr(w)
+    return cr(w)
 end
 function write_term(sc::ShortcodeBlock, w, n, ent)
     print_margin(w)
-    print_literal(w, sc.raw, "\n")
+    return print_literal(w, sc.raw, "\n")
 end
 function write_markdown(sc::ShortcodeBlock, w, n, ent)
     print_margin(w)
     literal(w, sc.raw)
     cr(w)
-    linebreak(w, n)
+    return linebreak(w, n)
 end
 
 # --- JSON ---
 function write_json(sc::Shortcode, ctx, n, enter)
     enter || return
-    push_element!(ctx, json_el(ctx, "RawInline", Any["shortcode", sc.raw]))
+    return push_element!(ctx, json_el(ctx, "RawInline", Any["shortcode", sc.raw]))
 end
 function write_json(sc::ShortcodeBlock, ctx, n, enter)
     enter || return
-    push_element!(ctx, json_el(ctx, "RawBlock", Any["shortcode", sc.raw]))
+    return push_element!(ctx, json_el(ctx, "RawBlock", Any["shortcode", sc.raw]))
 end

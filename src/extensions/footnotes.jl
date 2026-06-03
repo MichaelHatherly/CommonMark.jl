@@ -12,31 +12,29 @@ Here is a footnote reference[^1].
 ```
 """
 struct FootnoteRule
-    cache::Dict{String,Node}
+    cache::Dict{String, Node}
     FootnoteRule() = new(Dict())
 end
-block_rule(fr::FootnoteRule) =
-    Rule(0.5, "[") do parser, container
-        if !parser.indented
-            ln = rest_from_nonspace(parser)
-            m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
-            if m !== nothing
-                close_unmatched_blocks(parser)
-                fr.cache[m[1]] =
-                    add_child(parser, FootnoteDefinition(m[1]), parser.next_nonspace)
-                advance_offset(parser, length(m.match), false)
-                return 1
-            end
+block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
+    if !parser.indented
+        ln = rest_from_nonspace(parser)
+        m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
+        if m !== nothing
+            close_unmatched_blocks(parser)
+            fr.cache[m[1]] =
+                add_child(parser, FootnoteDefinition(m[1]), parser.next_nonspace)
+            advance_offset(parser, length(m.match), false)
+            return 1
         end
-        return 0
     end
-inline_rule(fr::FootnoteRule) =
-    Rule(0.5, "[") do p, node
-        m = consume(p, match(r"^\[\^([\w\d]+)]", p))
-        m === nothing && return false
-        append_child(node, Node(FootnoteLink(m[1], fr)))
-        return true
-    end
+    return 0
+end
+inline_rule(fr::FootnoteRule) = Rule(0.5, "[") do p, node
+    m = consume(p, match(r"^\[\^([\w\d]+)]", p))
+    m === nothing && return false
+    append_child(node, Node(FootnoteLink(m[1], fr)))
+    return true
+end
 
 """Footnote definition block. Build with `Node(FootnoteDefinition, "id", children...)`."""
 struct FootnoteDefinition <: AbstractBlock
@@ -45,7 +43,7 @@ end
 
 function Node(::Type{FootnoteDefinition}, id::AbstractString, children...)
     fd = FootnoteDefinition(id)
-    _build(fd, children)
+    return _build(fd, children)
 end
 
 """Footnote reference link. Build with `Node(FootnoteLink, "id")`."""
@@ -82,7 +80,7 @@ end
 # Definitions
 
 function write_html(f::FootnoteDefinition, rend, node, enter)
-    if enter
+    return if enter
         tag(
             rend,
             "div",
@@ -108,7 +106,7 @@ end
 
 function write_term(f::FootnoteDefinition, rend, node, enter)
     style = crayon"red"
-    if enter
+    return if enter
         header = rpad("┌ [^$(f.id)] ", available_columns(rend), "─")
         print_margin(rend)
         print_literal(rend, style, header, inv(style), "\n")
@@ -133,7 +131,7 @@ function write_term(f::FootnoteDefinition, rend, node, enter)
 end
 
 function write_markdown(f::FootnoteDefinition, w, node, ent)
-    if ent
+    return if ent
         push_margin!(w, 1, "[^$(f.id)]: ", " "^4)
     else
         pop_margin!(w)
@@ -151,7 +149,7 @@ function write_html(f::FootnoteLink, rend, node, enter)
         attributes(rend, node, ["href" => "#footnote-$(f.id)", "class" => "footnote"]),
     )
     print(rend.buffer, f.id)
-    tag(rend, "/a")
+    return tag(rend, "/a")
 end
 
 function write_latex(f::FootnoteLink, w, node, enter)
@@ -190,7 +188,7 @@ function write_term(f::FootnoteLink, rend, node, enter)
     push_inline!(rend, style)
     print_literal(rend, "[^", f.id, "]")
     pop_inline!(rend)
-    print_literal(rend, inv(style))
+    return print_literal(rend, inv(style))
 end
 
 write_markdown(f::FootnoteLink, w, node, ent) = literal(w, "[^", f.id, "]")
@@ -211,5 +209,5 @@ function write_json(f::FootnoteLink, ctx, node, enter)
         write_json(child.t, ctx, child, child_enter)
     end
     blocks = pop_container!(ctx)
-    push_element!(ctx, json_el(ctx, "Note", blocks))
+    return push_element!(ctx, json_el(ctx, "Note", blocks))
 end

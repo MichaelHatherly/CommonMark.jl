@@ -4,7 +4,7 @@ struct Code <: AbstractInline end
 function Node(::Type{Code}, s::AbstractString)
     node = Node(Code())
     node.literal = s
-    node
+    return node
 end
 
 function parse_backticks(parser::InlineParser, block::Node)

@@ -32,10 +32,12 @@
     # Definition with attributes
     test_footnote(
         "definition_with_attrs",
-        p_with_attrs("""
-{key="value"}
-[^1]: text
-"""),
+        p_with_attrs(
+            """
+            {key="value"}
+            [^1]: text
+            """
+        ),
         "footnotes",
         formats = [:html],
     )
@@ -43,12 +45,14 @@
     # Full footnote with attributes
     test_footnote(
         "full_with_attrs",
-        p_with_attrs("""
-text[^1]{#id}.
+        p_with_attrs(
+            """
+            text[^1]{#id}.
 
-{key="value"}
-[^1]: text
-"""),
+            {key="value"}
+            [^1]: text
+            """
+        ),
         "footnotes",
         formats = [:html, :latex, :typst],
     )

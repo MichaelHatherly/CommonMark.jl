@@ -26,5 +26,5 @@
 
     # Also keep the specific markdown output test for backward compatibility
     @test markdown(ast) ==
-          replace(read(joinpath(@__DIR__, "integration_output.md"), String), "\r" => "")
+        replace(read(joinpath(@__DIR__, "integration_output.md"), String), "\r" => "")
 end

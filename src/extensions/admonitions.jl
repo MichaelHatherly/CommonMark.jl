@@ -12,13 +12,13 @@ can_contain(::Admonition, t) = !(t isa Item)
 finalize(::Admonition, parser::Parser, node::Node) = nothing
 
 function Node(
-    ::Type{Admonition},
-    category::AbstractString,
-    title::AbstractString,
-    children...,
-)
+        ::Type{Admonition},
+        category::AbstractString,
+        title::AbstractString,
+        children...,
+    )
     a = Admonition(category, title)
-    _build(a, children)
+    return _build(a, children)
 end
 
 function continue_(::Admonition, parser::Parser, ::Any)
@@ -71,7 +71,7 @@ block_rule(::AdmonitionRule) = Rule(parse_admonition, 0.5, "!")
 #
 
 function write_html(a::Admonition, rend, node, enter)
-    if enter
+    return if enter
         tag(rend, "div", attributes(rend, node, ["class" => "admonition $(a.category)"]))
         tag(rend, "p", ["class" => "admonition-title"])
         print(rend.buffer, a.title)
@@ -83,7 +83,7 @@ end
 
 # Requires tcolorbox package and custom newtcolorbox definitions.
 function write_latex(a::Admonition, w, node, enter)
-    if enter
+    return if enter
         cr(w)
         literal(w, "\\begin{admonition@$(a.category)}{$(a.title)}\n")
     else
@@ -93,7 +93,7 @@ function write_latex(a::Admonition, w, node, enter)
 end
 
 function write_typst(a::Admonition, w, node, enter)
-    if enter
+    return if enter
         styles = Dict(
             "danger" => "#dc2626",
             "warning" => "#facc15",
@@ -126,7 +126,7 @@ function write_term(a::Admonition, rend, node, enter)
         "tip" => crayon"green bold",
     )
     style = get(styles, a.category, crayon"default bold")
-    if enter
+    return if enter
         header = rpad("┌ $(a.title) ", available_columns(rend), "─")
         print_margin(rend)
         print_literal(rend, style, header, inv(style), "\n")
@@ -151,7 +151,7 @@ function write_term(a::Admonition, rend, node, enter)
 end
 
 function write_markdown(a::Admonition, w, node, ent)
-    if ent
+    return if ent
         push_margin!(w, "    ")
         literal(w, "!!! ", a.category)
         if lowercase(a.title) != lowercase(a.category)
@@ -168,7 +168,7 @@ function write_markdown(a::Admonition, w, node, ent)
 end
 
 function write_json(a::Admonition, ctx, node, enter)
-    if enter
+    return if enter
         blocks = Any[]
         push_container!(ctx, blocks)
     else

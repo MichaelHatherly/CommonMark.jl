@@ -10,7 +10,7 @@ mutable struct ListData
 end
 
 function Base.:(==)(a::ListData, b::ListData)
-    a.type == b.type &&
+    return a.type == b.type &&
         a.tight == b.tight &&
         a.bullet_char == b.bullet_char &&
         a.start == b.start &&
@@ -66,7 +66,7 @@ function parse_list_marker(parser::Parser, container::Node)
 
     # If it interrupts paragraph make sure first line isn't blank.
     if container.t isa Paragraph &&
-       !occursin(reNonSpace, SubString(parser.buf, parser.next_nonspace + length(m.match)))
+            !occursin(reNonSpace, SubString(parser.buf, parser.next_nonspace + length(m.match)))
         return nothing
     end
 
@@ -101,8 +101,8 @@ end
 
 function lists_match(list_data::ListData, item_data::ListData)
     return list_data.type == item_data.type &&
-           list_data.delimiter == item_data.delimiter &&
-           list_data.bullet_char == item_data.bullet_char
+        list_data.delimiter == item_data.delimiter &&
+        list_data.bullet_char == item_data.bullet_char
 end
 
 accepts_lines(::List) = false
@@ -135,12 +135,12 @@ end
 can_contain(::List, t) = t isa Item
 
 function Node(
-    ::Type{List},
-    items::Node...;
-    ordered::Bool = false,
-    start::Int = 1,
-    tight::Bool = true,
-)
+        ::Type{List},
+        items::Node...;
+        ordered::Bool = false,
+        start::Int = 1,
+        tight::Bool = true,
+    )
     ld = ListData()
     ld.type = ordered ? :ordered : :bullet
     ld.start = start
@@ -158,7 +158,7 @@ function Node(
         end
         child = child.nxt
     end
-    node
+    return node
 end
 
 accepts_lines(::Item) = false

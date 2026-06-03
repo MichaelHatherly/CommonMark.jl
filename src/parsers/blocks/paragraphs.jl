@@ -14,7 +14,7 @@ function finalize(::Paragraph, p::Parser, block::Node)
     while get(block.literal, 1, nothing) === '['
         pos = parse_reference(p.inline_parser, block.literal, p.refmap)
         pos == 0 && break
-        block.literal = block.literal[pos+1:end]
+        block.literal = block.literal[(pos + 1):end]
         has_reference_defs = true
     end
     if has_reference_defs && is_blank(block.literal)

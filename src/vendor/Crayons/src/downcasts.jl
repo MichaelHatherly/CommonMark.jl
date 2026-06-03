@@ -23,7 +23,7 @@ function to_256_colors(color::ANSIColor)
     r, g, b = rgb = color.r, color.g, color.b
     ansi = if r == g == b && r % 10 == 8
         232 + min((r - 8) ÷ 10, 23)  # gray level
-    elseif all(map(c -> (c & 0x1) == 0 && (c > 0 ? c == 128 || c == 192 : true), rgb))
+    elseif all(map(c -> (c & 0x01) == 0 && (c > 0 ? c == 128 || c == 192 : true), rgb))
         (r >> 7) + 2(g >> 7) + 4(b >> 7)  # primary color
     else
         r6, g6, b6 = map(c -> c < 48 ? 0 : (c < 114 ? 1 : trunc(Int, (c - 35) / 40)), rgb)

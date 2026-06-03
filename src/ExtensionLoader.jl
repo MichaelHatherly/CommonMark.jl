@@ -6,7 +6,7 @@ import ..CommonMark
 function ext_entry(uuid, name)
     pkg = Base.PkgId(Base.UUID(uuid), name)
     file = "CommonMark$(name)Ext.jl"
-    pkg => (read(joinpath(@__DIR__, "..", "ext", file), String), file, Ref(false))
+    return pkg => (read(joinpath(@__DIR__, "..", "ext", file), String), file, Ref(false))
 end
 
 const EXTENSIONS = Dict(
@@ -20,7 +20,7 @@ function load_ext(pkg::Base.PkgId)
     loaded[] && return
     loaded[] = true
     mod = Module(Symbol(:CommonMarkExtensionLoader_, pkg.name))
-    Base.invokelatest() do
+    return Base.invokelatest() do
         Core.eval(mod, :(const CommonMark = $CommonMark))
         Core.eval(mod, :(const $(Symbol(pkg.name)) = $(Base.loaded_modules[pkg])))
         include_string(mod, extcode, extfile)
@@ -34,7 +34,7 @@ function __init__()
             load_ext(pkg)
         end
     end
-    push!(Base.package_callbacks, load_ext)
+    return push!(Base.package_callbacks, load_ext)
 end
 
 end

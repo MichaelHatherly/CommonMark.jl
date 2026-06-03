@@ -13,7 +13,7 @@ PARSER(SPEC_MD)
 
 # Profile with more iterations for better sampling
 Profile.clear()
-@profile for _ = 1:100
+@profile for _ in 1:100
     PARSER(SPEC_MD)
 end
 

@@ -9,12 +9,12 @@
     # Only transform on entering - the writer will use the modified destination
     # Children are visited via the original AST structure
     function transform(
-        ::MIME"text/html",
-        link::CommonMark.Link,
-        node::CommonMark.Node,
-        entering,
-        writer,
-    )
+            ::MIME"text/html",
+            link::CommonMark.Link,
+            node::CommonMark.Node,
+            entering,
+            writer,
+        )
         if entering
             name, _ = splitext(link.destination)
             dest = join([get(writer.env, "root", ""), "$name.html"], "/")
@@ -28,7 +28,7 @@
         (node, entering)
 
     p = create_parser()
-    env = Dict{String,Any}("root" => "/root")
+    env = Dict{String, Any}("root" => "/root")
 
     # Smart link transformation
     ast = p("[link](url.md)")
