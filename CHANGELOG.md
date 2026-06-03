@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix link reference definition keeping an invalid title (text after the title on the same line) instead of discarding it [#154]
 - Fix link destination parser accepting an unbalanced `(` (e.g. `[a](b(c )`) instead of rejecting the link [#154]
 - Fix link label length limit rejecting spec-valid labels of 998 and 999 characters (off-by-one against the 999-character maximum) [#154]
+- Fix numeric character references for surrogate (`&#xD800;`) and out-of-range (`&#1114112;`) codepoints decoding to invalid characters instead of U+FFFD [#154]
 
 ## [v1.0.2] - 2026-05-29
 

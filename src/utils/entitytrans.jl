@@ -24,13 +24,7 @@ function HTMLunescape(s)
         else
             Base.parse(UInt32, s[3:end-1])
         end
-        num == 0 && return "\uFFFD"
-        try
-            return string(Char(num))
-        catch err
-            err isa Base.CodePointError || rethrow(err)
-            return "\uFFFD"
-        end
+        return (num == 0 || !isvalid(Char, num)) ? "\uFFFD" : string(Char(num))
     else
         return get(ENTITY_DATA, s, s)
     end

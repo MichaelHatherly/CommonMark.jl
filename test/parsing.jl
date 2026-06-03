@@ -181,3 +181,18 @@ end
     ast = p("[$label1000]\n\n[$label1000]: /url\n")
     @test !occursin("<a href", html(ast))
 end
+
+@testitem "numeric entity validity" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+    decode(s) = p(s).first_child.first_child.literal
+
+    # Surrogate and out-of-range codepoints must decode to U+FFFD.
+    @test decode("&#xD800;") == "�"
+    @test decode("&#1114112;") == "�"
+
+    # Control: valid codepoints decode normally.
+    @test decode("&#65;") == "A"
+    @test decode("&#x10FFFF;") == "\U10FFFF"
+end
