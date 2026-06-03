@@ -31,8 +31,7 @@ struct CitationRule
     CitationRule() = new([])
 end
 
-inline_rule(rule::CitationRule) =
-    Rule(1, "@") do parser, block
+inline_rule(rule::CitationRule) = Rule(1, "@") do parser, block
     m = consume(
         parser,
         match(r"@[_\w\d](?:[_\w\d]|[:#$%&\-\+\?\<\>~/](?=[_\w\d]))*", parser),
@@ -49,8 +48,7 @@ end
 
 is_bracket(n::Node, c) = n.literal == c && n.t isa Text
 
-inline_modifier(rule::CitationRule) =
-    Rule(1) do parser, block
+inline_modifier(rule::CitationRule) = Rule(1) do parser, block
     openers = Set{Node}()
     closers = Set{Node}()
     while !isempty(rule.cites)
@@ -84,8 +82,7 @@ end
 
 struct References <: AbstractBlock end
 
-block_modifier(::CitationRule) =
-    Rule(10) do parser, b
+block_modifier(::CitationRule) = Rule(10) do parser, b
     if !isnull(b.parent) && b.parent.t isa Document
         if hasmeta(b, "id") && getmeta(b, "id", "") == "refs"
             insert_after(b, Node(References()))

@@ -72,8 +72,7 @@ end
 
 const reRawContent = r"^{=([a-z]+)}"
 
-inline_rule(rule::RawContentRule) =
-    Rule(1, "{") do parser, block
+inline_rule(rule::RawContentRule) = Rule(1, "{") do parser, block
     if !isnull(block.last_child) && block.last_child.t isa Code
         m = match(reRawContent, parser)
         if m !== nothing
@@ -88,8 +87,7 @@ inline_rule(rule::RawContentRule) =
     return false
 end
 
-block_modifier(rule::RawContentRule) =
-    Rule(2) do parser, node
+block_modifier(rule::RawContentRule) = Rule(2) do parser, node
     if node.t isa CodeBlock
         m = match(reRawContent, node.t.info)
         m === nothing && return nothing

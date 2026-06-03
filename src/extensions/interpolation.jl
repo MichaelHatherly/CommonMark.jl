@@ -25,8 +25,7 @@ end
 
 const reInterpHere = r"^\$"
 
-inline_rule(ji::JuliaInterpolationRule) =
-    Rule(1, "\$") do p, node
+inline_rule(ji::JuliaInterpolationRule) = Rule(1, "\$") do p, node
     dollar = match(reInterpHere, p)
     if dollar === nothing || length(dollar.match) > 1
         return false

@@ -284,8 +284,7 @@ inline_rule(::ReferenceLinkRule) = Rule(parse_reference_close_bracket, 0.5, "]")
 
 # Block rule - captures reference definitions in place
 
-block_rule(::ReferenceLinkRule) =
-    Rule(0.5, "[") do parser, container
+block_rule(::ReferenceLinkRule) = Rule(0.5, "[") do parser, container
     parser.indented && return 0
 
     ln = rest_from_nonspace(parser)

@@ -33,8 +33,7 @@ interactive checkboxes in HTML output.
 """
 struct TaskListRule end
 
-block_modifier(::TaskListRule) =
-    Rule(50) do parser, block
+block_modifier(::TaskListRule) = Rule(50) do parser, block
     if block.t isa Item
         child = block.first_child
         if !isnull(child) && child.t isa Paragraph

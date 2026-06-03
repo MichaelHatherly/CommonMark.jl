@@ -20,8 +20,7 @@ end
 
 reset_rule!(r::AutoIdentifierRule) = (empty!(r.refs); nothing)
 
-block_modifier(rule::AutoIdentifierRule) =
-    Rule(100) do parser, block
+block_modifier(rule::AutoIdentifierRule) = Rule(100) do parser, block
     # Add heading IDs to those without any preset by AttributeRule.
     if block.t isa Heading && !hasmeta(block, "id")
         setmeta!(block, "id", slugify(block.literal))

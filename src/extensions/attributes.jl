@@ -52,8 +52,7 @@ end
 
 block_rule(::AttributeRule) = Rule(parse_block_attributes, 1, "{")
 
-inline_rule(rule::AttributeRule) =
-    Rule(1, "{") do parser, block
+inline_rule(rule::AttributeRule) = Rule(1, "{") do parser, block
     isnull(block.first_child) && return false # Can't have inline attribute as first in block.
     dict, literal = try_parse_attributes(parser)
     dict === nothing && return false
@@ -155,16 +154,14 @@ function try_parse_attributes(parser::AbstractParser)
     end
 end
 
-block_modifier(::AttributeRule) =
-    Rule(1) do parser, node
+block_modifier(::AttributeRule) = Rule(1) do parser, node
     if node.t isa Attributes && !isnull(node.nxt)
         node.nxt.t isa Attributes || (node.nxt.meta = node.t.dict)
     end
     return nothing
 end
 
-inline_modifier(rule::AttributeRule) =
-    Rule(1) do parser, block
+inline_modifier(rule::AttributeRule) = Rule(1) do parser, block
     while !isempty(rule.nodes)
         node = pop!(rule.nodes)
         if !isnull(node.prv) && !(node.prv.t isa Attributes)

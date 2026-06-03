@@ -187,8 +187,7 @@ block_rule(::TableRule) = Rule(gfm_table, 0.5, "|")
 
 struct TablePipe <: AbstractInline end
 
-inline_rule(rule::TableRule) =
-    Rule(0, "|") do parser, block
+inline_rule(rule::TableRule) = Rule(0, "|") do parser, block
     block.t isa TableRow || return false
     @assert read(parser, Char) == '|'
     eof(parser) && return true # Skip last pipe.
@@ -200,8 +199,7 @@ end
 
 # Low priority since this *must* happen after nested structure of emphasis and
 # links is determined. 100 should do fine.
-inline_modifier(rule::TableRule) =
-    Rule(100) do parser, block
+inline_modifier(rule::TableRule) = Rule(100) do parser, block
     block.t isa TableRow || return
     block.parent.parent.t isa Table || return
     isheader = block.parent.t isa TableHeader

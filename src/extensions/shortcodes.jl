@@ -212,8 +212,7 @@ end
 # Inline rule
 #
 
-inline_rule(rule::ShortcodeRule) =
-    Rule(1, string(first(rule.open))) do p, block
+inline_rule(rule::ShortcodeRule) = Rule(1, string(first(rule.open))) do p, block
     result = _try_parse_shortcode(p, rule)
     result === nothing && return false
     name, args, kwargs, raw = result
@@ -231,8 +230,7 @@ end
 # Block modifier
 #
 
-block_modifier(rule::ShortcodeRule) =
-    Rule(2) do parser, node
+block_modifier(rule::ShortcodeRule) = Rule(2) do parser, node
     node.t isa Paragraph || return nothing
     result = _is_solo_shortcode(node.literal, rule)
     result === nothing && return nothing

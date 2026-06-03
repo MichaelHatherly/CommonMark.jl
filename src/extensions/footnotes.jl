@@ -15,8 +15,7 @@ struct FootnoteRule
     cache::Dict{String, Node}
     FootnoteRule() = new(Dict())
 end
-block_rule(fr::FootnoteRule) =
-    Rule(0.5, "[") do parser, container
+block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
     if !parser.indented
         ln = rest_from_nonspace(parser)
         m = match(r"^\[\^([\w\d]+)\]:[ ]?", ln)
@@ -30,8 +29,7 @@ block_rule(fr::FootnoteRule) =
     end
     return 0
 end
-inline_rule(fr::FootnoteRule) =
-    Rule(0.5, "[") do p, node
+inline_rule(fr::FootnoteRule) = Rule(0.5, "[") do p, node
     m = consume(p, match(r"^\[\^([\w\d]+)]", p))
     m === nothing && return false
     append_child(node, Node(FootnoteLink(m[1], fr)))

@@ -80,8 +80,7 @@ struct FrontMatterRule
 end
 
 block_rule(::FrontMatterRule) = Rule(parse_front_matter, 0.5, ";+-")
-block_modifier(f::FrontMatterRule) =
-    Rule(0.5) do parser, node
+block_modifier(f::FrontMatterRule) = Rule(0.5) do parser, node
     if node.t isa FrontMatter
         fence = node.t.fence
         λ = fence == ";;;" ? f.json : fence == "+++" ? f.toml : f.yaml

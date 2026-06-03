@@ -53,8 +53,7 @@ styled alert boxes. Supported types: NOTE, TIP, IMPORTANT, WARNING, CAUTION.
 """
 struct GitHubAlertRule end
 
-block_modifier(::GitHubAlertRule) =
-    Rule(50) do parser, block
+block_modifier(::GitHubAlertRule) = Rule(50) do parser, block
     if block.t isa BlockQuote
         child = block.first_child
         if !isnull(child) && child.t isa Paragraph

@@ -79,8 +79,7 @@ Display:
 ````
 """
 struct MathRule end
-block_modifier(::MathRule) =
-    Rule(1.5) do parser, node
+block_modifier(::MathRule) = Rule(1.5) do parser, node
     if node.t isa CodeBlock && node.t.info == "math"
         node.t = DisplayMath()
         node.literal = strip(node.literal, '\n')
