@@ -29,12 +29,12 @@ mast = MarkdownAST.Node(cm)
 """
 function MarkdownAST.Node(cm::CommonMark.Node)
     cm.t isa CommonMark.Document || error("Expected Document root node")
-    _to_mast(cm)
+    return _to_mast(cm)
 end
 
 function MarkdownAST.Node(doc::CommonMark.LazyCommonMarkDoc)
     cm = CommonMark._parse_doc(doc)
-    MarkdownAST.Node(cm)
+    return MarkdownAST.Node(cm)
 end
 
 # Interface implementation for cross-extension conversion
@@ -81,14 +81,14 @@ _cm_to_element(::CommonMark.Document, cm) = MarkdownAST.Document()
 _cm_to_element(::CommonMark.Paragraph, cm) = MarkdownAST.Paragraph()
 
 function _cm_to_element(h::CommonMark.Heading, cm)
-    MarkdownAST.Heading(h.level)
+    return MarkdownAST.Heading(h.level)
 end
 
 _cm_to_element(::CommonMark.BlockQuote, cm) = MarkdownAST.BlockQuote()
 
 function _cm_to_element(l::CommonMark.List, cm)
     ld = l.list_data
-    MarkdownAST.List(ld.type, ld.tight)
+    return MarkdownAST.List(ld.type, ld.tight)
 end
 
 _cm_to_element(::CommonMark.Item, cm) = MarkdownAST.Item()
@@ -97,47 +97,47 @@ function _cm_to_element(cb::CommonMark.CodeBlock, cm)
     # Strip trailing newline that CommonMark adds
     code = cm.literal
     code = endswith(code, '\n') ? chop(code) : code
-    MarkdownAST.CodeBlock(cb.info, code)
+    return MarkdownAST.CodeBlock(cb.info, code)
 end
 
 _cm_to_element(::CommonMark.ThematicBreak, cm) = MarkdownAST.ThematicBreak()
 
 function _cm_to_element(::CommonMark.HtmlBlock, cm)
-    MarkdownAST.HTMLBlock(cm.literal)
+    return MarkdownAST.HTMLBlock(cm.literal)
 end
 
 # Inline elements
 function _cm_to_element(::CommonMark.Text, cm)
-    MarkdownAST.Text(cm.literal)
+    return MarkdownAST.Text(cm.literal)
 end
 
 _cm_to_element(::CommonMark.SoftBreak, cm) = MarkdownAST.SoftBreak()
 _cm_to_element(::CommonMark.LineBreak, cm) = MarkdownAST.LineBreak()
 
 function _cm_to_element(::CommonMark.Code, cm)
-    MarkdownAST.Code(cm.literal)
+    return MarkdownAST.Code(cm.literal)
 end
 
 _cm_to_element(::CommonMark.Emph, cm) = MarkdownAST.Emph()
 _cm_to_element(::CommonMark.Strong, cm) = MarkdownAST.Strong()
 
 function _cm_to_element(l::CommonMark.Link, cm)
-    MarkdownAST.Link(l.destination, l.title)
+    return MarkdownAST.Link(l.destination, l.title)
 end
 
 function _cm_to_element(i::CommonMark.Image, cm)
-    MarkdownAST.Image(i.destination, i.title)
+    return MarkdownAST.Image(i.destination, i.title)
 end
 
 function _cm_to_element(::CommonMark.HtmlInline, cm)
-    MarkdownAST.HTMLInline(cm.literal)
+    return MarkdownAST.HTMLInline(cm.literal)
 end
 
 _cm_to_element(::CommonMark.Backslash, cm) = MarkdownAST.Backslash()
 
 # Tables
 function _cm_to_element(t::CommonMark.Table, cm)
-    MarkdownAST.Table(t.spec)
+    return MarkdownAST.Table(t.spec)
 end
 
 _cm_to_element(::CommonMark.TableHeader, cm) = MarkdownAST.TableHeader()
@@ -147,37 +147,37 @@ _cm_to_element(::CommonMark.TableRows, cm) = nothing  # drop wrapper, keep child
 _cm_to_element(::CommonMark.TableRow, cm) = MarkdownAST.TableRow()
 
 function _cm_to_element(tc::CommonMark.TableCell, cm)
-    MarkdownAST.TableCell(tc.align, tc.header, tc.column)
+    return MarkdownAST.TableCell(tc.align, tc.header, tc.column)
 end
 
 # Extensions with MarkdownAST equivalents
 function _cm_to_element(a::CommonMark.Admonition, cm)
-    MarkdownAST.Admonition(a.category, a.title)
+    return MarkdownAST.Admonition(a.category, a.title)
 end
 
 function _cm_to_element(::CommonMark.Math, cm)
-    MarkdownAST.InlineMath(cm.literal)
+    return MarkdownAST.InlineMath(cm.literal)
 end
 
 function _cm_to_element(::CommonMark.DisplayMath, cm)
-    MarkdownAST.DisplayMath(cm.literal)
+    return MarkdownAST.DisplayMath(cm.literal)
 end
 
 function _cm_to_element(fd::CommonMark.FootnoteDefinition, cm)
-    MarkdownAST.FootnoteDefinition(fd.id)
+    return MarkdownAST.FootnoteDefinition(fd.id)
 end
 
 function _cm_to_element(fl::CommonMark.FootnoteLink, cm)
-    MarkdownAST.FootnoteLink(fl.id)
+    return MarkdownAST.FootnoteLink(fl.id)
 end
 
 function _cm_to_element(jv::CommonMark.JuliaValue, cm)
-    MarkdownAST.JuliaValue(jv.ex, jv.ref)
+    return MarkdownAST.JuliaValue(jv.ex, jv.ref)
 end
 
 function _cm_to_element(je::CommonMark.JuliaExpression, cm)
     # JuliaExpression becomes JuliaValue with just the expression
-    MarkdownAST.JuliaValue(je.ex, nothing)
+    return MarkdownAST.JuliaValue(je.ex, nothing)
 end
 
 # DocStringSection is a wrapper used by docstring parsing - drop it, keep children
@@ -213,7 +213,7 @@ CommonMark.html(cm)
 """
 function CommonMark.Node(mast::MarkdownAST.Node)
     mast.element isa MarkdownAST.Document || error("Expected Document root node")
-    _to_cm(mast)
+    return _to_cm(mast)
 end
 
 function _to_cm(mast::MarkdownAST.Node)
@@ -233,7 +233,7 @@ _mast_to_node(::MarkdownAST.Paragraph, m) = CommonMark.Node(CommonMark.Paragraph
 function _mast_to_node(e::MarkdownAST.Heading, m)
     n = CommonMark.Node(CommonMark.Heading())
     n.t.level = e.level
-    n
+    return n
 end
 
 _mast_to_node(::MarkdownAST.BlockQuote, m) = CommonMark.Node(CommonMark.BlockQuote())
@@ -244,11 +244,11 @@ function _mast_to_node(e::MarkdownAST.List, m)
     n.t.list_data.tight = e.tight
     n.t.list_data.bullet_char = '-'
     n.t.list_data.delimiter = "."
-    n
+    return n
 end
 
 function _mast_to_node(::MarkdownAST.Item, m)
-    CommonMark.Node(CommonMark.Item())
+    return CommonMark.Node(CommonMark.Item())
 end
 
 function _mast_to_node(e::MarkdownAST.CodeBlock, m)
@@ -258,7 +258,7 @@ function _mast_to_node(e::MarkdownAST.CodeBlock, m)
     n.t.fence_char = '`'
     n.t.fence_length = max(3, max_backtick_run(e.code) + 1)
     n.literal = endswith(e.code, '\n') ? e.code : e.code * "\n"
-    n
+    return n
 end
 
 function max_backtick_run(s::AbstractString)
@@ -280,14 +280,14 @@ _mast_to_node(::MarkdownAST.ThematicBreak, m) = CommonMark.Node(CommonMark.Thema
 function _mast_to_node(e::MarkdownAST.HTMLBlock, m)
     n = CommonMark.Node(CommonMark.HtmlBlock())
     n.literal = e.html
-    n
+    return n
 end
 
 # Inline elements
 function _mast_to_node(e::MarkdownAST.Text, m)
     n = CommonMark.Node(CommonMark.Text())
     n.literal = e.text
-    n
+    return n
 end
 
 _mast_to_node(::MarkdownAST.SoftBreak, m) = CommonMark.Node(CommonMark.SoftBreak())
@@ -296,46 +296,46 @@ _mast_to_node(::MarkdownAST.LineBreak, m) = CommonMark.Node(CommonMark.LineBreak
 function _mast_to_node(e::MarkdownAST.Code, m)
     n = CommonMark.Node(CommonMark.Code())
     n.literal = e.code
-    n
+    return n
 end
 
 function _mast_to_node(::MarkdownAST.Emph, m)
     n = CommonMark.Node(CommonMark.Emph())
     n.literal = "*"  # Delimiter hint for markdown writer
-    n
+    return n
 end
 
 function _mast_to_node(::MarkdownAST.Strong, m)
     n = CommonMark.Node(CommonMark.Strong())
     n.literal = "**"  # Delimiter hint for markdown writer
-    n
+    return n
 end
 
 function _mast_to_node(e::MarkdownAST.Link, m)
     n = CommonMark.Node(CommonMark.Link())
     n.t.destination = e.destination
     n.t.title = e.title
-    n
+    return n
 end
 
 function _mast_to_node(e::MarkdownAST.Image, m)
     n = CommonMark.Node(CommonMark.Image())
     n.t.destination = e.destination
     n.t.title = e.title
-    n
+    return n
 end
 
 function _mast_to_node(e::MarkdownAST.HTMLInline, m)
     n = CommonMark.Node(CommonMark.HtmlInline())
     n.literal = e.html
-    n
+    return n
 end
 
 _mast_to_node(::MarkdownAST.Backslash, m) = CommonMark.Node(CommonMark.Backslash())
 
 # Tables
 function _mast_to_node(e::MarkdownAST.Table, m)
-    CommonMark.Node(CommonMark.Table(e.spec))
+    return CommonMark.Node(CommonMark.Table(e.spec))
 end
 
 _mast_to_node(::MarkdownAST.TableHeader, m) = CommonMark.Node(CommonMark.TableHeader())
@@ -343,36 +343,36 @@ _mast_to_node(::MarkdownAST.TableBody, m) = CommonMark.Node(CommonMark.TableBody
 _mast_to_node(::MarkdownAST.TableRow, m) = CommonMark.Node(CommonMark.TableRow())
 
 function _mast_to_node(e::MarkdownAST.TableCell, m)
-    CommonMark.Node(CommonMark.TableCell(e.align, e.header, e.column, 1, 1))
+    return CommonMark.Node(CommonMark.TableCell(e.align, e.header, e.column, 1, 1))
 end
 
 # Extensions with CommonMark equivalents
 function _mast_to_node(e::MarkdownAST.Admonition, m)
-    CommonMark.Node(CommonMark.Admonition(e.category, e.title))
+    return CommonMark.Node(CommonMark.Admonition(e.category, e.title))
 end
 
 function _mast_to_node(e::MarkdownAST.InlineMath, m)
     n = CommonMark.Node(CommonMark.Math())
     n.literal = e.math
-    n
+    return n
 end
 
 function _mast_to_node(e::MarkdownAST.DisplayMath, m)
     n = CommonMark.Node(CommonMark.DisplayMath())
     n.literal = e.math
-    n
+    return n
 end
 
 function _mast_to_node(e::MarkdownAST.FootnoteDefinition, m)
-    CommonMark.Node(CommonMark.FootnoteDefinition(e.id))
+    return CommonMark.Node(CommonMark.FootnoteDefinition(e.id))
 end
 
 function _mast_to_node(e::MarkdownAST.FootnoteLink, m)
-    CommonMark.Node(CommonMark.FootnoteLink, e.id)
+    return CommonMark.Node(CommonMark.FootnoteLink, e.id)
 end
 
 function _mast_to_node(e::MarkdownAST.JuliaValue, m)
-    CommonMark.Node(CommonMark.JuliaValue(e.ex, e.ref))
+    return CommonMark.Node(CommonMark.JuliaValue(e.ex, e.ref))
 end
 
 # Fallback: warn and skip

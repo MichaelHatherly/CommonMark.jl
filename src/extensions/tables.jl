@@ -14,11 +14,11 @@ end
 continue_(::Table, parser::Parser, ::Node) = parser.blank ? 1 : 0
 
 function Node(
-    ::Type{Table},
-    header::Node,
-    body_rows::Node...;
-    align::Vector{Symbol} = Symbol[],
-)
+        ::Type{Table},
+        header::Node,
+        body_rows::Node...;
+        align::Vector{Symbol} = Symbol[],
+    )
     spec =
         isempty(align) ?
         fill(
@@ -33,7 +33,7 @@ function Node(
         append_child(body, row)
     end
     append_child(node, body)
-    node
+    return node
 end
 
 function count_cells(header::Node)
@@ -43,7 +43,7 @@ function count_cells(header::Node)
         count += 1
         cell = cell.nxt
     end
-    count
+    return count
 end
 
 """Table header section containing one row."""
@@ -52,7 +52,7 @@ struct TableHeader <: TableComponent end
 function Node(::Type{TableHeader}, row::Node)
     node = Node(TableHeader())
     append_child(node, row)
-    node
+    return node
 end
 
 """Table body section containing data rows."""
@@ -89,16 +89,16 @@ end
 contains_inlines(::TableCell) = true
 
 function Node(
-    ::Type{TableCell},
-    children...;
-    align::Symbol = :left,
-    header::Bool = false,
-    column::Int = 1,
-    rowspan::Int = 1,
-    colspan::Int = 1,
-)
+        ::Type{TableCell},
+        children...;
+        align::Symbol = :left,
+        header::Bool = false,
+        column::Int = 1,
+        rowspan::Int = 1,
+        colspan::Int = 1,
+    )
     tc = TableCell(align, header, column, rowspan, colspan)
-    _build(tc, children)
+    return _build(tc, children)
 end
 
 function gfm_table(parser::Parser, container::Node)
@@ -150,7 +150,7 @@ valid_table_row(str) = startswith(str, '|')
 valid_table_spec(str) = all(c -> c in "|-: ", str)
 
 function parse_table_spec(str)
-    map(eachmatch(r"\|([ ]*[: ]?[-]+[ :]?[ ]*)\|", str; overlap = true)) do match
+    return map(eachmatch(r"\|([ ]*[: ]?[-]+[ :]?[ ]*)\|", str; overlap = true)) do match
         str = strip(match[1])
         left, right = str[1] === ':', str[end] === ':'
         center = left && right
@@ -189,68 +189,68 @@ struct TablePipe <: AbstractInline end
 
 inline_rule(rule::TableRule) =
     Rule(0, "|") do parser, block
-        block.t isa TableRow || return false
-        @assert read(parser, Char) == '|'
-        eof(parser) && return true # Skip last pipe.
-        pipe = Node(TablePipe())
-        append_child(block, pipe)
-        push!(rule.pipes, pipe)
-        return true
-    end
+    block.t isa TableRow || return false
+    @assert read(parser, Char) == '|'
+    eof(parser) && return true # Skip last pipe.
+    pipe = Node(TablePipe())
+    append_child(block, pipe)
+    push!(rule.pipes, pipe)
+    return true
+end
 
 # Low priority since this *must* happen after nested structure of emphasis and
 # links is determined. 100 should do fine.
 inline_modifier(rule::TableRule) =
     Rule(100) do parser, block
-        block.t isa TableRow || return
-        block.parent.parent.t isa Table || return
-        isheader = block.parent.t isa TableHeader
-        spec = block.parent.parent.t.spec
-        max_cols = length(spec)
-        col = 1
-        cells = Node[]
-        while !isempty(rule.pipes)
-            pipe = popfirst!(rule.pipes)
-            if pipe.parent === block
-                # Top-level pipe must be replaced with a table cell containing
-                # everything up until the next pipe.
-                cell = Node(TableCell(spec[min(col, max_cols)], isheader, col, 1, 1))
-                n = pipe.nxt
-                elems = Node[]
-                # Find all nodes between this pipe and the next.
-                while !isnull(n) && !(n.t isa TablePipe)
-                    push!(elems, n)
-                    n = n.nxt
-                end
-                total = length(elems)
-                for (nth, elem) in enumerate(elems)
-                    # Strip surronding whitespace in each cell.
-                    lit = elem.literal
-                    lit = (nth === 1 && elem.t isa Text) ? lstrip(lit) : lit
-                    lit = (nth === total && elem.t isa Text) ? rstrip(lit) : lit
-                    elem.literal = lit
-                    append_child(cell, elem)
-                end
-                push!(cells, cell)
-                unlink(pipe)
-                col += 1
-            else
-                # Replace nested pipes with text literals since they can't
-                # demarcate a cell boarder.
-                pipe.t = Text()
-                pipe.literal = "|"
+    block.t isa TableRow || return
+    block.parent.parent.t isa Table || return
+    isheader = block.parent.t isa TableHeader
+    spec = block.parent.parent.t.spec
+    max_cols = length(spec)
+    col = 1
+    cells = Node[]
+    while !isempty(rule.pipes)
+        pipe = popfirst!(rule.pipes)
+        if pipe.parent === block
+            # Top-level pipe must be replaced with a table cell containing
+            # everything up until the next pipe.
+            cell = Node(TableCell(spec[min(col, max_cols)], isheader, col, 1, 1))
+            n = pipe.nxt
+            elems = Node[]
+            # Find all nodes between this pipe and the next.
+            while !isnull(n) && !(n.t isa TablePipe)
+                push!(elems, n)
+                n = n.nxt
             end
-        end
-        if length(cells) < max_cols
-            # Add addtional cells in this row is below number in spec.
-            extra = (length(cells)+1):max_cols
-            append!(cells, (Node(TableCell(:left, isheader, n, 1, 1)) for n in extra))
-        end
-        for (nth, cell) in enumerate(cells)
-            # Drop additional cells if they are longer that the spec.
-            nth ≤ length(spec) ? append_child(block, cell) : unlink(cell)
+            total = length(elems)
+            for (nth, elem) in enumerate(elems)
+                # Strip surronding whitespace in each cell.
+                lit = elem.literal
+                lit = (nth === 1 && elem.t isa Text) ? lstrip(lit) : lit
+                lit = (nth === total && elem.t isa Text) ? rstrip(lit) : lit
+                elem.literal = lit
+                append_child(cell, elem)
+            end
+            push!(cells, cell)
+            unlink(pipe)
+            col += 1
+        else
+            # Replace nested pipes with text literals since they can't
+            # demarcate a cell boarder.
+            pipe.t = Text()
+            pipe.literal = "|"
         end
     end
+    if length(cells) < max_cols
+        # Add addtional cells in this row is below number in spec.
+        extra = (length(cells) + 1):max_cols
+        append!(cells, (Node(TableCell(:left, isheader, n, 1, 1)) for n in extra))
+    end
+    for (nth, cell) in enumerate(cells)
+        # Drop additional cells if they are longer that the spec.
+        nth ≤ length(spec) ? append_child(block, cell) : unlink(cell)
+    end
+end
 
 #
 # Writers
@@ -266,7 +266,7 @@ write_html(::TableRow, rend, node, enter) = tag(rend, enter ? "tr" : "/tr")
 
 function write_html(cell::TableCell, rend, node, enter)
     tag_name = cell.header ? "th" : "td"
-    if enter
+    return if enter
         attrs = ["align" => string(cell.align)]
         cell.rowspan > 1 && push!(attrs, "rowspan" => string(cell.rowspan))
         cell.colspan > 1 && push!(attrs, "colspan" => string(cell.colspan))
@@ -279,7 +279,7 @@ end
 # LaTeX
 
 function write_latex(::TableHeader, rend, node, enter)
-    if enter
+    return if enter
         println(rend.buffer, "\\hline")
     else
         println(rend.buffer, "\\hline")
@@ -288,7 +288,7 @@ function write_latex(::TableHeader, rend, node, enter)
 end
 
 function write_latex(::TableBody, rend, node, enter)
-    if !enter
+    return if !enter
         println(rend.buffer, "\\hline")
     end
 end
@@ -296,7 +296,7 @@ end
 write_latex(::TableRows, rend, node, enter) = nothing
 
 function write_latex(::TableFoot, rend, node, enter)
-    if enter
+    return if enter
         println(rend.buffer, "\\hline")
     else
         println(rend.buffer, "\\endlastfoot")
@@ -304,11 +304,11 @@ function write_latex(::TableFoot, rend, node, enter)
 end
 
 function write_latex(::TableRow, rend, node, enter)
-    enter ? nothing : println(rend.buffer, "\\tabularnewline")
+    return enter ? nothing : println(rend.buffer, "\\tabularnewline")
 end
 
 function write_latex(::TableCell, rend, node, enter)
-    if !enter && node.parent.last_child !== node
+    return if !enter && node.parent.last_child !== node
         print(rend.buffer, " & ")
     end
 end
@@ -316,7 +316,7 @@ end
 # Typst
 
 function write_typst(::TableHeader, rend, node, enter)
-    if enter
+    return if enter
         println(rend.buffer, "table.header(")
     else
         println(rend.buffer, "),")
@@ -326,7 +326,7 @@ end
 write_typst(::TableBody, rend, node, enter) = nothing
 write_typst(::TableRows, rend, node, enter) = nothing
 function write_typst(::TableFoot, rend, node, enter)
-    if enter
+    return if enter
         println(rend.buffer, "table.footer(")
     else
         println(rend.buffer, "),")
@@ -334,13 +334,13 @@ function write_typst(::TableFoot, rend, node, enter)
 end
 
 function write_typst(::TableRow, rend, node, enter)
-    if !enter
+    return if !enter
         println(rend.buffer)
     end
 end
 
 function write_typst(cell::TableCell, rend, node, enter)
-    if enter
+    return if enter
         if cell.colspan > 1 || cell.rowspan > 1
             parts = String[]
             cell.colspan > 1 && push!(parts, "colspan: $(cell.colspan)")
@@ -410,7 +410,7 @@ function write_term(cell::TableCell, rend, node, enter)
     if haskey(rend.context, :widths)
         widths = rend.context[:widths]
         col_w = widths[cell.column]
-        for i = cell.column+1:min(cell.column + cell.colspan - 1, length(widths))
+        for i in (cell.column + 1):min(cell.column + cell.colspan - 1, length(widths))
             col_w += 3 + widths[i]  # " │ " separator + next column width
         end
         pad = col_w - rend.context[:cells][node]
@@ -505,7 +505,7 @@ write_json(::TableRows, ctx, node, enter) = nothing
 write_json(::TableFoot, ctx, node, enter) = nothing
 
 function write_json(::TableRow, ctx, node, enter)
-    if enter
+    return if enter
         cells = Any[]
         push_container!(ctx, cells)
     else
@@ -516,7 +516,7 @@ function write_json(::TableRow, ctx, node, enter)
         section = node.parent
         section.t isa TableRows && (section = section.parent)
         if section.t isa TableHeader
-            push!(ctx.stack[end-1], row)
+            push!(ctx.stack[end - 1], row)
         else
             push!(ctx.stack[end], row)
         end
@@ -524,7 +524,7 @@ function write_json(::TableRow, ctx, node, enter)
 end
 
 function write_json(cell::TableCell, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -547,7 +547,7 @@ write_json(::TablePipe, ctx, node, enter) = nothing
 _term_visible_length(s) = textwidth(replace(s, r"\e\[[0-9]+(?:;[0-9]+)*m" => ""))
 
 function calculate_columns_widths(width_func, table, node)
-    cells, widths = Dict{Node,Int}(), ones(Int, length(table.spec))
+    cells, widths = Dict{Node, Int}(), ones(Int, length(table.spec))
     index = 0
     for (n, enter) in node
         if enter

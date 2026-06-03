@@ -8,7 +8,7 @@ end
 accepts_lines(::HtmlBlock) = true
 
 function continue_(::HtmlBlock, parser::Parser, container::Node)
-    (parser.blank && container.t.html_block_type in 6:7) ? 1 : 0
+    return (parser.blank && container.t.html_block_type in 6:7) ? 1 : 0
 end
 
 function finalize(::HtmlBlock, parser::Parser, block::Node)
@@ -22,7 +22,7 @@ can_contain(::HtmlBlock, t) = false
 function Node(::Type{HtmlBlock}, html::AbstractString)
     node = Node(HtmlBlock())
     node.literal = html
-    node
+    return node
 end
 
 function html_block(parser::Parser, container::Node)

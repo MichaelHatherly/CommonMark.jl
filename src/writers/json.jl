@@ -32,18 +32,18 @@ d = json(Dict, ast)
 json(args...; dicttype = Dict) =
     writer(MIME"application/pandoc+json"(), args...; dicttype = dicttype)
 
-function json(::Type{D}, ast::Node) where {D<:AbstractDict}
+function json(::Type{D}, ast::Node) where {D <: AbstractDict}
     return build_json_dict(D, ast)
 end
 
 function Base.show(
-    io::IO,
-    ::MIME"application/pandoc+json",
-    ast::Node,
-    env = Dict{String,Any}();
-    dicttype = Dict,
-    kws...,
-)
+        io::IO,
+        ::MIME"application/pandoc+json",
+        ast::Node,
+        env = Dict{String, Any}();
+        dicttype = Dict,
+        kws...,
+    )
     DictType = get(env, "dicttype", dicttype)
     doc = build_json_dict(DictType, ast)
     _json(io, doc)
@@ -69,18 +69,18 @@ end
 mime_to_str(::MIME"application/pandoc+json") = "json"
 
 # Context for building AST during traversal.
-mutable struct JSONContext{D<:AbstractDict}
+mutable struct JSONContext{D <: AbstractDict}
     doc::D
     stack::Vector{Vector{Any}}  # Stack of inline/block containers
 end
 
 function JSONContext(DictType::Type = Dict)
-    doc = DictType{String,Any}(
+    doc = DictType{String, Any}(
         "pandoc-api-version" => [1, 23, 1],
-        "meta" => DictType{String,Any}(),
+        "meta" => DictType{String, Any}(),
         "blocks" => Any[],
     )
-    JSONContext{typeof(doc)}(doc, Vector{Any}[doc["blocks"]])
+    return JSONContext{typeof(doc)}(doc, Vector{Any}[doc["blocks"]])
 end
 
 # Current container being built.
@@ -114,7 +114,7 @@ function node_attr(node::Node)
     else
         String.(split(class_val))
     end
-    Any[id, classes, Any[]]
+    return Any[id, classes, Any[]]
 end
 
 # Convert frontmatter values to meta format.
@@ -155,7 +155,7 @@ function text_to_inlines(ctx::JSONContext, s::AbstractString)
             i = j
         end
     end
-    result
+    return result
 end
 
 # Core block types.
@@ -163,7 +163,7 @@ end
 write_json(::Document, ctx, node, enter) = nothing
 
 function write_json(::Paragraph, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -171,19 +171,19 @@ function write_json(::Paragraph, ctx, node, enter)
         # Use Plain for tight list items, Para otherwise.
         grandparent = node.parent.parent
         block_type =
-            if !isnull(grandparent) &&
-               grandparent.t isa List &&
-               grandparent.t.list_data.tight
-                "Plain"
-            else
-                "Para"
-            end
+        if !isnull(grandparent) &&
+                grandparent.t isa List &&
+                grandparent.t.list_data.tight
+            "Plain"
+        else
+            "Para"
+        end
         push_element!(ctx, json_el(ctx, block_type, inlines))
     end
 end
 
 function write_json(h::Heading, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -199,11 +199,11 @@ function write_json(::CodeBlock, ctx, node, enter)
     attr = Any["", classes, Any[]]
     # Strip trailing newline.
     content = chomp(node.literal)
-    push_element!(ctx, json_el(ctx, "CodeBlock", Any[attr, content]))
+    return push_element!(ctx, json_el(ctx, "CodeBlock", Any[attr, content]))
 end
 
 function write_json(::BlockQuote, ctx, node, enter)
-    if enter
+    return if enter
         blocks = Any[]
         push_container!(ctx, blocks)
     else
@@ -214,18 +214,18 @@ end
 
 function write_json(::ThematicBreak, ctx, node, enter)
     enter || return
-    push_element!(ctx, json_el(ctx, "HorizontalRule"))
+    return push_element!(ctx, json_el(ctx, "HorizontalRule"))
 end
 
 function write_json(::HtmlBlock, ctx, node, enter)
     enter || return
-    push_element!(ctx, json_el(ctx, "RawBlock", Any["html", node.literal]))
+    return push_element!(ctx, json_el(ctx, "RawBlock", Any["html", node.literal]))
 end
 
 # Lists.
 
 function write_json(list::List, ctx, node, enter)
-    if enter
+    return if enter
         items = Any[]
         push_container!(ctx, items)
     else
@@ -247,7 +247,7 @@ function write_json(list::List, ctx, node, enter)
 end
 
 function write_json(::Item, ctx, node, enter)
-    if enter
+    return if enter
         blocks = Any[]
         push_container!(ctx, blocks)
     else
@@ -260,7 +260,7 @@ end
 
 function write_json(::Text, ctx, node, enter)
     enter || return
-    append!(current(ctx), text_to_inlines(ctx, node.literal))
+    return append!(current(ctx), text_to_inlines(ctx, node.literal))
 end
 
 write_json(::SoftBreak, ctx, node, enter) =
@@ -271,11 +271,11 @@ write_json(::LineBreak, ctx, node, enter) =
 
 function write_json(::Code, ctx, node, enter)
     enter || return
-    push_element!(ctx, json_el(ctx, "Code", Any[empty_attr(), node.literal]))
+    return push_element!(ctx, json_el(ctx, "Code", Any[empty_attr(), node.literal]))
 end
 
 function write_json(::Emph, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -285,7 +285,7 @@ function write_json(::Emph, ctx, node, enter)
 end
 
 function write_json(::Strong, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -295,7 +295,7 @@ function write_json(::Strong, ctx, node, enter)
 end
 
 function write_json(link::Link, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -306,7 +306,7 @@ function write_json(link::Link, ctx, node, enter)
 end
 
 function write_json(img::Image, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -318,7 +318,7 @@ end
 
 function write_json(::HtmlInline, ctx, node, enter)
     enter || return
-    push_element!(ctx, json_el(ctx, "RawInline", Any["html", node.literal]))
+    return push_element!(ctx, json_el(ctx, "RawInline", Any["html", node.literal]))
 end
 
 write_json(::Backslash, ctx, node, enter) = nothing

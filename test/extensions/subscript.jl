@@ -30,14 +30,14 @@
 
     # Multiple in paragraph
     @test html(p("~first~ and ~second~")) ==
-          "<p><sub>first</sub> and <sub>second</sub></p>\n"
+        "<p><sub>first</sub> and <sub>second</sub></p>\n"
 
     # Combined with strikethrough (if both enabled)
     p2 = create_parser([SubscriptRule(), StrikethroughRule()])
     @test html(p2("~sub~ and ~~strike~~")) ==
-          "<p><sub>sub</sub> and <del>strike</del></p>\n"
+        "<p><sub>sub</sub> and <del>strike</del></p>\n"
     @test html(p2("~~struck ~sub~ text~~")) ==
-          "<p><del>struck <sub>sub</sub> text</del></p>\n"
+        "<p><del>struck <sub>sub</sub> text</del></p>\n"
 
     # Permissive flanking allows punctuation after opener
     @test html(p("x~-1~")) == "<p>x<sub>-1</sub></p>\n"

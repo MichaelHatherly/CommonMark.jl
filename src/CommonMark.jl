@@ -65,18 +65,18 @@ export AdmonitionRule,
     eval(
         Meta.parse(
             """
-    public Node,
-        append_child, prepend_child, insert_after, insert_before, unlink, isnull, text,
-        Document, Paragraph, Heading, BlockQuote, List, Item, CodeBlock, HtmlBlock, ThematicBreak,
-        Text, SoftBreak, LineBreak, Code, Emph, Strong, Link, Image, HtmlInline,
-        Table, TableHeader, TableBody, TableFoot, TableRow, TableCell,
-        DisplayMath, Admonition, FencedDiv, FootnoteDefinition, LaTeXBlock, TypstBlock,
-        Math, Strikethrough, Mark, Subscript, Superscript, LaTeXInline, TypstInline,
-        GitHubAlert, TaskItem, FootnoteLink, Citation,
-        ReferenceLink, ReferenceImage, ReferenceDefinition, UnresolvedReference,
-        Shortcode, ShortcodeBlock, ShortcodeContext,
-        DefinitionList, DefinitionTerm, DefinitionDescription
-""",
+                public Node,
+                    append_child, prepend_child, insert_after, insert_before, unlink, isnull, text,
+                    Document, Paragraph, Heading, BlockQuote, List, Item, CodeBlock, HtmlBlock, ThematicBreak,
+                    Text, SoftBreak, LineBreak, Code, Emph, Strong, Link, Image, HtmlInline,
+                    Table, TableHeader, TableBody, TableFoot, TableRow, TableCell,
+                    DisplayMath, Admonition, FencedDiv, FootnoteDefinition, LaTeXBlock, TypstBlock,
+                    Math, Strikethrough, Mark, Subscript, Superscript, LaTeXInline, TypstInline,
+                    GitHubAlert, TaskItem, FootnoteLink, Citation,
+                    ReferenceLink, ReferenceImage, ReferenceDefinition, UnresolvedReference,
+                    Shortcode, ShortcodeBlock, ShortcodeContext,
+                    DefinitionList, DefinitionTerm, DefinitionDescription
+            """,
         ),
     )
 end

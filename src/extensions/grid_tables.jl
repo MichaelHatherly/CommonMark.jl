@@ -116,13 +116,13 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
     separators = String[string(strip(lines[1]))]
     current_section = String[]
 
-    for i = 2:length(lines)
+    for i in 2:length(lines)
         line = lines[i]
         stripped = strip(line)
         if _is_full_border(line) && (
-            all(p -> p <= lastindex(line) && line[p] == '+', col_positions) ||
-            occursin('=', stripped)
-        )
+                all(p -> p <= lastindex(line) && line[p] == '+', col_positions) ||
+                    occursin('=', stripped)
+            )
             push!(sections, current_section)
             push!(separators, string(stripped))
             current_section = String[]
@@ -137,7 +137,7 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
     has_footer =
         length(separators) > 2 &&
         occursin('=', separators[end]) &&
-        occursin('=', separators[end-1])
+        occursin('=', separators[end - 1])
     if has_header && has_footer && length(sections) == 1
         has_footer = false
     end
@@ -165,7 +165,7 @@ function _build_grid_table(parser::Parser, lines::AbstractVector)
     if body_start <= body_end
         body = Node(TableBody())
         append_child(table, body)
-        for i = body_start:body_end
+        for i in body_start:body_end
             _parse_row_group!(
                 parser,
                 body,
@@ -201,9 +201,9 @@ function _parse_grid_spec(border::AbstractString, col_positions::Vector{Int})
     widths = Vector{Float64}(undef, ncols)
     total = 0.0
 
-    for i = 1:ncols
+    for i in 1:ncols
         start = col_positions[i] + 1
-        stop = col_positions[i+1] - 1
+        stop = col_positions[i + 1] - 1
         spec[i] = :left
         widths[i] = Float64(max(stop - start + 1, 1))
         total += widths[i]
@@ -215,12 +215,12 @@ end
 # Check if a content line is a partial border (contains + grid markers not at all positions).
 function _is_partial_border(line, col_positions)
     _is_full_border(line) && return false
-    for pos in col_positions[2:end-1]
+    for pos in col_positions[2:(end - 1)]
         if pos <= lastindex(line) &&
-           isvalid(line, pos) &&
-           line[pos] == '+' &&
-           pos < lastindex(line) &&
-           line[pos+1] in ('-', '=')
+                isvalid(line, pos) &&
+                line[pos] == '+' &&
+                pos < lastindex(line) &&
+                line[pos + 1] in ('-', '=')
             return true
         end
     end
@@ -263,40 +263,40 @@ end
 
 # Emit a rowspan group: multiple sub-rows with colspan/rowspan detection.
 function _emit_rowspan_group!(
-    parser,
-    parent,
-    sub_groups,
-    partial_borders,
-    border_above,
-    col_positions,
-    spec,
-    is_header,
-)
+        parser,
+        parent,
+        sub_groups,
+        partial_borders,
+        border_above,
+        col_positions,
+        spec,
+        is_header,
+    )
     ncols = length(col_positions) - 1
     n_sub = length(sub_groups)
 
-    sub_row_cells = Vector{Vector{NamedTuple{(:col, :colspan),Tuple{Int,Int}}}}()
+    sub_row_cells = Vector{Vector{NamedTuple{(:col, :colspan), Tuple{Int, Int}}}}()
 
     above_plus = _partial_border_positions(border_above, col_positions)
     push!(sub_row_cells, _detect_colspan_from_plus(col_positions, above_plus))
 
-    for k = 2:n_sub
-        border_plus = _partial_border_positions(partial_borders[k-1], col_positions)
+    for k in 2:n_sub
+        border_plus = _partial_border_positions(partial_borders[k - 1], col_positions)
         push!(sub_row_cells, _detect_colspan_from_plus(col_positions, border_plus))
     end
 
     # Build an occupation grid and cell registry for rowspan merging.
     cell_registry =
-        NamedTuple{(:col, :colspan, :rowspan, :sub_rows),Tuple{Int,Int,Int,Vector{Int}}}[]
-    occupied = [zeros(Int, ncols) for _ = 1:n_sub]
+        NamedTuple{(:col, :colspan, :rowspan, :sub_rows), Tuple{Int, Int, Int, Vector{Int}}}[]
+    occupied = [zeros(Int, ncols) for _ in 1:n_sub]
 
-    for sr = 1:n_sub
+    for sr in 1:n_sub
         for cell_def in sub_row_cells[sr]
             col, cspan = cell_def.col, cell_def.colspan
             occupied[sr][col] != 0 && continue
             rspan = 1
-            for next_sr = sr+1:n_sub
-                pb = partial_borders[next_sr-1]
+            for next_sr in (sr + 1):n_sub
+                pb = partial_borders[next_sr - 1]
                 left_pos = col_positions[col]
                 if left_pos <= lastindex(pb) && pb[left_pos] == '+'
                     break
@@ -310,11 +310,11 @@ function _emit_rowspan_group!(
                     col = col,
                     colspan = cspan,
                     rowspan = rspan,
-                    sub_rows = collect(sr:sr+rspan-1),
+                    sub_rows = collect(sr:(sr + rspan - 1)),
                 ),
             )
-            for osr = sr:sr+rspan-1
-                for c = col:col+cspan-1
+            for osr in sr:(sr + rspan - 1)
+                for c in col:(col + cspan - 1)
                     occupied[osr][c] = cell_id
                 end
             end
@@ -349,7 +349,7 @@ function _emit_rowspan_group!(
         cell_nodes[cell_id] = cell_node
     end
 
-    for sr = 1:n_sub
+    for sr in 1:n_sub
         row = Node(TableRow())
         append_child(group, row)
         for (cell_id, cell_def) in enumerate(cell_registry)
@@ -357,22 +357,23 @@ function _emit_rowspan_group!(
             append_child(row, cell_nodes[cell_id])
         end
     end
+    return
 end
 
 function _parse_row_group!(
-    parser,
-    parent,
-    content_lines,
-    border_above,
-    col_positions,
-    spec,
-    is_header,
-)
+        parser,
+        parent,
+        content_lines,
+        border_above,
+        col_positions,
+        spec,
+        is_header,
+    )
     isempty(content_lines) && return
 
     sub_groups, partial_borders = _split_by_partial_borders(content_lines, col_positions)
 
-    if length(sub_groups) == 1
+    return if length(sub_groups) == 1
         above_plus = _partial_border_positions(border_above, col_positions)
         _emit_row!(
             parser,
@@ -406,7 +407,7 @@ function _build_vcol_map(s::AbstractString)
     map = Int[]
     for i in eachindex(s)
         w = max(textwidth(s[i]), 1)
-        for _ = 1:w
+        for _ in 1:w
             push!(map, i)
         end
     end
@@ -417,7 +418,7 @@ end
 # Extract cell content lines from raw grid lines for the given column span.
 function _extract_cell_lines(lines, col_positions, col, cspan, vcol_maps)
     start_vcol = col_positions[col] + 1
-    stop_vcol = col_positions[col+cspan] - 1
+    stop_vcol = col_positions[col + cspan] - 1
     cell_lines = String[]
     for (line, vmap) in zip(lines, vcol_maps)
         if vmap === nothing
@@ -435,7 +436,7 @@ function _extract_cell_lines(lines, col_positions, col, cspan, vcol_maps)
                 push!(cell_lines, "")
             else
                 eb =
-                    stop_vcol + 1 <= length(vmap) ? vmap[stop_vcol+1] - 1 : ncodeunits(line)
+                    stop_vcol + 1 <= length(vmap) ? vmap[stop_vcol + 1] - 1 : ncodeunits(line)
                 push!(cell_lines, String(SubString(line, sb, min(eb, ncodeunits(line)))))
             end
         end
@@ -446,12 +447,12 @@ end
 # Detect colspan from a set of + positions in a border line.
 function _detect_colspan_from_plus(col_positions, plus_set::Set{Int})
     ncols = length(col_positions) - 1
-    cells = NamedTuple{(:col, :colspan),Tuple{Int,Int}}[]
+    cells = NamedTuple{(:col, :colspan), Tuple{Int, Int}}[]
     col = 1
     while col <= ncols
         span = 1
         while col + span <= ncols
-            pos = col_positions[col+span]
+            pos = col_positions[col + span]
             pos in plus_set && break
             span += 1
         end
@@ -463,14 +464,14 @@ end
 
 # Emit a single row with colspan detection (no partial borders / no rowspan).
 function _emit_row!(
-    parser,
-    parent,
-    content_lines,
-    col_positions,
-    above_plus,
-    spec,
-    is_header,
-)
+        parser,
+        parent,
+        content_lines,
+        col_positions,
+        above_plus,
+        spec,
+        is_header,
+    )
     isempty(content_lines) && return
 
     cells = _detect_colspan_from_plus(col_positions, above_plus)
@@ -490,6 +491,7 @@ function _emit_row!(
         _parse_cell_content!(parser, cell_node, cell_content)
         append_child(row, cell_node)
     end
+    return
 end
 
 function _parse_cell_content!(parser, cell_node, cell_content)
@@ -506,6 +508,7 @@ function _parse_cell_content!(parser, cell_node, cell_content)
         append_child(cell_node, child)
         child = nxt
     end
+    return
 end
 
 function _strip_cell_padding(lines::Vector{String})
@@ -569,22 +572,22 @@ end
 # `bounds_above`/`bounds_below` are sets of column indices where cell boundaries exist
 # in the row above/below. Junction char is chosen based on which sides have boundaries.
 function _write_term_border(
-    rend,
-    col_widths,
-    bounds_above,
-    bounds_below,
-    ncols,
-    left,
-    fill,
-    junc_cross,
-    junc_down,
-    junc_up,
-    right,
-)
+        rend,
+        col_widths,
+        bounds_above,
+        bounds_below,
+        ncols,
+        left,
+        fill,
+        junc_cross,
+        junc_down,
+        junc_up,
+        right,
+    )
     print_margin(rend)
     buf = rend.format.buffer
     print(buf, left, fill)
-    for i = 1:ncols
+    for i in 1:ncols
         print(buf, fill^col_widths[i])
         if i < ncols
             above = (i + 1) in bounds_above
@@ -600,7 +603,7 @@ function _write_term_border(
             end
         end
     end
-    println(buf, fill, right)
+    return println(buf, fill, right)
 end
 
 # Write a partial border between visual sub-rows.
@@ -609,18 +612,18 @@ end
 # Junction characters depend on whether boundaries exist above and/or below:
 #   above+below: ┼   below only: ┬   above only: ┴
 function _write_term_partial_border(
-    rend,
-    col_widths,
-    spanning_cols,
-    cells_above,
-    cells_below,
-    ncols,
-)
+        rend,
+        col_widths,
+        spanning_cols,
+        cells_above,
+        cells_below,
+        ncols,
+    )
     bounds_above = _cell_boundaries(cells_above, ncols)
     bounds_below = _cell_boundaries(cells_below, ncols)
     print_margin(rend)
     buf = rend.format.buffer
-    for i = 1:ncols
+    for i in 1:ncols
         span = spanning_cols[i]
         fill_char = span ? ' ' : '─'
         above = i in bounds_above
@@ -629,7 +632,7 @@ function _write_term_partial_border(
         if i == 1
             print(buf, span ? "┃" : "┠", fill_char)
         else
-            prev_span = spanning_cols[i-1]
+            prev_span = spanning_cols[i - 1]
             if prev_span && span
                 print(buf, "   ")
             elseif prev_span && !span
@@ -663,6 +666,7 @@ function _write_term_partial_border(
             end
         end
     end
+    return
 end
 
 # Pre-render all term cells, computing column widths from content.
@@ -678,7 +682,7 @@ function _prerender_term_cells(rend, table_node, gt::GridTable)
         fill(max(1, fld(budget, ncols)), ncols)
     end
 
-    rendered = Dict{Node,Vector{String}}()
+    rendered = Dict{Node, Vector{String}}()
     col_widths = fill(1, ncols)
 
     for (n, ent) in table_node
@@ -688,7 +692,7 @@ function _prerender_term_cells(rend, table_node, gt::GridTable)
                 target_widths[tc.column]
             elseif tc.colspan > 1 && tc.column + tc.colspan - 1 <= ncols
                 tw =
-                    sum(target_widths[tc.column:tc.column+tc.colspan-1]) +
+                    sum(target_widths[tc.column:(tc.column + tc.colspan - 1)]) +
                     3 * (tc.colspan - 1)
                 tw > 0 ? tw : -1
             else
@@ -749,7 +753,7 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
                 )
             end
 
-            for line_idx = 1:max_lines
+            for line_idx in 1:max_lines
                 print_margin(rend)
                 for (ci, cell) in enumerate(active_cells)
                     col = cell.t.column
@@ -790,7 +794,7 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
         # Full border after group.
         last_subrow_cells = _get_active_cells_for_subrow(subrows, length(subrows), ncols)
         if grp_idx < length(group_data)
-            next_subrows = group_data[grp_idx+1][1]
+            next_subrows = group_data[grp_idx + 1][1]
             next_first_cells = next_subrows[1]
             bounds_above = _cell_boundaries(last_subrow_cells, ncols)
             bounds_below = _cell_boundaries(next_first_cells, ncols)
@@ -840,6 +844,7 @@ function _write_grid_table_term(rend, table_node, gt::GridTable)
             )
         end
     end
+    return
 end
 
 # Markdown: render entire grid table, suppressing child traversal.
@@ -874,18 +879,19 @@ function _redistribute_spanning_widths!(col_widths, table_node, rendered, width_
             if max_w > combined
                 excess = max_w - combined
                 per_col = cld(excess, tc.colspan)
-                for c = tc.column:tc.column+tc.colspan-1
+                for c in tc.column:(tc.column + tc.colspan - 1)
                     col_widths[c] += per_col
                 end
             end
         end
     end
+    return
 end
 
 # Distribute rendered lines across sub-rows for rowspan cells.
 function _distribute_rowspan_lines(subrows, rendered)
     all_cells = _flatten_subrows(subrows)
-    cell_subrow_lines = Dict{Node,Vector{Vector{String}}}()
+    cell_subrow_lines = Dict{Node, Vector{Vector{String}}}()
     for cell in all_cells
         tc = cell.t
         lines = get(rendered, cell, String[""])
@@ -893,7 +899,7 @@ function _distribute_rowspan_lines(subrows, rendered)
             n_visual = tc.rowspan
             lines_per = cld(length(lines), n_visual)
             dist = Vector{Vector{String}}()
-            for sr = 1:n_visual
+            for sr in 1:n_visual
                 start_l = (sr - 1) * lines_per + 1
                 end_l = min(sr * lines_per, length(lines))
                 if start_l <= length(lines)
@@ -929,13 +935,13 @@ function _compute_partial_border_info(active_cells, subrows, sr_idx, ncols)
         tc = cell.t
         cell_start = _cell_start_subrow(cell, subrows)
         if cell_start + tc.rowspan - 1 > sr_idx
-            col_range = tc.column:tc.column+tc.colspan-1
+            col_range = tc.column:(tc.column + tc.colspan - 1)
             next_occupied[col_range] .= true
         end
     end
     next_sr_cells = Node[]
-    for cell in subrows[sr_idx+1]
-        col_range = cell.t.column:cell.t.column+cell.t.colspan-1
+    for cell in subrows[sr_idx + 1]
+        col_range = cell.t.column:(cell.t.column + cell.t.colspan - 1)
         if !any(next_occupied[col_range])
             push!(next_sr_cells, cell)
         end
@@ -948,7 +954,7 @@ end
 # plus separator space absorbed (3 chars per internal separator: " | ").
 function _spanning_width(col_widths, col, colspan)
     w = 0
-    for i = col:col+colspan-1
+    for i in col:(col + colspan - 1)
         w += col_widths[i]
     end
     w += 3 * (colspan - 1)
@@ -959,13 +965,13 @@ end
 # Guarantees sum(result) == budget exactly.
 function _allocate_column_widths(proportions::Vector{Float64}, budget::Int, ncols::Int)
     widths = Vector{Int}(undef, ncols)
-    for i = 1:ncols
+    for i in 1:ncols
         widths[i] = max(1, floor(Int, proportions[i] * budget))
     end
     remainder = budget - sum(widths)
-    fracs = [proportions[i] * budget - floor(proportions[i] * budget) for i = 1:ncols]
+    fracs = [proportions[i] * budget - floor(proportions[i] * budget) for i in 1:ncols]
     order = sortperm(fracs; rev = true)
-    for i = 1:min(remainder, ncols)
+    for i in 1:min(remainder, ncols)
         widths[order[i]] += 1
     end
     return widths
@@ -997,7 +1003,7 @@ end
 function _collect_row_groups(table_node)
     groups = NamedTuple{
         (:subrows, :is_header, :after_header, :before_footer, :is_footer),
-        Tuple{Vector{Vector{Node}},Bool,Bool,Bool,Bool},
+        Tuple{Vector{Vector{Node}}, Bool, Bool, Bool, Bool},
     }[]
     child = table_node.first_child
     while !isnull(child)
@@ -1074,7 +1080,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
     ncols = length(spec)
 
     # Pre-render all cells and collect per-fine-column width requirements.
-    rendered = Dict{Node,Vector{String}}()
+    rendered = Dict{Node, Vector{String}}()
     col_widths = fill(3, ncols)
 
     for (n, ent) in table_node
@@ -1121,7 +1127,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
                 )
             end
 
-            for line_idx = 1:max_lines
+            for line_idx in 1:max_lines
                 print_margin(w)
                 for cell in active_cells
                     col = cell.t.column
@@ -1155,7 +1161,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
         # Full border after group.
         last_subrow_cells = _get_active_cells_for_subrow(subrows, length(subrows), ncols)
         if grp_idx < length(group_data)
-            next_subrows = group_data[grp_idx+1][1]
+            next_subrows = group_data[grp_idx + 1][1]
             next_first_cells = next_subrows[1]
             _write_grid_border_between_rows(
                 w,
@@ -1170,6 +1176,7 @@ function _write_grid_table_markdown(w, table_node, gt::GridTable)
             _write_grid_border_for_cells(w, col_widths, spec, sep, last_subrow_cells, ncols)
         end
     end
+    return
 end
 
 # Find which sub-row a cell starts in.
@@ -1186,12 +1193,12 @@ end
 function _get_active_cells_for_subrow(subrows, sr_idx, ncols)
     active = Node[]
     occupied = falses(ncols)
-    for prev_sr = 1:sr_idx
+    for prev_sr in 1:sr_idx
         for cell in subrows[prev_sr]
             tc = cell.t
             cell_spans_here = (prev_sr == sr_idx) || (prev_sr + tc.rowspan - 1 >= sr_idx)
             if cell_spans_here
-                col_range = tc.column:tc.column+tc.colspan-1
+                col_range = tc.column:(tc.column + tc.colspan - 1)
                 if !any(occupied[col_range])
                     push!(active, cell)
                     occupied[col_range] .= true
@@ -1209,7 +1216,7 @@ function _write_grid_border_for_cells(w, col_widths, spec, sep::Char, cells, nco
 
     print_margin(w)
     s = string(sep)
-    for i = 1:ncols
+    for i in 1:ncols
         if i in bounds
             literal(w, "+")
         else
@@ -1218,24 +1225,24 @@ function _write_grid_border_for_cells(w, col_widths, spec, sep::Char, cells, nco
         literal(w, s^(col_widths[i] + 2))
     end
     literal(w, "+")
-    cr(w)
+    return cr(w)
 end
 
 # Write a border between two rows, merging cell boundaries from both.
 function _write_grid_border_between_rows(
-    w,
-    col_widths,
-    spec,
-    sep::Char,
-    cells_above,
-    cells_below,
-    ncols,
-)
+        w,
+        col_widths,
+        spec,
+        sep::Char,
+        cells_above,
+        cells_below,
+        ncols,
+    )
     bounds = _cell_boundaries(cells_below, ncols)
 
     print_margin(w)
     s = string(sep)
-    for i = 1:ncols
+    for i in 1:ncols
         if i in bounds
             literal(w, "+")
         else
@@ -1244,24 +1251,24 @@ function _write_grid_border_between_rows(
         literal(w, s^(col_widths[i] + 2))
     end
     literal(w, "+")
-    cr(w)
+    return cr(w)
 end
 
 # Write a partial border between sub-rows within the same row group.
 # Rowspan cells from above that span past this border get | and spaces instead of + and ---.
 function _write_grid_partial_border(
-    w,
-    col_widths,
-    sep::Char,
-    spanning_cols::BitVector,
-    cells_below,
-    ncols,
-)
+        w,
+        col_widths,
+        sep::Char,
+        spanning_cols::BitVector,
+        cells_below,
+        ncols,
+    )
     bounds_below = _cell_boundaries(cells_below, ncols)
 
     print_margin(w)
     s = string(sep)
-    for i = 1:ncols
+    for i in 1:ncols
         if spanning_cols[i]
             literal(w, "|")
             literal(w, " "^(col_widths[i] + 2))
@@ -1275,5 +1282,5 @@ function _write_grid_partial_border(
         end
     end
     literal(w, "+")
-    cr(w)
+    return cr(w)
 end

@@ -16,7 +16,7 @@
     @test html(p("==*italic*==")) == "<p><mark><em>italic</em></mark></p>\n"
     @test html(p("*==italic marked==*")) == "<p><em><mark>italic marked</mark></em></p>\n"
     @test html(p("**==bold marked==**")) ==
-          "<p><strong><mark>bold marked</mark></strong></p>\n"
+        "<p><strong><mark>bold marked</mark></strong></p>\n"
 
     # Single equals - not mark (common in assignments, comparisons)
     @test html(p("a = b")) == "<p>a = b</p>\n"
@@ -42,7 +42,7 @@
 
     # Multiple in paragraph
     @test html(p("==first== and ==second==")) ==
-          "<p><mark>first</mark> and <mark>second</mark></p>\n"
+        "<p><mark>first</mark> and <mark>second</mark></p>\n"
 
     # Three equals - middle one should be part of content
     @test html(p("a===b===c")) == "<p>a=<mark>b</mark>=c</p>\n"
@@ -50,9 +50,9 @@
     # Combined with other inline extensions
     p2 = create_parser([MarkRule(), StrikethroughRule()])
     @test html(p2("==mark== and ~~strike~~")) ==
-          "<p><mark>mark</mark> and <del>strike</del></p>\n"
+        "<p><mark>mark</mark> and <del>strike</del></p>\n"
     @test html(p2("~~struck ==marked== text~~")) ==
-          "<p><del>struck <mark>marked</mark> text</del></p>\n"
+        "<p><del>struck <mark>marked</mark> text</del></p>\n"
 
     # LaTeX output
     @test latex(p("==highlighted==")) == "\\hl{highlighted}\\par\n"

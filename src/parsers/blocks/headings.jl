@@ -19,7 +19,7 @@ can_contain(::Heading, t) = false
 function Node(::Type{Heading}, level::Int, children...)
     h = Heading()
     h.level = level
-    _build(h, children)
+    return _build(h, children)
 end
 
 function atx_heading(parser::Parser, container::Node)
@@ -73,7 +73,7 @@ function setext_heading(parser::Parser, container::Node)
                 if pos == 0
                     break
                 end
-                container.literal = container.literal[pos+1:end]
+                container.literal = container.literal[(pos + 1):end]
             end
             if !isempty(container.literal)
                 heading = Node(Heading(), container.sourcepos)

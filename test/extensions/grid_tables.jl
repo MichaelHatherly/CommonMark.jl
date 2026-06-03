@@ -9,12 +9,12 @@
 
     # Basic header + body
     text = """
-           +-------+-------+
-           | Head1 | Head2 |
-           +=======+=======+
-           | Body1 | Body2 |
-           +-------+-------+
-           """
+    +-------+-------+
+    | Head1 | Head2 |
+    +=======+=======+
+    | Body1 | Body2 |
+    +-------+-------+
+    """
     ast = p(text)
     test_grid("basic", ast, "grid_tables")
 
@@ -25,38 +25,38 @@
 
     # Body-only (no header separator)
     text = """
-           +-------+-------+
-           | Left  | Right |
-           +-------+-------+
-           """
+    +-------+-------+
+    | Left  | Right |
+    +-------+-------+
+    """
     ast = p(text)
     test_grid("body_only", ast, "grid_tables")
 
     # Multi-line cells
     text = """
-           +----------+----------+
-           | Line one | Single   |
-           | Line two |          |
-           +==========+==========+
-           | Body     | Multi    |
-           |          | line too |
-           +----------+----------+
-           """
+    +----------+----------+
+    | Line one | Single   |
+    | Line two |          |
+    +==========+==========+
+    | Body     | Multi    |
+    |          | line too |
+    +----------+----------+
+    """
     ast = p(text)
     test_grid("multiline", ast, "grid_tables")
 
     # Colspan header (Temperature table) with rowspan
     text = """
-           +----------+----------------------+
-           | Location | Temperature          |
-           |          +------+------+--------+
-           |          | min  | mean | max    |
-           +==========+======+======+========+
-           | Chicago  | -10  | 15   | 35     |
-           +----------+------+------+--------+
-           | Berlin   | -5   | 12   | 30     |
-           +----------+------+------+--------+
-           """
+    +----------+----------------------+
+    | Location | Temperature          |
+    |          +------+------+--------+
+    |          | min  | mean | max    |
+    +==========+======+======+========+
+    | Chicago  | -10  | 15   | 35     |
+    +----------+------+------+--------+
+    | Berlin   | -5   | 12   | 30     |
+    +----------+------+------+--------+
+    """
     ast = p(text)
     test_grid("colspan_header", ast, "grid_tables")
 
@@ -108,12 +108,12 @@
 
     # Simple colspan in body
     text = """
-           +------+------+------+
-           | A    | B    | C    |
-           +------+------+------+
-           | wide span   | solo |
-           +------+------+------+
-           """
+    +------+------+------+
+    | A    | B    | C    |
+    +------+------+------+
+    | wide span   | solo |
+    +------+------+------+
+    """
     ast = p(text)
     test_grid("colspan_body", ast, "grid_tables")
 
@@ -123,14 +123,14 @@
 
     # Header + body + footer (enclosed = separators)
     text = """
-           +-------+-------+
-           | Head1 | Head2 |
-           +=======+=======+
-           | Body1 | Body2 |
-           +=======+=======+
-           | Foot1 | Foot2 |
-           +=======+=======+
-           """
+    +-------+-------+
+    | Head1 | Head2 |
+    +=======+=======+
+    | Body1 | Body2 |
+    +=======+=======+
+    | Foot1 | Foot2 |
+    +=======+=======+
+    """
     ast = p(text)
     test_grid("footer", ast, "grid_tables")
 
@@ -152,14 +152,14 @@
 
     # Non-enclosed = at end should NOT create footer
     text = """
-           +-------+-------+
-           | Head1 | Head2 |
-           +=======+=======+
-           | Body1 | Body2 |
-           +-------+-------+
-           | Row2  | Row2  |
-           +=======+=======+
-           """
+    +-------+-------+
+    | Head1 | Head2 |
+    +=======+=======+
+    | Body1 | Body2 |
+    +-------+-------+
+    | Row2  | Row2  |
+    +=======+=======+
+    """
     ast = p(text)
     let sections = CommonMark.Node[]
         n = ast.first_child.first_child
@@ -174,14 +174,14 @@
 
     # Footer with colspan
     text = """
-           +------+------+------+
-           | H1   | H2   | H3   |
-           +======+======+======+
-           | B1   | B2   | B3   |
-           +======+=============+
-           | F1   | F2 spanning |
-           +======+=============+
-           """
+    +------+------+------+
+    | H1   | H2   | H3   |
+    +======+======+======+
+    | B1   | B2   | B3   |
+    +======+=============+
+    | F1   | F2 spanning |
+    +======+=============+
+    """
     ast = p(text)
     let sections = CommonMark.Node[]
         n = ast.first_child.first_child
@@ -204,16 +204,16 @@
 
     # Footer with rowspan
     text = """
-           +------+------+
-           | H1   | H2   |
-           +======+======+
-           | B1   | B2   |
-           +======+======+
-           | F1   | FA   |
-           |      +------+
-           |      | FB   |
-           +======+======+
-           """
+    +------+------+
+    | H1   | H2   |
+    +======+======+
+    | B1   | B2   |
+    +======+======+
+    | F1   | FA   |
+    |      +------+
+    |      | FB   |
+    +======+======+
+    """
     ast = p(text)
     let sections = CommonMark.Node[]
         n = ast.first_child.first_child
@@ -237,10 +237,10 @@
 
     # Round-trip all previous tests
     for input in [
-        "+-------+-------+\n| Head1 | Head2 |\n+=======+=======+\n| Body1 | Body2 |\n+-------+-------+\n",
-        "+-------+-------+\n| Left  | Right |\n+-------+-------+\n",
-        "+----------+----------+\n| Line one | Single   |\n| Line two |          |\n+==========+==========+\n| Body     | Multi    |\n|          | line too |\n+----------+----------+\n",
-    ]
+            "+-------+-------+\n| Head1 | Head2 |\n+=======+=======+\n| Body1 | Body2 |\n+-------+-------+\n",
+            "+-------+-------+\n| Left  | Right |\n+-------+-------+\n",
+            "+----------+----------+\n| Line one | Single   |\n| Line two |          |\n+==========+==========+\n| Body     | Multi    |\n|          | line too |\n+----------+----------+\n",
+        ]
         local ast = p(input)
         local md1 = markdown(ast)
         local md2 = markdown(p(md1))
@@ -249,16 +249,16 @@
 
     # Width-80 explicit IOContext matches term() output (which uses IOBuffer → 80 cols)
     text = """
-           +----------+----------------------+
-           | Location | Temperature          |
-           |          +------+------+--------+
-           |          | min  | mean | max    |
-           +==========+======+======+========+
-           | Chicago  | -10  | 15   | 35     |
-           +----------+------+------+--------+
-           | Berlin   | -5   | 12   | 30     |
-           +----------+------+------+--------+
-           """
+    +----------+----------------------+
+    | Location | Temperature          |
+    |          +------+------+--------+
+    |          | min  | mean | max    |
+    +==========+======+======+========+
+    | Chicago  | -10  | 15   | 35     |
+    +----------+------+------+--------+
+    | Berlin   | -5   | 12   | 30     |
+    +----------+------+------+--------+
+    """
     ast = p(text)
     buf80 = IOBuffer()
     show(IOContext(buf80, :displaysize => (24, 80)), MIME"text/plain"(), ast)
@@ -266,13 +266,13 @@
 
     # Narrow terminal wraps content — all visible lines ≤ target width
     text = """
-           +----------+------------------------------------------------+
-           | Key      | Value                                          |
-           +==========+================================================+
-           | greeting | Hello world, this is a rather long piece of    |
-           |          | text that should wrap when the terminal is narrow|
-           +----------+------------------------------------------------+
-           """
+    +----------+------------------------------------------------+
+    | Key      | Value                                          |
+    +==========+================================================+
+    | greeting | Hello world, this is a rather long piece of    |
+    |          | text that should wrap when the terminal is narrow|
+    +----------+------------------------------------------------+
+    """
     ast = p(text)
     narrow_width = 40
     buf = IOBuffer()
@@ -299,16 +299,16 @@
 
     # Nested grid table inside a cell
     text = """
-           +-------------------------+-------------------+
-           | Outer Left              | Outer Right       |
-           +=========================+===================+
-           | +------+------+         | Regular cell      |
-           | | A    | B    |         |                   |
-           | +------+------+         |                   |
-           | | C    | D    |         |                   |
-           | +------+------+         |                   |
-           +-------------------------+-------------------+
-           """
+    +-------------------------+-------------------+
+    | Outer Left              | Outer Right       |
+    +=========================+===================+
+    | +------+------+         | Regular cell      |
+    | | A    | B    |         |                   |
+    | +------+------+         |                   |
+    | | C    | D    |         |                   |
+    | +------+------+         |                   |
+    +-------------------------+-------------------+
+    """
     ast = p(text)
     # Outer table should have 2 columns
     table = ast.first_child
@@ -327,35 +327,35 @@
     # Grid table with TableRule enabled — no extra empty columns from pipe inline_modifier
     p_both = create_parser([GridTableRule(), TableRule()])
     text = """
-           +-------+-------+
-           | Head1 | Head2 |
-           +=======+=======+
-           | Body1 | Body2 |
-           +-------+-------+
-           """
+    +-------+-------+
+    | Head1 | Head2 |
+    +=======+=======+
+    | Body1 | Body2 |
+    +-------+-------+
+    """
     ast = p_both(text)
     cells = [n for (n, e) in ast if e && n.t isa CommonMark.TableCell]
     @test length(cells) == 4  # 2 header + 2 body, no extras
 
     # Unicode (CJK) content — multi-byte chars must not cause StringIndexError
     text = """
-           +------------+------+
-           | こんにちは | 世界 |
-           +============+======+
-           | テスト     | OK   |
-           +------------+------+
-           """
+    +------------+------+
+    | こんにちは | 世界 |
+    +============+======+
+    | テスト     | OK   |
+    +------------+------+
+    """
     ast = p(text)
     test_grid("unicode_cjk", ast, "grid_tables")
 
     # Colspan cell at narrow width wraps at combined target
     text = """
-           +------+------+------+
-           | A    | B    | C    |
-           +------+------+------+
-           | wide span   | solo |
-           +------+------+------+
-           """
+    +------+------+------+
+    | A    | B    | C    |
+    +------+------+------+
+    | wide span   | solo |
+    +------+------+------+
+    """
     ast = p(text)
     buf = IOBuffer()
     show(IOContext(buf, :displaysize => (24, 35)), MIME"text/plain"(), ast)

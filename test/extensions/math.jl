@@ -28,35 +28,35 @@
     text = "Some ``math``{key='value'}."
     ast = p(text)
     @test html(ast) ==
-          "<p>Some <span class=\"math tex\" key=\"value\">\\(math\\)</span>.</p>\n"
+        "<p>Some <span class=\"math tex\" key=\"value\">\\(math\\)</span>.</p>\n"
 
     # Display math with id
     text = """
-           {#id}
-           ```math
-           math
-           ```
-           """
+    {#id}
+    ```math
+    math
+    ```
+    """
     ast = p(text)
     test_math("display_math_with_id", ast, "math")
 
     # Display math with class
     text = """
-           {.red}
-           ```math
-           E=mc^2
-           ```
-           """
+    {.red}
+    ```math
+    E=mc^2
+    ```
+    """
     ast = p(text)
     @test html(ast) == "<div class=\"display-math tex red\">\\[E=mc^2\\]</div>"
 
     # Display math with id and class
     text = """
-           {#id .red}
-           ```math
-           E=mc^2
-           ```
-           """
+    {#id .red}
+    ```math
+    E=mc^2
+    ```
+    """
     ast = p(text)
     @test html(ast) == "<div class=\"display-math tex red\" id=\"id\">\\[E=mc^2\\]</div>"
 

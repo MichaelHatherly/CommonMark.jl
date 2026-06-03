@@ -13,7 +13,7 @@ end
 # Flatten nested Markdown.MD and merge metadata (outer takes precedence)
 function flatten_md(md::Markdown.MD)
     content = Any[]
-    meta = Dict{Symbol,Any}()
+    meta = Dict{Symbol, Any}()
     for (k, v) in md.meta
         meta[k] = v
     end
@@ -152,7 +152,7 @@ function from_stdlib_block(elem::Markdown.Table)
     if length(rows) > 1
         body = CommonMark.Node(CommonMark.TableBody())
         CommonMark.append_child(table, body)
-        for i = 2:length(rows)
+        for i in 2:length(rows)
             row = table_row_from_stdlib(rows[i], spec, false)
             CommonMark.append_child(body, row)
         end
@@ -207,6 +207,7 @@ function process_inlines!(parent::CommonMark.Node, content)
         child = from_stdlib_inline(elem)
         !isnothing(child) && CommonMark.append_child(parent, child)
     end
+    return
 end
 
 function from_stdlib_inline(s::AbstractString)
@@ -283,7 +284,7 @@ end
 # Convert LazyCommonMarkDoc to Markdown.MD via MarkdownAST intermediate
 function Base.convert(::Type{Markdown.MD}, doc::CommonMark.LazyCommonMarkDoc)
     mast = CommonMark.to_mast(doc)  # Calls MarkdownAST ext
-    convert(Markdown.MD, mast)
+    return convert(Markdown.MD, mast)
 end
 
 end # module

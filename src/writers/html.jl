@@ -1,13 +1,13 @@
 # Public.
 
 function Base.show(
-    io::IO,
-    ::MIME"text/html",
-    ast::Node,
-    env = Dict{String,Any}();
-    transform = default_transform,
-    kws...,
-)
+        io::IO,
+        ::MIME"text/html",
+        ast::Node,
+        env = Dict{String, Any}();
+        transform = default_transform,
+        kws...,
+    )
     w = Writer(HTML(; kws...), io, env; transform = transform)
     write_html(w, ast)
     return nothing
@@ -47,7 +47,7 @@ mutable struct HTML
     disable_tags::Int
     softbreak::String
     safe::Bool
-    sourcepos::Union{Bool,Function}
+    sourcepos::Union{Bool, Function}
 
     function HTML(; softbreak = "\n", safe = false, sourcepos = false)
         format = new()
@@ -65,6 +65,7 @@ function write_html(writer::Writer, ast::Node)
         node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_html(node.t, writer, node, entering)
     end
+    return
 end
 
 const reUnsafeProtocol = r"^javascript:|vbscript:|file:|data:"i
@@ -95,11 +96,11 @@ write_html(::SoftBreak, r, n, ent) = literal(r, r.format.softbreak)
 
 function write_html(::LineBreak, r, n, ent)
     tag(r, "br", attributes(r, n), true)
-    cr(r)
+    return cr(r)
 end
 
 function write_html(link::Link, r, n, ent)
-    if ent
+    return if ent
         attrs = []
         if !(r.format.safe && potentially_unsafe(link.destination))
             push!(attrs, "href" => escape_xml(link.destination))
@@ -114,7 +115,7 @@ function write_html(link::Link, r, n, ent)
 end
 
 function write_html(image::Image, r, n, ent)
-    if ent
+    return if ent
         if r.format.disable_tags == 0
             if r.format.safe && potentially_unsafe(image.destination)
                 literal(r, "<img src=\"\" alt=\"")
@@ -149,7 +150,7 @@ function write_html(::Paragraph, r, n, ent)
     if !isnull(grandparent) && grandparent.t isa DefinitionList && grandparent.t.tight
         return
     end
-    if ent
+    return if ent
         attrs = attributes(r, n)
         cr(r)
         tag(r, "p", attrs)
@@ -161,7 +162,7 @@ end
 
 function write_html(::Heading, r, n, ent)
     level = n.t.level
-    if ent
+    return if ent
         attrs = attributes(r, n)
         cr(r)
         tag(r, HEADING_OPEN[level], attrs)
@@ -182,7 +183,7 @@ end
 function write_html(::Code, r, n, ent)
     tag(r, "code", attributes(r, n))
     literal(r, escape_xml(n.literal))
-    tag(r, "/code")
+    return tag(r, "/code")
 end
 
 function write_html(::CodeBlock, r, n, ent)
@@ -197,18 +198,18 @@ function write_html(::CodeBlock, r, n, ent)
     literal(r, escape_xml(n.literal))
     tag(r, "/code")
     tag(r, "/pre")
-    cr(r)
+    return cr(r)
 end
 
 function write_html(::ThematicBreak, r, n, ent)
     attrs = attributes(r, n)
     cr(r)
     tag(r, "hr", attrs, true)
-    cr(r)
+    return cr(r)
 end
 
 function write_html(::BlockQuote, r, n, ent)
-    if ent
+    return if ent
         attrs = attributes(r, n)
         cr(r)
         tag(r, "blockquote", attrs)
@@ -222,7 +223,7 @@ end
 
 function write_html(::List, r, n, ent)
     tagname = n.t.list_data.type === :bullet ? "ul" : "ol"
-    if ent
+    return if ent
         attrs = attributes(r, n)
         start = n.t.list_data.start
         if start !== nothing && start != 1
@@ -239,7 +240,7 @@ function write_html(::List, r, n, ent)
 end
 
 function write_html(::Item, r, n, ent)
-    if ent
+    return if ent
         attrs = attributes(r, n)
         tag(r, "li", attrs)
     else
@@ -254,13 +255,13 @@ write_html(::HtmlInline, r, n, ent) =
 function write_html(::HtmlBlock, r, n, ent)
     cr(r)
     literal(r, r.format.safe ? "<!-- raw HTML omitted -->" : n.literal)
-    cr(r)
+    return cr(r)
 end
 
 function attributes(r, n, out = [])
     # Maintain the order of the attributes, but merge duplicates.
     order = String[]
-    dict = Dict{String,Any}()
+    dict = Dict{String, Any}()
     if _has_sourcepos(r.format.sourcepos)
         if n.sourcepos !== nothing
             p = n.sourcepos

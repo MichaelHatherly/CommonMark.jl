@@ -31,10 +31,10 @@
     test_highlight = test_all_formats(pwd())
 
     text = """
-            ```julia
-            code
-            ```
-            """
+    ```julia
+    code
+    ```
+    """
     ast = p(text)
 
     # Test with custom syntax highlighter

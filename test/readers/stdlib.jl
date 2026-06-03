@@ -18,7 +18,7 @@
             md = Markdown.parse("Hello **bold** and *italic*")
             ast = CommonMark.Node(md)
             @test CommonMark.html(ast) ==
-                  "<p>Hello <strong>bold</strong> and <em>italic</em></p>\n"
+                "<p>Hello <strong>bold</strong> and <em>italic</em></p>\n"
         end
 
         @testset "code block" begin
@@ -107,11 +107,13 @@
 
     @testset "extensions" begin
         @testset "table" begin
-            md = Markdown.parse("""
-            | A | B | C |
-            |:--|:-:|--:|
-            | 1 | 2 | 3 |
-            """)
+            md = Markdown.parse(
+                """
+                | A | B | C |
+                |:--|:-:|--:|
+                | 1 | 2 | 3 |
+                """
+            )
             ast = CommonMark.Node(md)
             out = CommonMark.html(ast)
             @test occursin("<table>", out)
@@ -123,10 +125,12 @@
         end
 
         @testset "admonition" begin
-            md = Markdown.parse("""
-            !!! note "Title"
-                Content here
-            """)
+            md = Markdown.parse(
+                """
+                !!! note "Title"
+                    Content here
+                """
+            )
             ast = CommonMark.Node(md)
             out = CommonMark.html(ast)
             @test occursin("admonition note", out)
@@ -141,11 +145,13 @@
         end
 
         @testset "footnotes" begin
-            md = Markdown.parse("""
-            Text[^1].
+            md = Markdown.parse(
+                """
+                Text[^1].
 
-            [^1]: Footnote content.
-            """)
+                [^1]: Footnote content.
+                """
+            )
             ast = CommonMark.Node(md)
             out = CommonMark.html(ast)
             @test occursin("footnote", out)
@@ -164,10 +170,12 @@
 
     @testset "nested MD" begin
         # Nested MD with multiple blocks
-        inner = Markdown.MD([
-            Markdown.Paragraph(["Inner para 1"]),
-            Markdown.Paragraph(["Inner para 2"]),
-        ])
+        inner = Markdown.MD(
+            [
+                Markdown.Paragraph(["Inner para 1"]),
+                Markdown.Paragraph(["Inner para 2"]),
+            ]
+        )
         inner.meta[:inner_key] = "inner_value"
         inner.meta[:shared] = "inner_shared"
 
@@ -190,27 +198,29 @@
     end
 
     @testset "complex document" begin
-        md = Markdown.parse("""
-        # Document Title
+        md = Markdown.parse(
+            """
+            # Document Title
 
-        Some introductory text with **bold** and *italic*.
+            Some introductory text with **bold** and *italic*.
 
-        ## Section 1
+            ## Section 1
 
-        - Item one
-        - Item two with `code`
-        - Item three with [link](https://example.com)
+            - Item one
+            - Item two with `code`
+            - Item three with [link](https://example.com)
 
-        > A blockquote
+            > A blockquote
 
-        ```julia
-        println("Hello")
-        ```
+            ```julia
+            println("Hello")
+            ```
 
-        ---
+            ---
 
-        Final paragraph.
-        """)
+            Final paragraph.
+            """
+        )
         ast = CommonMark.Node(md)
         out = CommonMark.html(ast)
 

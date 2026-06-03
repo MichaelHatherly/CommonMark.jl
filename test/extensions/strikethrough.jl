@@ -15,9 +15,9 @@
     @test html(p("~~**bold**~~")) == "<p><del><strong>bold</strong></del></p>\n"
     @test html(p("~~*italic*~~")) == "<p><del><em>italic</em></del></p>\n"
     @test html(p("*~~italic strikethrough~~*")) ==
-          "<p><em><del>italic strikethrough</del></em></p>\n"
+        "<p><em><del>italic strikethrough</del></em></p>\n"
     @test html(p("**~~bold strikethrough~~**")) ==
-          "<p><strong><del>bold strikethrough</del></strong></p>\n"
+        "<p><strong><del>bold strikethrough</del></strong></p>\n"
 
     # Single tilde - not strikethrough
     @test html(p("~word~")) == "<p>~word~</p>\n"
@@ -42,7 +42,7 @@
 
     # Multiple in paragraph
     @test html(p("~~first~~ and ~~second~~")) ==
-          "<p><del>first</del> and <del>second</del></p>\n"
+        "<p><del>first</del> and <del>second</del></p>\n"
 
     # Three tildes at start of line is a fenced code block, not inline strikethrough
     # Test inline three tildes with surrounding text instead

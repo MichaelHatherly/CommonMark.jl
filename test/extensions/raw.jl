@@ -14,19 +14,19 @@
 
     # Block raw content
     text = """
-           ```{=html}
-           <div id="main">
-            <div class="article">
-           ```
-           ```{=latex}
-           \\begin{tikzpicture}
-           ...
-           \\end{tikzpicture}
-           ```
-           ```{=typst}
-           #let name = "Typst"
-           ```
-           """
+    ```{=html}
+    <div id="main">
+     <div class="article">
+    ```
+    ```{=latex}
+    \\begin{tikzpicture}
+    ...
+    \\end{tikzpicture}
+    ```
+    ```{=typst}
+    #let name = "Typst"
+    ```
+    """
     ast = p(text)
     test_raw("block_raw", ast, "raw")
 

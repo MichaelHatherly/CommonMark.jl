@@ -11,20 +11,20 @@ can_contain(::FencedDiv, t) = !(t isa Item)
 finalize(::FencedDiv, ::Parser, ::Node) = nothing
 
 function Node(
-    ::Type{FencedDiv},
-    children...;
-    class::Union{AbstractString,Vector{String}} = String[],
-    id::Union{AbstractString,Nothing} = nothing,
-)
+        ::Type{FencedDiv},
+        children...;
+        class::Union{AbstractString, Vector{String}} = String[],
+        id::Union{AbstractString, Nothing} = nothing,
+    )
     fd = FencedDiv(3)
     node = _build(fd, children)
     classes = class isa AbstractString ? [class] : class
     if !isempty(classes) || id !== nothing
-        node.meta = Dict{String,Any}()
+        node.meta = Dict{String, Any}()
         !isempty(classes) && (node.meta["class"] = classes)
         id !== nothing && (node.meta["id"] = id)
     end
-    node
+    return node
 end
 
 function continue_(::FencedDiv, parser::Parser, container::Node)
@@ -90,7 +90,7 @@ function parse_div_attributes(s::AbstractString)
         # Bare word(s) treated as class names (fenced div specific)
         words = split(s)
         all(w -> occursin(r"^[a-zA-Z_][a-zA-Z0-9_-]*$", w), words) || return nothing
-        return Dict{String,Any}("class" => collect(words))
+        return Dict{String, Any}("class" => collect(words))
     end
 end
 
@@ -122,7 +122,7 @@ block_rule(::FencedDivRule) = Rule(parse_fenced_div, 0.5, ":")
 #
 
 function write_html(::FencedDiv, rend, node, enter)
-    if enter
+    return if enter
         cr(rend)
         tag(rend, "div", attributes(rend, node))
         cr(rend)
@@ -135,7 +135,7 @@ end
 function write_latex(::FencedDiv, w, node, enter)
     classes = getmeta(node, "class", String[])
     env = isempty(classes) ? "fenceddiv" : "fenceddiv@$(first(classes))"
-    if enter
+    return if enter
         cr(w)
         literal(w, "\\begin{$env}\n")
     else
@@ -145,7 +145,7 @@ function write_latex(::FencedDiv, w, node, enter)
 end
 
 function write_typst(::FencedDiv, w, node, enter)
-    if enter
+    return if enter
         cr(w)
         literal(w, "#block[")
         cr(w)
@@ -163,7 +163,7 @@ function write_term(::FencedDiv, rend, node, enter)
     classes = getmeta(node, "class", String[])
     label = isempty(classes) ? "div" : first(classes)
     style = crayon"default bold"
-    if enter
+    return if enter
         header = rpad("┌ $label ", available_columns(rend), "─")
         print_margin(rend)
         print_literal(rend, style, header, inv(style), "\n")
@@ -188,7 +188,7 @@ function write_term(::FencedDiv, rend, node, enter)
 end
 
 function write_markdown(::FencedDiv, w, node, enter)
-    if enter
+    return if enter
         fence = ":"^node.t.fence_length
         print_margin(w)
         literal(w, fence)
@@ -211,7 +211,7 @@ function write_div_attributes(w, meta)
     id = get(meta, "id", nothing)
     other = sort!([(k, v) for (k, v) in meta if k ∉ ("id", "class")], by = first)
     # Simple case: just classes, no id or other attrs
-    if id === nothing && isempty(other) && !isempty(classes)
+    return if id === nothing && isempty(other) && !isempty(classes)
         if length(classes) == 1
             literal(w, first(classes))
         else
@@ -244,7 +244,7 @@ function write_div_attributes(w, meta)
 end
 
 function write_json(::FencedDiv, ctx, node, enter)
-    if enter
+    return if enter
         blocks = Any[]
         push_container!(ctx, blocks)
     else

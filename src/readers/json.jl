@@ -48,7 +48,7 @@ function from_json_meta(val::AbstractDict)
     elseif t == "MetaList"
         return Any[from_json_meta(x) for x in c]
     elseif t == "MetaMap"
-        return Dict{String,Any}(string(k) => from_json_meta(v) for (k, v) in c)
+        return Dict{String, Any}(string(k) => from_json_meta(v) for (k, v) in c)
     elseif t == "MetaBool"
         return c
     else
@@ -71,6 +71,7 @@ function apply_attrs!(node::Node, attrs)
     for kv in kvs
         length(kv) >= 2 && setmeta!(node, kv[1], kv[2])
     end
+    return
 end
 
 # Inline text accumulation - join Str/Space/SoftBreak into Text nodes.
@@ -82,7 +83,7 @@ end
 
 function flush_text!(ctx::InlineContext, parent::Node)
     s = String(take!(ctx.buffer))
-    if !isempty(s)
+    return if !isempty(s)
         node = Node(Text())
         node.literal = s
         append_child(parent, node)
@@ -105,7 +106,7 @@ function process_inlines!(parent::Node, inlines::AbstractVector)
             !isnothing(child) && append_child(parent, child)
         end
     end
-    flush_text!(ctx, parent)
+    return flush_text!(ctx, parent)
 end
 
 # Block converters.
@@ -287,15 +288,17 @@ function table_from_json(content::AbstractVector)
     for cs in colspecs
         align_info = cs[1]
         align_t = get(align_info, "t", "AlignDefault")
-        push!(spec, if align_t == "AlignLeft"
-            :left
-        elseif align_t == "AlignRight"
-            :right
-        elseif align_t == "AlignCenter"
-            :center
-        else
-            :left
-        end)
+        push!(
+            spec, if align_t == "AlignLeft"
+                :left
+            elseif align_t == "AlignRight"
+                :right
+            elseif align_t == "AlignCenter"
+                :center
+            else
+                :left
+            end
+        )
     end
 
     table = Node(Table(spec))
@@ -348,10 +351,10 @@ function table_from_json(content::AbstractVector)
 end
 
 function table_row_from_json(
-    row_data::AbstractVector,
-    spec::Vector{Symbol},
-    is_header::Bool,
-)
+        row_data::AbstractVector,
+        spec::Vector{Symbol},
+        is_header::Bool,
+    )
     # Row: [attrs, cells]
     length(row_data) >= 2 || return nothing
     attrs, cells = row_data

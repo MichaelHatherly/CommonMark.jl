@@ -4,7 +4,7 @@ abstract type AbstractInline <: AbstractContainer end
 
 is_container(::AbstractContainer) = false
 
-const SourcePos = NTuple{2,NTuple{2,Int}}
+const SourcePos = NTuple{2, NTuple{2, Int}}
 
 mutable struct Node
     t::AbstractContainer
@@ -18,8 +18,8 @@ mutable struct Node
     last_line_checked::Bool
     is_open::Bool
     literal::String
-    literal_buffer::Union{Nothing,IOBuffer}
-    meta::Union{Nothing,Dict{String,Any}}
+    literal_buffer::Union{Nothing, IOBuffer}
+    meta::Union{Nothing, Dict{String, Any}}
 
     Node() = new()
 
@@ -44,7 +44,7 @@ end
 
 """Finalize literal from buffer, converting IOBuffer to String."""
 function finalize_literal!(node::Node)
-    if node.literal_buffer !== nothing
+    return if node.literal_buffer !== nothing
         node.literal = String(take!(node.literal_buffer))
         node.literal_buffer = nothing
     end
@@ -59,18 +59,18 @@ hasmeta(node::Node, key) = !isnothing(node.meta) && haskey(node.meta, key)
 
 """Set meta value, initializing dict if needed."""
 function setmeta!(node::Node, key, value)
-    isnothing(node.meta) && (node.meta = Dict{String,Any}())
-    node.meta[key] = value
+    isnothing(node.meta) && (node.meta = Dict{String, Any}())
+    return node.meta[key] = value
 end
 
 """Merge dict into meta, initializing if needed."""
 function mergemeta!(node::Node, d::AbstractDict)
-    isnothing(node.meta) && (node.meta = Dict{String,Any}())
-    merge!(node.meta, d)
+    isnothing(node.meta) && (node.meta = Dict{String, Any}())
+    return merge!(node.meta, d)
 end
 
 function copy_tree(func::Function, root::Node)
-    lookup = Dict{Node,Node}()
+    lookup = Dict{Node, Node}()
     for (old, enter) in root
         if enter
             lookup[old] = Node()
@@ -117,7 +117,7 @@ isnull(node::Node) = node === NULL_NODE
 
 Compare two container types for equality, checking type and all fields.
 """
-container_equal(a::T, b::T) where {T<:AbstractContainer} =
+container_equal(a::T, b::T) where {T <: AbstractContainer} =
     all(getfield(a, f) == getfield(b, f) for f in fieldnames(T))
 container_equal(::AbstractContainer, ::AbstractContainer) = false
 
@@ -139,7 +139,7 @@ function ast_equal(a::Node, b::Node)
         ast_equal(ca, cb) || return false
         ca, cb = ca.nxt, cb.nxt
     end
-    isnull(ca) && isnull(cb)
+    return isnull(ca) && isnull(cb)
 end
 
 is_container(node::Node) = is_container(node.t)::Bool
@@ -179,7 +179,7 @@ Add `child` as the last child of `parent`. Unlinks `child` from any previous loc
 function append_child(node::Node, child::Node)
     unlink(child)
     child.parent = node
-    if !isnull(node.last_child)
+    return if !isnull(node.last_child)
         node.last_child.nxt = child
         child.prv = node.last_child
         node.last_child = child
@@ -197,7 +197,7 @@ Add `child` as the first child of `parent`. Unlinks `child` from any previous lo
 function prepend_child(node::Node, child::Node)
     unlink(child)
     child.parent = node
-    if !isnull(node.first_child)
+    return if !isnull(node.first_child)
         node.first_child.prv = child
         child.nxt = node.first_child
         node.first_child = child
@@ -227,7 +227,7 @@ function unlink(node::Node)
 
     node.parent = NULL_NODE
     node.nxt = NULL_NODE
-    node.prv = NULL_NODE
+    return node.prv = NULL_NODE
 end
 
 """
@@ -244,7 +244,7 @@ function insert_after(node::Node, sibling::Node)
     sibling.prv = node
     node.nxt = sibling
     sibling.parent = node.parent
-    if isnull(sibling.nxt) && !isnull(sibling.parent)
+    return if isnull(sibling.nxt) && !isnull(sibling.parent)
         sibling.parent.last_child = sibling
     end
 end
@@ -263,7 +263,7 @@ function insert_before(node::Node, sibling::Node)
     sibling.nxt = node
     node.prv = sibling
     sibling.parent = node.parent
-    if isnull(sibling.prv) && !isnull(sibling.parent)
+    return if isnull(sibling.prv) && !isnull(sibling.parent)
         sibling.parent.first_child = sibling
     end
 end
@@ -277,5 +277,5 @@ function _build(t::AbstractContainer, children)
     for child in children
         append_child(node, _to_node(child))
     end
-    node
+    return node
 end

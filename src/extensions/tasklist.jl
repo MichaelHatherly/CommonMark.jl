@@ -10,7 +10,7 @@ end
 
 function Node(::Type{TaskItem}, children...; checked::Bool = false)
     item = TaskItem(ListData(), checked)
-    _build(item, children)
+    return _build(item, children)
 end
 
 is_container(::TaskItem) = true
@@ -35,25 +35,25 @@ struct TaskListRule end
 
 block_modifier(::TaskListRule) =
     Rule(50) do parser, block
-        if block.t isa Item
-            child = block.first_child
-            if !isnull(child) && child.t isa Paragraph
-                m = match(r"^\[([ xX])\]\s?", child.literal)
-                if m !== nothing
-                    block.t = TaskItem(block.t.list_data, m[1] != " ")
-                    child.literal = child.literal[length(m.match)+1:end]
-                end
+    if block.t isa Item
+        child = block.first_child
+        if !isnull(child) && child.t isa Paragraph
+            m = match(r"^\[([ xX])\]\s?", child.literal)
+            if m !== nothing
+                block.t = TaskItem(block.t.list_data, m[1] != " ")
+                child.literal = child.literal[(length(m.match) + 1):end]
             end
         end
-        return nothing
     end
+    return nothing
+end
 
 #
 # Writers
 #
 
 function write_html(t::TaskItem, r, n, ent)
-    if ent
+    return if ent
         checkbox =
             t.checked ? "<input type=\"checkbox\" disabled checked> " :
             "<input type=\"checkbox\" disabled> "
@@ -66,7 +66,7 @@ function write_html(t::TaskItem, r, n, ent)
 end
 
 function write_term(t::TaskItem, render, node, enter)
-    if enter
+    return if enter
         checkbox = t.checked ? "☑ " : "☐ "
         if t.list_data.type === :ordered
             number = string(render.format.list_item_number[end], ". ")
@@ -89,11 +89,11 @@ function write_latex(t::TaskItem, w, node, ent)
         checkbox = t.checked ? "\$\\boxtimes\$" : "\$\\square\$"
         literal(w, "\\item[$checkbox]")
     end
-    cr(w)
+    return cr(w)
 end
 
 function write_typst(t::TaskItem, w, node, enter)
-    if enter
+    return if enter
         checkbox = t.checked ? "☑ " : "☐ "
         if t.list_data.type === :ordered
             number = lpad(string(w.format.list_item_number[end], ". "), 4, " ")
@@ -111,7 +111,7 @@ function write_typst(t::TaskItem, w, node, enter)
 end
 
 function write_markdown(t::TaskItem, w, node, enter)
-    if enter
+    return if enter
         checkbox = t.checked ? "[x] " : "[ ] "
         if t.list_data.type === :ordered
             number = lpad(string(w.format.list_item_number[end], ". "), 4, " ")
@@ -132,7 +132,7 @@ end
 
 # TaskItem is like Item but with checkbox prepended to first paragraph.
 function write_json(t::TaskItem, ctx, node, enter)
-    if enter
+    return if enter
         blocks = Any[]
         push_container!(ctx, blocks)
     else

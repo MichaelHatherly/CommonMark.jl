@@ -18,13 +18,13 @@ function continue_(::CodeBlock, parser::Parser, container::Node)
     indent = parser.indent
     if cb.is_fenced
         m =
-            if indent <= 3 &&
-               length(ln) >= parser.next_nonspace + 1 &&
-               ln[parser.next_nonspace] == cb.fence_char
-                Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace))
-            else
-                nothing
-            end
+        if indent <= 3 &&
+                length(ln) >= parser.next_nonspace + 1 &&
+                ln[parser.next_nonspace] == cb.fence_char
+            Base.match(reClosingCodeFence, SubString(ln, parser.next_nonspace))
+        else
+            nothing
+        end
         if m !== nothing && length(m.match) >= cb.fence_length
             # closing fence - we're at end of line, so we can return
             finalize(parser, container, parser.line_number)
@@ -80,7 +80,7 @@ function Node(::Type{CodeBlock}, code::AbstractString; info::AbstractString = ""
     cb.is_fenced = true
     node = Node(cb)
     node.literal = code
-    node
+    return node
 end
 
 function fenced_code_block(parser::Parser, container::Node)

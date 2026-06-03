@@ -38,16 +38,16 @@ write_html(::Strikethrough, r, n, ent) =
 
 function write_latex(::Strikethrough, w, n, ent)
     # Requires \usepackage{soul} or \usepackage{ulem}
-    print(w.buffer, ent ? "\\sout{" : "}")
+    return print(w.buffer, ent ? "\\sout{" : "}")
 end
 
 function write_typst(::Strikethrough, w, n, ent)
-    print(w.buffer, ent ? "#strike[" : "]")
+    return print(w.buffer, ent ? "#strike[" : "]")
 end
 
 function write_term(::Strikethrough, w, n, ent)
     style = crayon"strikethrough"
-    if ent
+    return if ent
         print_literal(w, style)
         push_inline!(w, style)
     else
@@ -57,11 +57,11 @@ function write_term(::Strikethrough, w, n, ent)
 end
 
 function write_markdown(::Strikethrough, w, n, ent)
-    literal(w, "~~")
+    return literal(w, "~~")
 end
 
 function write_json(::Strikethrough, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else

@@ -1,12 +1,12 @@
 # Shared writers for Table and GridTable (both have a `spec` field).
 
-const AnyTable = Union{Table,GridTable}
+const AnyTable = Union{Table, GridTable}
 
 write_html(::AnyTable, rend, node, enter) =
     tag(rend, enter ? "table" : "/table", enter ? attributes(rend, node) : [])
 
 function write_latex(t::AnyTable, rend, node, enter)
-    if enter
+    return if enter
         print(rend.buffer, "\\begin{longtable}[]{@{}")
         join(rend.buffer, (string(a)[1] for a in t.spec))
         println(rend.buffer, "@{}}")
@@ -20,11 +20,11 @@ function _count_header_rows(header_node)
     for (node, enter) in header_node
         enter && node.t isa TableRow && (n += 1)
     end
-    n
+    return n
 end
 
 function write_typst(t::AnyTable, rend, node, enter)
-    if enter
+    return if enter
         align = "align: (" * join(t.spec, ", ") * ")"
         columns = "columns: $(length(t.spec))"
         parts = ["$align", "$columns"]
@@ -39,7 +39,7 @@ function write_typst(t::AnyTable, rend, node, enter)
 end
 
 function write_json(t::AnyTable, ctx, node, enter)
-    if enter
+    return if enter
         colspecs = Any[]
         for align in t.spec
             a =

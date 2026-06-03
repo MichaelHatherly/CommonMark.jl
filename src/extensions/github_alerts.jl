@@ -12,14 +12,14 @@ struct GitHubAlert <: AbstractBlock
 end
 
 function Node(
-    ::Type{GitHubAlert},
-    category::AbstractString,
-    children...;
-    title::Union{AbstractString,Nothing} = nothing,
-)
+        ::Type{GitHubAlert},
+        category::AbstractString,
+        children...;
+        title::Union{AbstractString, Nothing} = nothing,
+    )
     cat = lowercase(category)
     t = title === nothing ? get(GITHUB_ALERT_TYPES, cat, titlecase(cat)) : title
-    _build(GitHubAlert(cat, t), children)
+    return _build(GitHubAlert(cat, t), children)
 end
 
 is_container(::GitHubAlert) = true
@@ -55,33 +55,33 @@ struct GitHubAlertRule end
 
 block_modifier(::GitHubAlertRule) =
     Rule(50) do parser, block
-        if block.t isa BlockQuote
-            child = block.first_child
-            if !isnull(child) && child.t isa Paragraph
-                m = match(
-                    r"^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\n?"i,
-                    child.literal,
-                )
-                if m !== nothing
-                    category = lowercase(m[1])
-                    title = GITHUB_ALERT_TYPES[category]
-                    block.t = GitHubAlert(category, title)
-                    child.literal = child.literal[length(m.match)+1:end]
-                    if isempty(strip(child.literal))
-                        unlink(child)
-                    end
+    if block.t isa BlockQuote
+        child = block.first_child
+        if !isnull(child) && child.t isa Paragraph
+            m = match(
+                r"^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\n?"i,
+                child.literal,
+            )
+            if m !== nothing
+                category = lowercase(m[1])
+                title = GITHUB_ALERT_TYPES[category]
+                block.t = GitHubAlert(category, title)
+                child.literal = child.literal[(length(m.match) + 1):end]
+                if isempty(strip(child.literal))
+                    unlink(child)
                 end
             end
         end
-        return nothing
     end
+    return nothing
+end
 
 #
 # Writers
 #
 
 function write_html(a::GitHubAlert, rend, node, enter)
-    if enter
+    return if enter
         cr(rend)
         tag(rend, "div", attributes(rend, node, ["class" => "github-alert $(a.category)"]))
         tag(rend, "p", ["class" => "github-alert-title"])
@@ -95,7 +95,7 @@ function write_html(a::GitHubAlert, rend, node, enter)
 end
 
 function write_latex(a::GitHubAlert, w, node, enter)
-    if enter
+    return if enter
         cr(w)
         literal(w, "\\begin{githubalert@$(a.category)}{$(a.title)}\n")
     else
@@ -105,7 +105,7 @@ function write_latex(a::GitHubAlert, w, node, enter)
 end
 
 function write_typst(a::GitHubAlert, w, node, enter)
-    if enter
+    return if enter
         styles = Dict(
             "note" => "#0969da",
             "tip" => "#1a7f37",
@@ -138,7 +138,7 @@ function write_term(a::GitHubAlert, rend, node, enter)
         "caution" => crayon"red bold",
     )
     style = get(styles, a.category, crayon"default bold")
-    if enter
+    return if enter
         header = rpad("┌ $(a.title) ", available_columns(rend), "─")
         print_margin(rend)
         print_literal(rend, style, header, inv(style), "\n")
@@ -163,7 +163,7 @@ function write_term(a::GitHubAlert, rend, node, enter)
 end
 
 function write_markdown(a::GitHubAlert, w, node, ent)
-    if ent
+    return if ent
         push_margin!(w, "> ")
         print_margin(w)
         literal(w, "[!", uppercase(a.category), "]\n")
@@ -174,7 +174,7 @@ function write_markdown(a::GitHubAlert, w, node, ent)
 end
 
 function write_json(a::GitHubAlert, ctx, node, enter)
-    if enter
+    return if enter
         blocks = Any[]
         push_container!(ctx, blocks)
     else

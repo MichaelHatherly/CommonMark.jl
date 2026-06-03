@@ -26,7 +26,7 @@ function get_git_info()
     catch
         false
     end
-    (commit = commit, branch = branch, dirty = dirty)
+    return (commit = commit, branch = branch, dirty = dirty)
 end
 
 function extract_trial_stats(trial::BenchmarkTools.Trial)
@@ -34,7 +34,7 @@ function extract_trial_stats(trial::BenchmarkTools.Trial)
     m = trial.memory
     a = trial.allocs
     gc = trial.gctimes
-    (
+    return (
         time_ns = (
             minimum = minimum(t),
             median = BenchmarkTools.median(trial).time,
@@ -50,7 +50,7 @@ function extract_trial_stats(trial::BenchmarkTools.Trial)
 end
 
 function flatten_results(group::BenchmarkTools.BenchmarkGroup, prefix = "")
-    results = Dict{String,Any}()
+    results = Dict{String, Any}()
     for (key, value) in group
         full_key = isempty(prefix) ? string(key) : "$(prefix)/$(key)"
         if value isa BenchmarkTools.BenchmarkGroup
@@ -59,7 +59,7 @@ function flatten_results(group::BenchmarkTools.BenchmarkGroup, prefix = "")
             results[full_key] = extract_trial_stats(value)
         end
     end
-    results
+    return results
 end
 
 function run_benchmarks()
@@ -85,7 +85,7 @@ function run_benchmarks()
         "benchmarks" => flatten_results(results),
     )
 
-    output
+    return output
 end
 
 function main()
@@ -107,7 +107,7 @@ function main()
         println()
     end
 
-    results
+    return results
 end
 
 main()

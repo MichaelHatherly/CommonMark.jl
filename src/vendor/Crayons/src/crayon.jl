@@ -48,7 +48,7 @@ end
 
 ANSIColor(r, g, b, style::ColorMode = COLORS_16, active = true) =
     ANSIColor(UInt8(r), UInt8(g), UInt8(b), style, active)
-ANSIColor() = ANSIColor(0x0, 0x0, 0x0, COLORS_16, false)
+ANSIColor() = ANSIColor(0x00, 0x00, 0x00, COLORS_16, false)
 ANSIColor(val::Integer, style::ColorMode, active::Bool = true) =
     ANSIColor(UInt8(val), 0, 0, style, active)
 
@@ -60,7 +60,7 @@ val(x::ANSIColor) = x.r
 # The inverse sets the color to default.
 # No point making active if color already is default
 Base.inv(x::ANSIColor) =
-    ANSIColor(0x9, 0x0, 0x0, COLORS_16, x.active && !(x.style == COLORS_16 && x.r == 9))
+    ANSIColor(0x09, 0x00, 0x00, COLORS_16, x.active && !(x.style == COLORS_16 && x.r == 9))
 
 struct ANSIStyle
     on::Bool
@@ -91,16 +91,16 @@ end
 
 anyactive(x::Crayon) = (
     (x.reset.active && x.reset.on) ||
-    x.fg.active ||
-    x.bg.active ||
-    x.bold.active ||
-    x.faint.active ||
-    x.italics.active ||
-    x.underline.active ||
-    x.blink.active ||
-    x.negative.active ||
-    x.conceal.active ||
-    x.strikethrough.active
+        x.fg.active ||
+        x.bg.active ||
+        x.bold.active ||
+        x.faint.active ||
+        x.italics.active ||
+        x.underline.active ||
+        x.blink.active ||
+        x.negative.active ||
+        x.conceal.active ||
+        x.strikethrough.active
 )
 
 Base.inv(c::Crayon) = Crayon(
@@ -125,7 +125,7 @@ function _have_color()
     end
 end
 function Base.print(io::IO, x::Crayon)
-    if anyactive(x) && (_have_color() || _force_color())
+    return if anyactive(x) && (_have_color() || _force_color())
         print(io, CSI)
         if (x.fg.style == COLORS_24BIT || x.bg.style == COLORS_24BIT)
             if _force_256_colors()
@@ -140,7 +140,7 @@ function Base.print(io::IO, x::Crayon)
 end
 
 function Base.show(io::IO, x::Crayon)
-    if anyactive(x)
+    return if anyactive(x)
         print(io, x)
         print(io, ESCAPED_CSI)
         _print(io, x)
@@ -150,11 +150,11 @@ end
 
 _ishex(c::Char) = isdigit(c) || ('a' <= c <= 'f') || ('A' <= c <= 'F')
 
-function _torgb(hex::UInt32)::NTuple{3,UInt8}
-    (hex << 8 >> 24, hex << 16 >> 24, hex << 24 >> 24)
+function _torgb(hex::UInt32)::NTuple{3, UInt8}
+    return (hex << 8 >> 24, hex << 16 >> 24, hex << 24 >> 24)
 end
 
-function _parse_color(c::Union{Integer,Symbol,NTuple{3,Integer},UInt32,Nothing})
+function _parse_color(c::Union{Integer, Symbol, NTuple{3, Integer}, UInt32, Nothing})
     ansicol = ANSIColor()
     if c !== nothing
         if isa(c, Symbol)
@@ -164,7 +164,7 @@ function _parse_color(c::Union{Integer,Symbol,NTuple{3,Integer},UInt32,Nothing})
             ansicol = ANSIColor(r, g, b, COLORS_24BIT)
         elseif isa(c, Integer)
             ansicol = ANSIColor(c, COLORS_256)
-        elseif isa(c, NTuple{3,Integer})
+        elseif isa(c, NTuple{3, Integer})
             ansicol = ANSIColor(c[1], c[2], c[3], COLORS_24BIT)
         else
             error("should not happen")
@@ -174,18 +174,18 @@ function _parse_color(c::Union{Integer,Symbol,NTuple{3,Integer},UInt32,Nothing})
 end
 
 function Crayon(;
-    foreground::Union{Int,Symbol,NTuple{3,Integer},UInt32,Nothing} = nothing,
-    background::Union{Int,Symbol,NTuple{3,Integer},UInt32,Nothing} = nothing,
-    reset::Union{Bool,Nothing} = nothing,
-    bold::Union{Bool,Nothing} = nothing,
-    faint::Union{Bool,Nothing} = nothing,
-    italics::Union{Bool,Nothing} = nothing,
-    underline::Union{Bool,Nothing} = nothing,
-    blink::Union{Bool,Nothing} = nothing,
-    negative::Union{Bool,Nothing} = nothing,
-    conceal::Union{Bool,Nothing} = nothing,
-    strikethrough::Union{Bool,Nothing} = nothing,
-)
+        foreground::Union{Int, Symbol, NTuple{3, Integer}, UInt32, Nothing} = nothing,
+        background::Union{Int, Symbol, NTuple{3, Integer}, UInt32, Nothing} = nothing,
+        reset::Union{Bool, Nothing} = nothing,
+        bold::Union{Bool, Nothing} = nothing,
+        faint::Union{Bool, Nothing} = nothing,
+        italics::Union{Bool, Nothing} = nothing,
+        underline::Union{Bool, Nothing} = nothing,
+        blink::Union{Bool, Nothing} = nothing,
+        negative::Union{Bool, Nothing} = nothing,
+        conceal::Union{Bool, Nothing} = nothing,
+        strikethrough::Union{Bool, Nothing} = nothing,
+    )
 
     fgcol = _parse_color(foreground)
     bgcol = _parse_color(background)
@@ -246,15 +246,15 @@ function _print(io::IO, c::Crayon)
     end
 
     for (style, val) in (
-        (c.bold, 1),
-        (c.faint, 2),
-        (c.italics, 3),
-        (c.underline, 4),
-        (c.blink, 5),
-        (c.negative, 7),
-        (c.conceal, 8),
-        (c.strikethrough, 9),
-    )
+            (c.bold, 1),
+            (c.faint, 2),
+            (c.italics, 3),
+            (c.underline, 4),
+            (c.blink, 5),
+            (c.negative, 7),
+            (c.conceal, 8),
+            (c.strikethrough, 9),
+        )
 
         if style.active
             !first_active && print(io, ";")

@@ -38,13 +38,13 @@ function enable!(p::AbstractParser, fn, rule::Rule)
         end
         # Update ASCII trigger lookup table for inline rules
         if fn === inline_rule && trigger <= '\x7f'
-            p.inline_parser.trigger_table[Int(trigger)+1] = true
+            p.inline_parser.trigger_table[Int(trigger) + 1] = true
         end
     end
     return p
 end
 enable!(p::AbstractParser, fn, ::Nothing) = p
-enable!(p::AbstractParser, fn, rules::Union{Tuple,Vector}) =
+enable!(p::AbstractParser, fn, rules::Union{Tuple, Vector}) =
     (foreach(r -> enable!(p, fn, r), rules); p)
 enable!(p::AbstractParser, fn, rule) = enable!(p, fn, fn(rule))
 
@@ -96,7 +96,7 @@ function enable!(p::AbstractParser, rule)
     return p
 end
 
-enable!(p::AbstractParser, rules::Union{Tuple,Vector}) =
+enable!(p::AbstractParser, rules::Union{Tuple, Vector}) =
     (foreach(r -> enable!(p, r), rules); p)
 
 get_funcs(p, ::typeof(block_rule), c) = get!(() -> Function[], p.block_starts, c)
@@ -127,7 +127,7 @@ disable!(p, [HtmlBlockRule(), HtmlInlineRule()])  # Disable raw HTML
 
 See also: [`enable!`](@ref), [`Parser`](@ref)
 """
-function disable!(p::AbstractParser, rules::Union{Tuple,Vector})
+function disable!(p::AbstractParser, rules::Union{Tuple, Vector})
     rules_kept = filter(!ruleoccursin(rules), p.rules)
     empty!(p.priorities)
     empty!(p.block_starts)

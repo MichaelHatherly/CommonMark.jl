@@ -113,20 +113,20 @@
                 CommonMark.literal(
                     writer,
                     """<!DOCTYPE html>
-<html>
-<head>
-<title>$title</title>
-<meta name="author" content="$author">
-</head>
-<body>
-""",
+                    <html>
+                    <head>
+                    <title>$title</title>
+                    <meta name="author" content="$author">
+                    </head>
+                    <body>
+                    """,
                 )
             else
                 CommonMark.literal(
                     writer,
                     """</body>
-</html>
-""",
+                    </html>
+                    """,
                 )
             end
             (node, entering)
@@ -136,7 +136,7 @@
 
         p = Parser()
         ast = p("# Welcome\n\nContent here.")
-        env = Dict{String,Any}("title" => "My Document", "author" => "Jane Doe")
+        env = Dict{String, Any}("title" => "My Document", "author" => "Jane Doe")
 
         result = html(ast, env; transform = xform)
         @test occursin("<title>My Document</title>", result)
@@ -197,7 +197,7 @@
 
         p = Parser()
         ast = p("[link](page)")
-        env = Dict{String,Any}("base_url" => "https://example.com/")
+        env = Dict{String, Any}("base_url" => "https://example.com/")
 
         result = html(ast, env; transform = xform)
         @test occursin("href=\"https://example.com/page\"", result)

@@ -9,7 +9,7 @@
     test_citations = test_all_formats(pwd())
 
     function test(bib, ast, base_name)
-        env = Dict{String,Any}("references" => bib)
+        env = Dict{String, Any}("references" => bib)
         test_citations(base_name, ast, "citations", env = env)
     end
 
@@ -65,8 +65,8 @@
     p = create_parser([CitationRule(), AttributeRule()])
 
     text = """
-           {#refs}
-           # The reference list.
-           """
+    {#refs}
+    # The reference list.
+    """
     test(bib, p(text), "reference_list")
 end

@@ -11,14 +11,14 @@
 
     # Multi-format reference testing helper with explicit directory
     function test_all_formats(
-        test_dir::String,
-        base_name::String,
-        ast,
-        reference_dir::String;
-        formats = [:html, :latex, :markdown, :term, :typst],
-        env = nothing,
-        transform = nothing,
-    )
+            test_dir::String,
+            base_name::String,
+            ast,
+            reference_dir::String;
+            formats = [:html, :latex, :markdown, :term, :typst],
+            env = nothing,
+            transform = nothing,
+        )
         format_specs = Dict(
             :html => (html, "html.txt"),
             :latex => (latex, "tex"),
@@ -35,7 +35,7 @@
                 isnothing(env) ? func(ast) : func(ast, env)
             else
                 isnothing(env) ? func(ast; transform = transform) :
-                func(ast, env; transform = transform)
+                    func(ast, env; transform = transform)
             end
             @test_reference filename ReferenceTests.Text(output)
         end
@@ -49,12 +49,12 @@
 
     # Single-format reference testing helper with explicit directory
     function _test_single_format(
-        test_dir::String,
-        filename::String,
-        text::String,
-        parser,
-        format_func,
-    )
+            test_dir::String,
+            filename::String,
+            text::String,
+            parser,
+            format_func,
+        )
         ast = parser(text)
         output = format_func(ast)
         full_path = joinpath(test_dir, filename)
@@ -63,13 +63,13 @@
 
     # Reference test with custom processing
     function test_format_with_processor(
-        test_dir::String,
-        filename::String,
-        text::String,
-        parser,
-        format_func,
-        processor,
-    )
+            test_dir::String,
+            filename::String,
+            text::String,
+            parser,
+            format_func,
+            processor,
+        )
         ast = parser(text)
         output = format_func(ast)
         processed = processor(output)

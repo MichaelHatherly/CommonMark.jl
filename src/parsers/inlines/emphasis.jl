@@ -67,7 +67,7 @@ function scan_delims(parser::InlineParser, c::AbstractChar)
 
     can_open, can_close = if flanking == :underscore
         (left_flanking && (!right_flanking || punct_before)),
-        (right_flanking && (!left_flanking || punct_after))
+            (right_flanking && (!left_flanking || punct_after))
     elseif flanking == :permissive
         !ws_after, !ws_before
     elseif c in (''', '"')
@@ -131,7 +131,7 @@ end
 
 function process_emphasis(parser::InlineParser, stack_bottom)
     # Build openers_bottom keyed by (char, count) for proper multi-count handling
-    openers_bottom = Dict{Tuple{Char,Int},Union{Nothing,Delimiter}}()
+    openers_bottom = Dict{Tuple{Char, Int}, Union{Nothing, Delimiter}}()
 
     # Smart quotes use count 0 (not registered in delim_nodes)
     openers_bottom[(''', 0)] = stack_bottom
@@ -177,10 +177,10 @@ function process_emphasis(parser::InlineParser, stack_bottom)
             bottom_key =
                 closercc in (''', '"') ? (closercc, 0) : (closercc, closer.numdelims)
             while (
-                opener !== nothing &&
-                opener !== stack_bottom &&
-                opener !== get(openers_bottom, bottom_key, nothing)
-            )
+                    opener !== nothing &&
+                        opener !== stack_bottom &&
+                        opener !== get(openers_bottom, bottom_key, nothing)
+                )
                 # Apply odd_match rule only if char is in odd_match_chars
                 apply_odd_match = closercc in parser.odd_match_chars
                 odd_match =
@@ -197,9 +197,9 @@ function process_emphasis(parser::InlineParser, stack_bottom)
                 end
 
                 if opener.cc == closercc &&
-                   opener.can_open &&
-                   !odd_match &&
-                   count_compatible
+                        opener.can_open &&
+                        !odd_match &&
+                        count_compatible
                     opener_found = true
                     break
                 end
@@ -235,9 +235,9 @@ function process_emphasis(parser::InlineParser, stack_bottom)
                     opener.numdelims -= use_delims
                     closer.numdelims -= use_delims
                     opener_inl.literal =
-                        opener_inl.literal[1:length(opener_inl.literal)-use_delims]
+                        opener_inl.literal[1:(length(opener_inl.literal) - use_delims)]
                     closer_inl.literal =
-                        closer_inl.literal[1:length(closer_inl.literal)-use_delims]
+                        closer_inl.literal[1:(length(closer_inl.literal) - use_delims)]
 
                     # Build container node
                     container = Node(NodeType())::Node
@@ -291,6 +291,7 @@ function process_emphasis(parser::InlineParser, stack_bottom)
     while parser.delimiters !== nothing && parser.delimiters !== stack_bottom
         remove_delimiter(parser, parser.delimiters)
     end
+    return
 end
 process_emphasis(parser::InlineParser, ::Node) = process_emphasis(parser, nothing)
 

@@ -97,7 +97,7 @@ finalize(::DefinitionDescription, ::Parser, ::Node) = nothing
 function Node(::Type{DefinitionList}, children...; tight::Bool = true)
     dl = DefinitionList()
     dl.tight = tight
-    _build(dl, children)
+    return _build(dl, children)
 end
 
 Node(::Type{DefinitionTerm}, children...) = _build(DefinitionTerm(), children)
@@ -223,7 +223,7 @@ block_rule(::DefinitionListRule) = Rule(parse_definition, 0.5, ":")
 # HTML
 
 function write_html(::DefinitionList, rend, node, enter)
-    if enter
+    return if enter
         cr(rend)
         tag(rend, "dl", attributes(rend, node))
         cr(rend)
@@ -235,7 +235,7 @@ function write_html(::DefinitionList, rend, node, enter)
 end
 
 function write_html(::DefinitionTerm, rend, node, enter)
-    if enter
+    return if enter
         tag(rend, "dt", attributes(rend, node))
     else
         tag(rend, "/dt")
@@ -244,7 +244,7 @@ function write_html(::DefinitionTerm, rend, node, enter)
 end
 
 function write_html(::DefinitionDescription, rend, node, enter)
-    if enter
+    return if enter
         tag(rend, "dd", attributes(rend, node))
         cr(rend)
     else
@@ -266,11 +266,11 @@ function write_latex(::DefinitionList, w, node, enter)
     else
         literal(w, "\\end{description}")
     end
-    cr(w)
+    return cr(w)
 end
 
 function write_latex(::DefinitionTerm, w, node, enter)
-    if enter
+    return if enter
         literal(w, "\\item[")
     else
         literal(w, "]")
@@ -280,20 +280,20 @@ end
 
 function write_latex(::DefinitionDescription, w, node, enter)
     # Content rendered by children, no explicit wrapper
-    nothing
+    return nothing
 end
 
 # Typst
 
 function write_typst(::DefinitionList, w, node, enter)
-    if !enter
+    return if !enter
         cr(w)
         linebreak(w, node)
     end
 end
 
 function write_typst(::DefinitionTerm, w, node, enter)
-    if enter
+    return if enter
         print_margin(w)
         literal(w, "/ ")
     else
@@ -316,7 +316,7 @@ function write_typst(::DefinitionDescription, w, node, enter)
     use_block = _typst_use_block(node)
     is_first = isnull(node.prv) || node.prv.t isa DefinitionTerm
     is_last = isnull(node.nxt) || node.nxt.t isa DefinitionTerm
-    if enter
+    return if enter
         if use_block && is_first
             literal(w, "#block[\n")
         end
@@ -337,14 +337,14 @@ end
 # Markdown (roundtrip)
 
 function write_markdown(::DefinitionList, w, node, enter)
-    if !enter
+    return if !enter
         cr(w)
         linebreak(w, node)
     end
 end
 
 function write_markdown(::DefinitionTerm, w, node, enter)
-    if enter
+    return if enter
         print_margin(w)
     else
         cr(w)
@@ -352,7 +352,7 @@ function write_markdown(::DefinitionTerm, w, node, enter)
 end
 
 function write_markdown(::DefinitionDescription, w, node, enter)
-    if enter
+    return if enter
         push_margin!(w, 1, ":   ", " "^4)
     else
         pop_margin!(w)
@@ -367,7 +367,7 @@ end
 # Terminal
 
 function write_term(::DefinitionList, rend, node, enter)
-    if !enter && !isnull(node.nxt)
+    return if !enter && !isnull(node.nxt)
         print_margin(rend)
         print_literal(rend, "\n")
     end
@@ -375,7 +375,7 @@ end
 
 function write_term(::DefinitionTerm, rend, node, enter)
     style = crayon"bold"
-    if enter
+    return if enter
         rend.format.wrap = 0
         print_margin(rend)
         print_literal(rend, style)
@@ -389,7 +389,7 @@ function write_term(::DefinitionTerm, rend, node, enter)
 end
 
 function write_term(::DefinitionDescription, rend, node, enter)
-    if enter
+    return if enter
         push_margin!(rend, "  ", crayon"")
     else
         pop_margin!(rend)
@@ -399,7 +399,7 @@ end
 # JSON (Pandoc AST)
 
 function write_json(::DefinitionList, ctx, node, enter)
-    if enter
+    return if enter
         items = Any[]
         push_container!(ctx, items)
     else
@@ -420,7 +420,7 @@ function write_json(::DefinitionList, ctx, node, enter)
 end
 
 function write_json(::DefinitionTerm, ctx, node, enter)
-    if enter
+    return if enter
         inlines = Any[]
         push_container!(ctx, inlines)
     else
@@ -430,7 +430,7 @@ function write_json(::DefinitionTerm, ctx, node, enter)
 end
 
 function write_json(::DefinitionDescription, ctx, node, enter)
-    if enter
+    return if enter
         blocks = Any[]
         push_container!(ctx, blocks)
     else

@@ -11,7 +11,7 @@ function Node(::Type{Link}, children...; dest::AbstractString, title::AbstractSt
     l = Link()
     l.destination = dest
     l.title = title
-    _build(l, children)
+    return _build(l, children)
 end
 
 """Image. Build with `Node(Image; dest="url", alt="text", title="optional")`."""
@@ -24,17 +24,17 @@ end
 is_container(::Image) = true
 
 function Node(
-    ::Type{Image};
-    dest::AbstractString,
-    alt::AbstractString = "",
-    title::AbstractString = "",
-)
+        ::Type{Image};
+        dest::AbstractString,
+        alt::AbstractString = "",
+        title::AbstractString = "",
+    )
     img = Image()
     img.destination = dest
     img.title = title
     node = Node(img)
     node.literal = alt
-    node
+    return node
 end
 
 chomp_ws(parser::InlineParser) = (consume(parser, match(reSpnl, parser)); true)
@@ -232,7 +232,7 @@ function add_bracket!(p::InlineParser, node::Node, index::Integer, img::Bool)
     if p.brackets !== nothing
         p.brackets.bracket_after = true
     end
-    p.brackets = Bracket(node, p.brackets, p.delimiters, index, img, true, false)
+    return p.brackets = Bracket(node, p.brackets, p.delimiters, index, img, true, false)
 end
 
 remove_bracket!(p::InlineParser) = p.brackets = p.brackets.previous

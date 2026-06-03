@@ -114,15 +114,17 @@
     @test markdown(ast) == "[text](/url)\n"  # converted to inline
 
     # All three styles together
-    ast = p("""
-[full][label]
-[collapsed][]
-[shortcut]
+    ast = p(
+        """
+        [full][label]
+        [collapsed][]
+        [shortcut]
 
-[label]: /url1
-[collapsed]: /url2
-[shortcut]: /url3
-""")
+        [label]: /url1
+        [collapsed]: /url2
+        [shortcut]: /url3
+        """
+    )
     md = markdown(ast)
     @test occursin("[full][label]", md)
     @test occursin("[collapsed][]", md)

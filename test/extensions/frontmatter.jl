@@ -51,10 +51,10 @@
 
     # Unclosed frontmatter. Runs on until EOF.
     text = """
-           +++
-           one = 1
-           two = 2
-           """
+    +++
+    one = 1
+    two = 2
+    """
     ast = p(text)
     data = frontmatter(ast)
     @test data["one"] == 1
@@ -65,10 +65,10 @@
     test_single("references/frontmatter/not_first_line.html.txt", text, html)
 
     text = """
-           ---
-           field: data
-           ---
-           """
+    ---
+    field: data
+    ---
+    """
     ast = p(text)
     @test markdown(ast) == "---\nfield: data\n---\n"
     @test markdown(p(markdown(ast))) == markdown(ast)

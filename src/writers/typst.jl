@@ -1,12 +1,12 @@
 # Public.
 
 function Base.show(
-    io::IO,
-    ::MIME"text/typst",
-    ast::Node,
-    env = Dict{String,Any}();
-    transform = default_transform,
-)
+        io::IO,
+        ::MIME"text/typst",
+        ast::Node,
+        env = Dict{String, Any}();
+        transform = default_transform,
+    )
     w = Writer(Typst(io), io, env; transform = transform)
     write_typst(w, ast)
     return nothing
@@ -32,7 +32,7 @@ typst(args...; kws...) = writer(MIME"text/typst"(), args...; kws...)
 
 mime_to_str(::MIME"text/typst") = "typst"
 
-mutable struct Typst{I<:IO}
+mutable struct Typst{I <: IO}
     buffer::I
     indent::Int
     margin::Vector{MarginSegment}
@@ -47,6 +47,7 @@ function write_typst(writer::Writer, ast::Node)
         node, entering = _transform(writer.transform, mime, node, entering, writer)
         write_typst(node.t, writer, node, entering)
     end
+    return
 end
 
 # Writers.
@@ -57,9 +58,9 @@ write_typst(::Text, w, node, ent) = typst_escape(w, node.literal)
 
 write_typst(::Backslash, w, node, ent) = literal(w, "\\")
 
-function write_typst(::Union{SoftBreak,LineBreak}, w, node, ent)
+function write_typst(::Union{SoftBreak, LineBreak}, w, node, ent)
     cr(w)
-    print_margin(w)
+    return print_margin(w)
 end
 
 function write_typst(::Code, w, node, ent)
@@ -67,7 +68,7 @@ function write_typst(::Code, w, node, ent)
     maxrun = foldl(eachmatch(r"`+", content); init = 0) do a, b
         max(a, length(b.match))
     end
-    if maxrun == 0
+    return if maxrun == 0
         literal(w, "`", content, "`")
     else
         # Typst closes a raw span at a run of N backticks and parses a language
@@ -86,7 +87,7 @@ end
 write_typst(::HtmlInline, w, node, ent) = nothing
 
 function write_typst(link::Link, w, node, ent)
-    if ent
+    return if ent
         literal(w, "#link(", repr(link.destination), ")[")
     else
         literal(w, "]")
@@ -94,7 +95,7 @@ function write_typst(link::Link, w, node, ent)
 end
 
 function write_typst(image::Image, w, node, ent)
-    if ent
+    return if ent
         literal(w, "#figure(image(", repr(image.destination), "), caption: [")
     else
         literal(w, "])")
@@ -106,7 +107,7 @@ write_typst(::Emph, w, node, ent) = literal(w, ent ? "#emph[" : "]")
 write_typst(::Strong, w, node, ent) = literal(w, ent ? "#strong[" : "]")
 
 function write_typst(::Paragraph, w, node, ent)
-    if ent
+    return if ent
         print_margin(w)
     else
         cr(w)
@@ -115,7 +116,7 @@ function write_typst(::Paragraph, w, node, ent)
 end
 
 function write_typst(heading::Heading, w, node, ent)
-    if ent
+    return if ent
         print_margin(w)
         literal(w, "="^heading.level, " ")
     else
@@ -125,7 +126,7 @@ function write_typst(heading::Heading, w, node, ent)
 end
 
 function write_typst(::BlockQuote, w, node, ent)
-    if ent
+    return if ent
         literal(w, "#quote(block: true)[")
         cr(w)
     else
@@ -135,7 +136,7 @@ function write_typst(::BlockQuote, w, node, ent)
 end
 
 function write_typst(list::List, w, node, ent)
-    if ent
+    return if ent
         w.format.list_depth += 1
         push!(w.format.list_item_number, list.list_data.start)
     else
@@ -147,7 +148,7 @@ function write_typst(list::List, w, node, ent)
 end
 
 function write_typst(item::Item, w, node, enter)
-    if enter
+    return if enter
         if item.list_data.type === :ordered
             number = lpad(string(w.format.list_item_number[end], ". "), 4, " ")
             w.format.list_item_number[end] += 1
@@ -171,7 +172,7 @@ end
 function write_typst(::ThematicBreak, w, node, ent)
     literal(w, "#line(start: (25%, 0%), end: (75%, 0%))")
     cr(w)
-    linebreak(w, node)
+    return linebreak(w, node)
 end
 
 function write_typst(code::CodeBlock, w, node, ent)
@@ -186,7 +187,7 @@ function write_typst(code::CodeBlock, w, node, ent)
     print_margin(w)
     literal(w, fence)
     cr(w)
-    linebreak(w, node)
+    return linebreak(w, node)
 end
 
 function write_typst(::HtmlBlock, w, node, ent)
@@ -194,10 +195,10 @@ function write_typst(::HtmlBlock, w, node, ent)
         print_margin(w)
         literal(w, line)
     end
-    linebreak(w, node)
+    return linebreak(w, node)
 end
 
-let chars = Dict{Char,String}()
+let chars = Dict{Char, String}()
     for c in "~\$#_"
         chars[c] = "\\$c"
     end
@@ -205,6 +206,7 @@ let chars = Dict{Char,String}()
         for ch in s
             literal(w, get(chars, ch, ch))
         end
+        return
     end
 
     global function typst_escape(s::AbstractString)

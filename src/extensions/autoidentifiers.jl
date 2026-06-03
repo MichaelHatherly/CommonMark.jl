@@ -14,7 +14,7 @@ are preserved.
 ```
 """
 struct AutoIdentifierRule
-    refs::IdDict{Node,Dict{String,Int}}
+    refs::IdDict{Node, Dict{String, Int}}
     AutoIdentifierRule(refs = IdDict()) = new(refs)
 end
 
@@ -22,19 +22,19 @@ reset_rule!(r::AutoIdentifierRule) = (empty!(r.refs); nothing)
 
 block_modifier(rule::AutoIdentifierRule) =
     Rule(100) do parser, block
-        # Add heading IDs to those without any preset by AttributeRule.
-        if block.t isa Heading && !hasmeta(block, "id")
-            setmeta!(block, "id", slugify(block.literal))
-        end
-        # Then make sure all IDs for the current AutoIdentifierRule are unique using a counter.
-        if hasmeta(block, "id")
-            counter = get!(() -> Dict{String,Int}(), rule.refs, parser.doc)
-            id = getmeta(block, "id", "")
-            n = counter[id] = get!(counter, id, 0) + 1
-            setmeta!(block, "id", n == 1 ? id : "$id-$(n - 1)")
-        end
-        return nothing
+    # Add heading IDs to those without any preset by AttributeRule.
+    if block.t isa Heading && !hasmeta(block, "id")
+        setmeta!(block, "id", slugify(block.literal))
     end
+    # Then make sure all IDs for the current AutoIdentifierRule are unique using a counter.
+    if hasmeta(block, "id")
+        counter = get!(() -> Dict{String, Int}(), rule.refs, parser.doc)
+        id = getmeta(block, "id", "")
+        n = counter[id] = get!(counter, id, 0) + 1
+        setmeta!(block, "id", n == 1 ? id : "$id-$(n - 1)")
+    end
+    return nothing
+end
 
 # Modelled on pandoc's algorithm.
 function slugify(str::AbstractString)

@@ -1,13 +1,13 @@
 struct CrayonWrapper
     c::Crayon
-    v::Vector{Union{CrayonWrapper,String}}
+    v::Vector{Union{CrayonWrapper, String}}
 end
 
-function (c::Crayon)(args::Union{CrayonWrapper,AbstractString}...)
+function (c::Crayon)(args::Union{CrayonWrapper, AbstractString}...)
     typefix(cw::CrayonWrapper) = cw
     typefix(str) = String(str)
 
-    CrayonWrapper(c, typefix.(collect(args)))
+    return CrayonWrapper(c, typefix.(collect(args)))
 end
 
 Base.show(io::IO, cw::CrayonWrapper) = _show(io, cw, CrayonStack(incremental = true))

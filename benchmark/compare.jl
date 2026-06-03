@@ -5,11 +5,11 @@ import JSON
 import Printf: @sprintf
 
 function load_results(path)
-    JSON.parse(read(path, String))
+    return JSON.parse(read(path, String))
 end
 
 function format_time(ns)
-    if ns < 1_000
+    return if ns < 1_000
         @sprintf("%.1f ns", ns)
     elseif ns < 1_000_000
         @sprintf("%.2f μs", ns / 1_000)
@@ -21,7 +21,7 @@ function format_time(ns)
 end
 
 function format_memory(bytes)
-    if bytes < 1024
+    return if bytes < 1024
         @sprintf("%d B", bytes)
     elseif bytes < 1024^2
         @sprintf("%.1f KiB", bytes / 1024)
@@ -38,7 +38,7 @@ function format_change(baseline, current)
     end
     ratio = current / baseline
     pct = (ratio - 1) * 100
-    if abs(pct) < 1
+    return if abs(pct) < 1
         "~"
     elseif pct > 0
         @sprintf("+%.1f%%", pct)
@@ -55,7 +55,7 @@ function status_emoji(baseline, current; lower_is_better = true)
     threshold_good = lower_is_better ? 0.95 : 1.05
     threshold_bad = lower_is_better ? 1.05 : 0.95
 
-    if lower_is_better
+    return if lower_is_better
         ratio < threshold_good ? "🟢" : ratio > threshold_bad ? "🔴" : "⚪"
     else
         ratio > threshold_good ? "🟢" : ratio < threshold_bad ? "🔴" : "⚪"
@@ -79,11 +79,11 @@ function compare_and_report(baseline_path, current_path, output_path)
     println(io)
     println(
         io,
-        "**Baseline:** `$(get(get(baseline, "git", Dict()), "commit", "unknown")[1:min(7,end)])`",
+        "**Baseline:** `$(get(get(baseline, "git", Dict()), "commit", "unknown")[1:min(7, end)])`",
     )
     println(
         io,
-        "**Current:** `$(get(get(current, "git", Dict()), "commit", "unknown")[1:min(7,end)])`",
+        "**Current:** `$(get(get(current, "git", Dict()), "commit", "unknown")[1:min(7, end)])`",
     )
     println(io)
 
@@ -127,12 +127,12 @@ function compare_and_report(baseline_path, current_path, output_path)
         # Track significant changes
         if base_time > 0
             ratio = curr_time / base_time
-            if ratio > 1.10
+            if ratio > 1.1
                 push!(
                     regressions,
                     "$name: $(format_time(base_time)) → $(format_time(curr_time)) ($time_change)",
                 )
-            elseif ratio < 0.90
+            elseif ratio < 0.9
                 push!(
                     improvements,
                     "$name: $(format_time(base_time)) → $(format_time(curr_time)) ($time_change)",
@@ -181,5 +181,5 @@ function compare_and_report(baseline_path, current_path, output_path)
     write(output_path, result)
     println(result)
     println("Comparison written to: $output_path")
-    result
+    return result
 end

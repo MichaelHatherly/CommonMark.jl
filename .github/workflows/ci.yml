@@ -38,8 +38,20 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v3.0.2
-      - run: julia --project=.format .format/format.jl
-      - run: git diff --color --exit-code
+      - uses: taiki-e/install-action@7769b73c2ec98c38dfcf2e18c83cfd4880c038c1 # v2.75.27
+        with:
+          tool: just
+      - name: Install runic
+        run: |
+          julia --project=@runic --startup-file=no -e 'using Pkg; Pkg.add("Runic")'
+          cat > runic <<'SCRIPT'
+          #!/bin/sh
+          export JULIA_LOAD_PATH="@runic"
+          exec julia --startup-file=no -e 'using Runic; exit(Runic.main(ARGS))' -- "$@"
+          SCRIPT
+          chmod +x runic
+          echo "$PWD" >> "$GITHUB_PATH"
+      - run: just fmt-check
 
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
