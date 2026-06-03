@@ -82,6 +82,9 @@ function parse_link_destination(parser::InlineParser)
         if position(parser) === savepos && c !== ')'
             return nothing
         end
+        if openparens != 0
+            return nothing
+        end
         res = String(bytes(parser, savepos, position(parser) - 1))
         return normalize_uri(unescape_string(res))
     else

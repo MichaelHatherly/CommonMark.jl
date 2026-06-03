@@ -150,3 +150,18 @@ end
     ast = p("[foo]: /url\n\"title\"\n\n[foo]\n")
     @test occursin("<a href=\"/url\" title=\"title\">foo</a>", html(ast))
 end
+
+@testitem "link destination rejects unbalanced parens" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+
+    # An unparenthesised destination with an unbalanced '(' is not a valid link.
+    ast = p("[a](b(c )\n")
+    @test !occursin("<a href", html(ast))
+    @test occursin("[a](b(c )", html(ast))
+
+    # Control: balanced parens still form a link.
+    ast = p("[a](b(c) )\n")
+    @test occursin("<a href=\"b(c)\">a</a>", html(ast))
+end
