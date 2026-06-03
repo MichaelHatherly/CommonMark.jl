@@ -90,3 +90,20 @@
         html,
     )
 end
+
+@testitem "html attribute value escaping" tags = [:writers, :html] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(AttributeRule())
+
+    # A double quote inside an attribute value must be escaped, not emitted raw
+    # (raw would break out of the attribute and allow injection).
+    out = html(p("{data-x='a\"b'}\nparagraph\n"))
+    @test occursin("data-x=\"a&quot;b\"", out)
+    @test !occursin("data-x=\"a\"b\"", out)
+
+    # Angle brackets in an attribute value are escaped too.
+    out = html(p("{data-y='<x>'}\nparagraph\n"))
+    @test occursin("data-y=\"&lt;x&gt;\"", out)
+end
