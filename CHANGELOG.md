@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix HTML writer emitting node-metadata attribute values unescaped, allowing a `"` or `<` in an attribute (e.g. via `AttributeRule`) to break out of the attribute [#154]
 - Fix LaTeX writer not escaping link and image destinations, so a URL with `%`, `_`, or `#` produced output that failed to compile [#154]
 - Fix `ShortcodeRule` corrupting keyword-argument keys that contain multibyte characters (e.g. `kéy=val`) [#154]
+- Fix `insert_after`/`insert_before` corrupting the shared `NULL_NODE` sentinel when called on a parentless node [#154]
 
 ## [v1.0.2] - 2026-05-29
 
