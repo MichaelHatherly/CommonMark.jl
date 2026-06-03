@@ -244,7 +244,7 @@ function insert_after(node::Node, sibling::Node)
     sibling.prv = node
     node.nxt = sibling
     sibling.parent = node.parent
-    if isnull(sibling.nxt)
+    if isnull(sibling.nxt) && !isnull(sibling.parent)
         sibling.parent.last_child = sibling
     end
 end
@@ -263,7 +263,7 @@ function insert_before(node::Node, sibling::Node)
     sibling.nxt = node
     node.prv = sibling
     sibling.parent = node.parent
-    if isnull(sibling.prv)
+    if isnull(sibling.prv) && !isnull(sibling.parent)
         sibling.parent.first_child = sibling
     end
 end

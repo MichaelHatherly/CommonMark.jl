@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix `ReferenceLinkRule` crashing with `StringIndexError` on reference definitions whose label contains multibyte characters [#154]
+- Fix `TableRule` crashing with `BoundsError` on a separator row containing no dashes (e.g. `|::|`); such a row is no longer treated as a table [#154]
+- Fix link reference definition keeping an invalid title (text after the title on the same line) instead of discarding it [#154]
+- Fix link destination parser accepting an unbalanced `(` (e.g. `[a](b(c )`) instead of rejecting the link [#154]
+- Fix link label length limit rejecting spec-valid labels of 998 and 999 characters (off-by-one against the 999-character maximum) [#154]
+- Fix numeric character references for surrogate (`&#xD800;`) and out-of-range (`&#1114112;`) codepoints decoding to invalid characters instead of U+FFFD [#154]
+- Fix HTML writer emitting node-metadata attribute values unescaped, allowing a `"` or `<` in an attribute (e.g. via `AttributeRule`) to break out of the attribute [#154]
+- Fix LaTeX writer not escaping link and image destinations, so a URL with `%`, `_`, or `#` produced output that failed to compile [#154]
+- Fix `ShortcodeRule` corrupting keyword-argument keys that contain multibyte characters (e.g. `kéy=val`) [#154]
+- Fix `insert_after`/`insert_before` corrupting the shared `NULL_NODE` sentinel when called on a parentless node [#154]
+- Fix `DefinitionListRule` JSON output emitting terms and definitions as flat siblings instead of Pandoc's nested (term, definitions) pairs [#154]
+- Fix Typst writer producing inline code whose backticks merged with the delimiters or were misread as a language tag (e.g. `` `code` ``) [#154]
+
 ## [v1.0.2] - 2026-05-29
 
 ### Fixed
@@ -477,3 +492,4 @@ Initial release.
 [#141]: https://github.com/MichaelHatherly/CommonMark.jl/issues/141
 [#145]: https://github.com/MichaelHatherly/CommonMark.jl/issues/145
 [#150]: https://github.com/MichaelHatherly/CommonMark.jl/issues/150
+[#154]: https://github.com/MichaelHatherly/CommonMark.jl/issues/154

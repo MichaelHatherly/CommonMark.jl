@@ -79,3 +79,23 @@
     # Escapes.
     test("references/latex/escapes.tex", "^~\\&%\$#_{}", latex)
 end
+
+@testitem "latex destination escaping" tags = [:writers, :latex] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser()
+
+    # LaTeX-special characters in a link destination must be escaped so the
+    # output compiles (a bare % comments out the rest of the line).
+    out = latex(p("[x](http://e.com/a_b%20c#frag)\n"))
+    @test occursin("\\%", out)
+    @test occursin("\\_", out)
+    @test occursin("\\#", out)
+    @test !occursin("a_b%20c#frag", out)
+
+    # Image destinations are escaped too.
+    out = latex(p("![x](img_1%2.png)\n"))
+    @test occursin("\\_", out)
+    @test occursin("\\%", out)
+end

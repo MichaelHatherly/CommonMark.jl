@@ -404,7 +404,18 @@ function write_json(::DefinitionList, ctx, node, enter)
         push_container!(ctx, items)
     else
         items = pop_container!(ctx)
-        push_element!(ctx, json_el(ctx, "DefinitionList", items))
+        # Pandoc's DefinitionList content is a list of (term, [definitions])
+        # pairs. The terms and descriptions arrive as a flat, tagged sequence;
+        # fold each run of descriptions under its preceding term.
+        pairs = Any[]
+        for (tag, content) in items
+            if tag === :term
+                push!(pairs, Any[content, Any[]])
+            else
+                push!(pairs[end][2], content)
+            end
+        end
+        push_element!(ctx, json_el(ctx, "DefinitionList", pairs))
     end
 end
 
@@ -414,9 +425,7 @@ function write_json(::DefinitionTerm, ctx, node, enter)
         push_container!(ctx, inlines)
     else
         inlines = pop_container!(ctx)
-        # Store term inlines as the first element of a [term, [defs...]] pair
-        # We need to collect definitions that follow
-        push_element!(ctx, inlines)
+        push_element!(ctx, (:term, inlines))
     end
 end
 
@@ -426,6 +435,6 @@ function write_json(::DefinitionDescription, ctx, node, enter)
         push_container!(ctx, blocks)
     else
         blocks = pop_container!(ctx)
-        push_element!(ctx, blocks)
+        push_element!(ctx, (:desc, blocks))
     end
 end

@@ -73,7 +73,7 @@ function write_latex(link::Link, w, node, ent)
         # these, so branch based on it to allow both types of links to be used.
         # Generating `\url` commands is not supported.
         type, n = startswith(link.destination, '#') ? ("hyperlink", 1) : ("href", 0)
-        literal(w, "\\$type{$(chop(link.destination; head=n, tail=0))}{")
+        literal(w, "\\$type{$(latex_escape(chop(link.destination; head=n, tail=0)))}{")
     else
         literal(w, "}")
     end
@@ -84,7 +84,12 @@ function write_latex(image::Image, w, node, ent)
         cr(w)
         literal(w, "\\begin{figure}\n")
         literal(w, "\\centering\n")
-        literal(w, "\\includegraphics[max width=\\linewidth]{", image.destination, "}\n")
+        literal(
+            w,
+            "\\includegraphics[max width=\\linewidth]{",
+            latex_escape(image.destination),
+            "}\n",
+        )
         literal(w, "\\caption{")
     else
         literal(w, "}\n")

@@ -356,3 +356,22 @@
         @test html(ast) == "<p>html</p>\n"
     end
 end
+
+@testitem "shortcodes multibyte kwargs" tags = [:extensions, :shortcodes] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    # A kwarg key with multibyte characters must split on the byte position of
+    # '=', not a character count used as a byte index.
+    args, kwargs = CommonMark._parse_shortcode_args("kéy=val café=z")
+    @test args == String[]
+    @test kwargs == ["kéy" => "val", "café" => "z"]
+
+    # Through the parser.
+    p = create_parser(ShortcodeRule())
+    ast = p("x {{< ref kéy=val >}} y")
+    shortcodes = [n.t for (n, entering) in ast if entering && n.t isa CommonMark.Shortcode]
+    @test length(shortcodes) == 1
+    @test shortcodes[1].kwargs == ["kéy" => "val"]
+end

@@ -109,3 +109,27 @@
         @test occursin("DefinitionList", j)
     end
 end
+
+@testitem "definitionlists pandoc json structure" tags = [:extensions, :definitionlists] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(DefinitionListRule())
+
+    # Pandoc DefinitionList content is [ ([Inline], [[Block]]) ]: a list of
+    # (term, [definitions]) pairs, not a flat list of terms and definitions.
+    d = json(Dict, p("Term 1\n\n:   Def 1a\n\n:   Def 1b\n"))
+    dl = d["blocks"][1]
+    @test dl["t"] == "DefinitionList"
+
+    pairs = dl["c"]
+    @test length(pairs) == 1            # one term
+
+    term, defs = pairs[1]
+    @test term[1]["t"] == "Str"         # term inlines
+    @test term[1]["c"] == "Term"
+    @test length(defs) == 2             # two definitions for the term
+    @test defs[1][1]["t"] == "Para"     # each definition is a list of blocks
+    @test defs[2][1]["t"] == "Para"
+end

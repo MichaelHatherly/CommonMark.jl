@@ -63,12 +63,24 @@ function write_typst(::Union{SoftBreak,LineBreak}, w, node, ent)
 end
 
 function write_typst(::Code, w, node, ent)
-    num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
+    content = node.literal
+    maxrun = foldl(eachmatch(r"`+", content); init = 0) do a, b
         max(a, length(b.match))
     end
-    literal(w, "`"^(num == 1 ? 3 : 1))
-    literal(w, node.literal)
-    literal(w, "`"^(num == 1 ? 3 : 1))
+    if maxrun == 0
+        literal(w, "`", content, "`")
+    else
+        # Typst closes a raw span at a run of N backticks and parses a language
+        # tag after 3+ opening backticks. Use N greater than the longest run in
+        # the content (and at least 3, since `` is the empty-raw special case),
+        # pad with a leading space to suppress the language tag, and a trailing
+        # space when the content ends in a backtick so it does not merge with
+        # the closing delimiter. Typst trims both pad spaces.
+        delim = "`"^max(3, maxrun + 1)
+        literal(w, delim, " ", content)
+        endswith(content, '`') && literal(w, " ")
+        literal(w, delim)
+    end
 end
 
 write_typst(::HtmlInline, w, node, ent) = nothing

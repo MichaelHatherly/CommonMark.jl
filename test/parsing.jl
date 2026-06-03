@@ -134,3 +134,65 @@
         @test ast.first_child.t isa CommonMark.Paragraph
     end
 end
+
+@testitem "reference definition discards invalid title" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+
+    # A title followed by other text on the line is invalid; the definition is
+    # still valid using the URL alone, and the title must be discarded.
+    ast = p("[foo]: /url\n\"title\" extra\n\n[foo]\n")
+    @test occursin("<a href=\"/url\">foo</a>", html(ast))
+    @test !occursin("title=", html(ast))
+
+    # Control: a clean title on its own line is kept.
+    ast = p("[foo]: /url\n\"title\"\n\n[foo]\n")
+    @test occursin("<a href=\"/url\" title=\"title\">foo</a>", html(ast))
+end
+
+@testitem "link destination rejects unbalanced parens" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+
+    # An unparenthesised destination with an unbalanced '(' is not a valid link.
+    ast = p("[a](b(c )\n")
+    @test !occursin("<a href", html(ast))
+    @test occursin("[a](b(c )", html(ast))
+
+    # Control: balanced parens still form a link.
+    ast = p("[a](b(c) )\n")
+    @test occursin("<a href=\"b(c)\">a</a>", html(ast))
+end
+
+@testitem "link label length boundary" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+
+    # The spec allows up to 999 characters inside the brackets.
+    label999 = repeat("a", 999)
+    ast = p("[$label999]\n\n[$label999]: /url\n")
+    @test occursin("<a href=\"/url\">", html(ast))
+
+    # 1000 characters exceeds the limit and must not resolve.
+    label1000 = repeat("a", 1000)
+    ast = p("[$label1000]\n\n[$label1000]: /url\n")
+    @test !occursin("<a href", html(ast))
+end
+
+@testitem "numeric entity validity" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+    decode(s) = p(s).first_child.first_child.literal
+
+    # Surrogate and out-of-range codepoints must decode to U+FFFD.
+    @test decode("&#xD800;") == "�"
+    @test decode("&#1114112;") == "�"
+
+    # Control: valid codepoints decode normally.
+    @test decode("&#65;") == "A"
+    @test decode("&#x10FFFF;") == "\U10FFFF"
+end

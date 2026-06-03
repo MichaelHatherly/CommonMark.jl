@@ -272,11 +272,14 @@ function attributes(r, n, out = [])
             end
         end
     end
-    for each in (out, something(n.meta, ()))
+    # Call-site values in `out` are already escaped; metadata values are raw and
+    # must be escaped here to avoid breaking out of the attribute.
+    for (source, escape) in ((out, false), (something(n.meta, ()), true))
         # Sort Dict keys for deterministic attribute ordering across Julia versions
-        pairs_iter = each isa AbstractDict ? sort!(collect(each), by = first) : each
+        pairs_iter = source isa AbstractDict ? sort!(collect(source), by = first) : source
         for (key, value) in pairs_iter
             value = isa(value, AbstractString) ? value : join(value, " ")
+            escape && (value = escape_xml(value))
             if haskey(dict, key)
                 dict[key] = "$(dict[key]) $value"
             else

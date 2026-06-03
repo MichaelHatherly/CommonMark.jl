@@ -82,6 +82,9 @@ function parse_link_destination(parser::InlineParser)
         if position(parser) === savepos && c !== ')'
             return nothing
         end
+        if openparens != 0
+            return nothing
+        end
         res = String(bytes(parser, savepos, position(parser) - 1))
         return normalize_uri(unescape_string(res))
     else
@@ -92,7 +95,7 @@ end
 
 function parse_link_label(parser::InlineParser)
     m = consume(parser, match(reLinkLabel, parser))
-    return (m === nothing || length(m.match) ≥ 1000) ? 0 : ncodeunits(m.match)
+    return (m === nothing || length(m.match) > 1001) ? 0 : ncodeunits(m.match)
 end
 
 function parse_open_bracket(parser::InlineParser, block::Node)
@@ -273,7 +276,7 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
         else
             # The potential title we found is not at the line end, but it could
             # still be a legal link reference if we discard the title.
-            title == ""
+            title = ""
             # Rewind to before spaces.
             seek(parser, beforetitle)
             # Or instead check if the link URL is at the line end.

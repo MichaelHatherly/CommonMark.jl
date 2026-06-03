@@ -156,13 +156,11 @@ function _parse_shortcode_args(s::AbstractString)
     isempty(s) && return (args, kwargs)
     buf = IOBuffer()
     in_quote = nothing  # nothing, '"', or '\''
-    eq_pos = 0          # position of first unquoted '=' in current token
-    token_len = 0
+    eq_pos = 0          # byte position of first unquoted '=' in current token
     escaped = false
     for c in s
         if escaped
             write(buf, c)
-            token_len += 1
             escaped = false
         elseif in_quote !== nothing && c == '\\'
             escaped = true
@@ -171,19 +169,16 @@ function _parse_shortcode_args(s::AbstractString)
                 in_quote = nothing
             else
                 write(buf, c)
-                token_len += 1
             end
         elseif c == '"' || c == '\''
             in_quote = c
         elseif isspace(c)
             _flush_shortcode_token!(buf, args, kwargs, eq_pos)
             eq_pos = 0
-            token_len = 0
         else
             write(buf, c)
-            token_len += 1
             if c == '=' && eq_pos == 0
-                eq_pos = token_len
+                eq_pos = position(buf)
             end
         end
     end

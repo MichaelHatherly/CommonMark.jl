@@ -121,3 +121,22 @@
     @test length(tables[2].t.spec) == 3
     test_table("consecutive", ast, "tables")
 end
+
+@testitem "tables dashless separator" tags = [:extensions, :tables] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(TableRule())
+
+    # Regression: a separator row with no dashes is not a valid table spec.
+    # It must not crash (empty spec -> spec[0]); the block stays a paragraph.
+    ast = p("|a|b|\n|::|\n|c|d|\n")
+    tables = [n for (n, entering) in ast if entering && n.t isa CommonMark.Table]
+    @test isempty(tables)
+    @test !occursin("<table>", html(ast))
+
+    # A genuine table alongside still parses.
+    ast = p("|a|b|\n|--|--|\n|c|d|\n")
+    tables = [n for (n, entering) in ast if entering && n.t isa CommonMark.Table]
+    @test length(tables) == 1
+end

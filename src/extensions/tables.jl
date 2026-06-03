@@ -110,22 +110,26 @@ function gfm_table(parser::Parser, container::Node)
             if valid_table_spec(spec_str)
                 # Parse the table spec line.
                 spec = parse_table_spec(spec_str)
-                table = Node(Table(spec), container.sourcepos)
-                # Build header row with cells for each column.
-                head = Node(TableHeader(), container.sourcepos)
-                append_child(table, head)
-                row = Node(TableRow(), container.sourcepos)
-                row.literal = header
-                append_child(head, row)
-                # Insert the empty body for the table.
-                body = Node(TableBody(), container.sourcepos)
-                append_child(table, body)
-                # Splice the newly created table in place of the paragraph.
-                insert_after(container, table)
-                unlink(container)
-                parser.tip = table
-                advance_to_end(parser)
-                return 2
+                # A spec with no dash-delimited columns yields no columns and is
+                # not a table; leave the paragraph untouched.
+                if !isempty(spec)
+                    table = Node(Table(spec), container.sourcepos)
+                    # Build header row with cells for each column.
+                    head = Node(TableHeader(), container.sourcepos)
+                    append_child(table, head)
+                    row = Node(TableRow(), container.sourcepos)
+                    row.literal = header
+                    append_child(head, row)
+                    # Insert the empty body for the table.
+                    body = Node(TableBody(), container.sourcepos)
+                    append_child(table, body)
+                    # Splice the newly created table in place of the paragraph.
+                    insert_after(container, table)
+                    unlink(container)
+                    parser.tip = table
+                    advance_to_end(parser)
+                    return 2
+                end
             end
         end
         if container.t isa Table
