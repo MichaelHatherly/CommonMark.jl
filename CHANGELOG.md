@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix `ReferenceLinkRule` crashing with `StringIndexError` on reference definitions whose label contains multibyte characters [#154]
+- Fix `TableRule` crashing with `BoundsError` on a separator row containing no dashes (e.g. `|::|`); such a row is no longer treated as a table [#154]
 
 ## [v1.0.2] - 2026-05-29
 
