@@ -299,7 +299,7 @@ block_rule(::ReferenceLinkRule) =
         label = chop(label_with_brackets; head = 1, tail = 1)  # remove [ and ]
 
         # Parse rest of line for destination and title
-        rest = SubString(ln, length(m.match) + 1)
+        rest = SubString(ln, ncodeunits(m.match) + 1)
 
         # Skip leading whitespace
         rest_stripped = lstrip(rest)

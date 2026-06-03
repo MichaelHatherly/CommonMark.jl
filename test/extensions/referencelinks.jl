@@ -188,3 +188,18 @@
         "referencelinks",
     )
 end
+
+@testitem "referencelinks multibyte label" tags = [:extensions, :referencelinks] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(ReferenceLinkRule())
+
+    # Regression: a multibyte label must not crash the parse (byte-vs-char index).
+    ast = p("[😀]: http://x.com\n\n[😀]")
+    @test html(ast) == "<p><a href=\"http://x.com\">😀</a></p>\n"
+
+    ast = p("[日本語]: http://x.com\n\n[日本語]")
+    @test html(ast) == "<p><a href=\"http://x.com\">日本語</a></p>\n"
+end

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix `ReferenceLinkRule` crashing with `StringIndexError` on reference definitions whose label contains multibyte characters [#154]
+
 ## [v1.0.2] - 2026-05-29
 
 ### Fixed
@@ -477,3 +481,4 @@ Initial release.
 [#141]: https://github.com/MichaelHatherly/CommonMark.jl/issues/141
 [#145]: https://github.com/MichaelHatherly/CommonMark.jl/issues/145
 [#150]: https://github.com/MichaelHatherly/CommonMark.jl/issues/150
+[#154]: https://github.com/MichaelHatherly/CommonMark.jl/issues/154
