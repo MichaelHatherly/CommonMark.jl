@@ -273,7 +273,7 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
         else
             # The potential title we found is not at the line end, but it could
             # still be a legal link reference if we discard the title.
-            title == ""
+            title = ""
             # Rewind to before spaces.
             seek(parser, beforetitle)
             # Or instead check if the link URL is at the line end.

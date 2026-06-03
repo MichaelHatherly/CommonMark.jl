@@ -134,3 +134,19 @@
         @test ast.first_child.t isa CommonMark.Paragraph
     end
 end
+
+@testitem "reference definition discards invalid title" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+
+    # A title followed by other text on the line is invalid; the definition is
+    # still valid using the URL alone, and the title must be discarded.
+    ast = p("[foo]: /url\n\"title\" extra\n\n[foo]\n")
+    @test occursin("<a href=\"/url\">foo</a>", html(ast))
+    @test !occursin("title=", html(ast))
+
+    # Control: a clean title on its own line is kept.
+    ast = p("[foo]: /url\n\"title\"\n\n[foo]\n")
+    @test occursin("<a href=\"/url\" title=\"title\">foo</a>", html(ast))
+end
