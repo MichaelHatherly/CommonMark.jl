@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `ShortcodeRule` corrupting keyword-argument keys that contain multibyte characters (e.g. `kéy=val`) [#154]
 - Fix `insert_after`/`insert_before` corrupting the shared `NULL_NODE` sentinel when called on a parentless node [#154]
 - Fix `DefinitionListRule` JSON output emitting terms and definitions as flat siblings instead of Pandoc's nested (term, definitions) pairs [#154]
+- Fix Typst writer producing inline code whose backticks merged with the delimiters or were misread as a language tag (e.g. `` `code` ``) [#154]
 
 ## [v1.0.2] - 2026-05-29
 

@@ -79,3 +79,21 @@
     # Escapes.
     test("references/typst/escapes.typ", "^~\\&%\$#_{}", typst)
 end
+
+@testitem "typst inline code with backticks" tags = [:writers, :typst] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser()
+    code(s) = strip(typst(p(s)))
+
+    # Content containing backticks must not merge with the delimiters, and an
+    # identifier start must not become a spurious language tag. Typst closes a
+    # raw span at a run of N backticks and trims a single pad space each side.
+    @test code("`` `code` ``") == "``` `code` ```"
+    @test code("``a`b``") == "``` a`b```"
+
+    # No backticks: simplest single-backtick inline raw, unchanged.
+    @test code("`plain`") == "`plain`"
+    @test code("``c``") == "`c`"
+end
