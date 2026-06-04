@@ -59,18 +59,18 @@ function parse_link_destination(parser::InlineParser)
                 break
             end
             if c == '\\' && trynext(parser, Char) in ESCAPABLE
-                @assert read(parser, Char) === '\\'
+                read(parser, Char)
                 if trypeek(parser, Char) !== nothing
                     read(parser, Char)
                 end
             elseif c == '('
-                @assert read(parser, Char) === '('
+                read(parser, Char)
                 openparens += 1
             elseif c == ')'
                 if openparens < 1
                     break
                 else
-                    @assert read(parser, Char) === ')'
+                    read(parser, Char)
                     openparens -= 1
                 end
             elseif c in WHITESPACECHAR
@@ -100,7 +100,8 @@ end
 
 function parse_open_bracket(parser::InlineParser, block::Node)
     startpos = position(parser)
-    @assert read(parser, Char) === '['
+    c = read(parser, Char)
+    c === '[' || error("expected '[' opening link bracket, got $(repr(c))")
     node = text("[")
     append_child(block, node)
     # Add entry to stack for this opener.
@@ -110,9 +111,10 @@ end
 
 function parse_bang(parser::InlineParser, block::Node)
     startpos = position(parser)
-    @assert read(parser, Char) === '!'
+    c = read(parser, Char)
+    c === '!' || error("expected '!' opening image, got $(repr(c))")
     if trypeek(parser, Char) === '['
-        @assert read(parser, Char) === '['
+        read(parser, Char)
         node = text("![")
         append_child(block, node)
         # Add entry to stack for this opener.
@@ -126,7 +128,8 @@ end
 function parse_close_bracket(parser::InlineParser, block::Node)
     title = nothing
     matched = false
-    @assert read(parser, Char) === ']'
+    c = read(parser, Char)
+    c === ']' || error("expected ']' closing link bracket, got $(repr(c))")
     startpos = position(parser)
     # Get last [ or ![.
     opener = parser.brackets
@@ -148,7 +151,7 @@ function parse_close_bracket(parser::InlineParser, block::Node)
     savepos = position(parser)
     # Inline link?
     if trypeek(parser, Char, '\0') === '('
-        @assert read(parser, Char) === '('
+        read(parser, Char)
         chomp_ws(parser)
         dest = parse_link_destination(parser)
         if dest !== nothing && chomp_ws(parser)
@@ -157,7 +160,7 @@ function parse_close_bracket(parser::InlineParser, block::Node)
                 title = parse_link_title(parser)
             end
             if chomp_ws(parser) && trypeek(parser, Char, '\0') === ')'
-                @assert read(parser, Char) === ')'
+                read(parser, Char)
                 matched = true
             end
         else
@@ -249,7 +252,7 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
 
     # Colon.
     trypeek(parser, Char) === ':' || (seek(parser, startpos); return 0)
-    @assert read(parser, Char) === ':'
+    read(parser, Char)
 
     # Link URL.
     chomp_ws(parser)

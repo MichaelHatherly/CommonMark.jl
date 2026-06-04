@@ -31,7 +31,8 @@ struct TextRule end
 inline_rule(::TextRule) = Rule(parse_string, 1, "")
 
 function parse_newline(parser::InlineParser, block::Node)
-    @assert read(parser, Char) === '\n'
+    c = read(parser, Char)
+    c === '\n' || error("expected newline, got $(repr(c))")
     lastc = block.last_child
     if !isnull(lastc) && lastc.t isa Text && endswith(lastc.literal, ' ')
         child = Node(endswith(lastc.literal, "  ") ? LineBreak() : SoftBreak())

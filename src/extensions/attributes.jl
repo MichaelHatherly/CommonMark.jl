@@ -69,7 +69,8 @@ function try_parse_attributes(parser::AbstractParser)
         # Consume leading spaces.
         read(parser, Char)
     end
-    @assert read(parser, Char) === '{'
+    c = read(parser, Char)
+    c === '{' || error("expected '{' opening attributes, got $(repr(c))")
     valid = false
     dict = Dict{String, Any}()
     key = ""

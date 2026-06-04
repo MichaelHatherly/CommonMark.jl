@@ -1,5 +1,6 @@
 function parse_backslash(parser::InlineParser, block::Node)
-    @assert read(parser, Char) === '\\'
+    c = read(parser, Char)
+    c === '\\' || error("expected '\\\\' backslash escape, got $(repr(c))")
     char = trypeek(parser, Char)
     if char === '\n'
         read(parser, Char)

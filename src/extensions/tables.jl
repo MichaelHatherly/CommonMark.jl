@@ -189,7 +189,8 @@ struct TablePipe <: AbstractInline end
 
 inline_rule(rule::TableRule) = Rule(0, "|") do parser, block
     block.t isa TableRow || return false
-    @assert read(parser, Char) == '|'
+    c = read(parser, Char)
+    c === '|' || error("expected '|' table cell separator, got $(repr(c))")
     eof(parser) && return true # Skip last pipe.
     pipe = Node(TablePipe())
     append_child(block, pipe)
