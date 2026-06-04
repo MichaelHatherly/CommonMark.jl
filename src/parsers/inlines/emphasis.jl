@@ -43,11 +43,11 @@ function scan_delims(parser::InlineParser, c::AbstractChar)
 
     if c in (''', '"')
         numdelims += 1
-        @assert read(parser, Char) === c
+        read(parser, Char)
     else
         while trypeek(parser, Char) === c
             numdelims += 1
-            @assert read(parser, Char) === c
+            read(parser, Char)
         end
     end
     numdelims == 0 && return (0, false, false)

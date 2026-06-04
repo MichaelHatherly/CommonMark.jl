@@ -147,7 +147,8 @@ end
 # Inline rule - intercepts reference links before standard LinkRule
 
 function parse_reference_close_bracket(parser::InlineParser, block::Node)
-    @assert read(parser, Char) === ']'
+    c = read(parser, Char)
+    c === ']' || error("expected ']' closing reference link, got $(repr(c))")
     startpos = position(parser)
 
     opener = parser.brackets

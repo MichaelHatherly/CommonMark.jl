@@ -196,3 +196,24 @@ end
     @test decode("&#65;") == "A"
     @test decode("&#x10FFFF;") == "\U10FFFF"
 end
+
+@testitem "inline_handler_preconditions" tags = [:core] begin
+    using CommonMark
+    using Test
+
+    # Dispatch-entry handlers rely on a non-local guarantee: the inline parser
+    # peeks the trigger char before calling the handler. The handler must fail
+    # fast if that precondition is violated, not silently consume the wrong char.
+    inline_at = function (s)
+        p = CommonMark.InlineParser()
+        p.buf = s
+        p.pos = 1
+        p.len = ncodeunits(s)
+        return p
+    end
+    block = CommonMark.Node(CommonMark.Document())
+
+    @test_throws ErrorException CommonMark.parse_backslash(inline_at("x"), block)
+    @test_throws ErrorException CommonMark.parse_newline(inline_at("x"), block)
+    @test_throws ErrorException CommonMark.parse_open_bracket(inline_at("x"), block)
+end
