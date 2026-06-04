@@ -2,6 +2,8 @@
 
 Continuous benchmarking tracks performance over time. Results stored in `benchmark-results` branch, visualized via GitHub Pages.
 
+PR comparisons measure the branch fresh and diff it against a baseline JSON stored from the last master run. The two measurements come from different GitHub runners, so absolute deltas carry cross-runner variance. Treat a flagged change as a signal to measure locally on one machine, not as proof.
+
 ## Running locally
 
 ```bash
