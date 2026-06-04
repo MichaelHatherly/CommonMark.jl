@@ -85,4 +85,26 @@ end
     output = String(take!(buf))
     lines = filter(!isempty, split(output, '\n'))
     @test length(lines) == 1
+
+    # Test D: an over-long unbreakable word hard-breaks without a leading blank line.
+    buf = IOBuffer()
+    ast = Parser()("x"^40)
+    show(IOContext(buf, :displaysize => (24, 14)), MIME"text/plain"(), ast)
+    output = replace(String(take!(buf)), r"\e\[[0-9;]*m" => "")
+    lines = split(rstrip(output, '\n'), '\n')
+    @test !isempty(strip(first(lines)))
+end
+
+@testitem "term_wrapping_progress" tags = [:writers, :term] begin
+    using CommonMark
+
+    # A character wider than the available column must still make progress
+    # (one grapheme per line) rather than recurse forever. Calls the internal
+    # wrapper directly to bypass the `available_columns < 5` guard.
+    fmt = CommonMark.Term()
+    fmt.wrap = 0
+    w = CommonMark.Writer(fmt, IOContext(IOBuffer(), :displaysize => (24, 1)))
+    CommonMark.print_literal_part(w, "你好世界")
+    out = String(take!(fmt.buffer))
+    @test all(c -> occursin(c, out), "你好世界")
 end

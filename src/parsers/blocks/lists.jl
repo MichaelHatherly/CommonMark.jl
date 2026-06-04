@@ -77,7 +77,7 @@ function parse_list_marker(parser::Parser, container::Node)
     spaces_start_offset = parser.pos
     while true
         advance_offset(parser, 1, true)
-        nextc = trypeek(parser, UInt8, '\0')
+        nextc = trypeek(parser, Char, '\0')
         if parser.column - spaces_start_col < 5 && is_space_or_tab(nextc)
             nothing
         else
@@ -90,7 +90,7 @@ function parse_list_marker(parser::Parser, container::Node)
         data.padding = length(m.match) + 1
         parser.column = spaces_start_col
         parser.pos = spaces_start_offset
-        if is_space_or_tab(trypeek(parser, UInt8, '\0'))
+        if is_space_or_tab(trypeek(parser, Char, '\0'))
             advance_offset(parser, 1, true)
         end
     else

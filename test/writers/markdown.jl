@@ -133,4 +133,21 @@
     @test markdown(p("````` ```ticks``` `````")) == "````` ```ticks``` `````\n"
     # Mixed single and double → triple (max run is 2), no edge backticks
     @test markdown(p("``` `` and ` ```")) == "``` `` and ` ```\n"
+
+    # Raw inline HTML round-trip: fence must exceed the longest internal backtick run
+    rawp = create_parser(RawContentRule())
+    for content in ["plain", "a`b", "a``b", "a```b", "`x`", "x`", "`x", "``", "`{=html}`"]
+        doc = CommonMark.Node(CommonMark.Document())
+        para = CommonMark.Node(CommonMark.Paragraph())
+        raw = CommonMark.Node(CommonMark.HtmlInline(raw = true))
+        raw.literal = content
+        CommonMark.append_child(para, raw)
+        CommonMark.append_child(doc, para)
+        out = markdown(doc)
+        lit = nothing
+        for (n, ent) in rawp(out)
+            n.t isa CommonMark.HtmlInline && ent && (lit = n.literal)
+        end
+        @test lit == content
+    end
 end

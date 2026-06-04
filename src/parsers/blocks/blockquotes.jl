@@ -9,7 +9,7 @@ function continue_(::BlockQuote, parser::Parser, container::Node)
     if !parser.indented && peek_nonspace(parser) == '>'
         advance_next_nonspace(parser)
         advance_offset(parser, 1, false)
-        if is_space_or_tab(trypeek(parser, UInt8))
+        if is_space_or_tab(trypeek(parser, Char))
             advance_offset(parser, 1, true)
         end
     else
@@ -29,7 +29,7 @@ function block_quote(parser::Parser, container::Node)
         advance_next_nonspace(parser)
         advance_offset(parser, 1, false)
         # optional following space
-        if is_space_or_tab(trypeek(parser, UInt8))
+        if is_space_or_tab(trypeek(parser, Char))
             advance_offset(parser, 1, true)
         end
         close_unmatched_blocks(parser)
