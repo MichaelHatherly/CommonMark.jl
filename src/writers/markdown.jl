@@ -107,34 +107,28 @@ function write_markdown(::LineBreak, w, node, ent)
     return print_margin(w)
 end
 
-function write_markdown(::Code, w, node, ent)
-    # Find longest consecutive backtick run in content
-    num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
+# Emit `content` wrapped in a backtick span, with a trailing `suffix` after the
+# closing delimiter. The delimiter is the next odd count longer than the longest
+# backtick run in `content` (even counts collide with math syntax), and content
+# that starts or ends with a backtick is space-padded so it can't merge with the
+# delimiter.
+function backtick_span(w, content, suffix = "")
+    num = foldl(eachmatch(r"`+", content); init = 0) do a, b
         max(a, length(b.match))
     end
-    # Use next odd number > num (avoid even counts which are math syntax)
     backticks = num + (isodd(num) ? 2 : 1)
-    content = node.literal
-    # Add space padding if content starts/ends with backtick (avoid merging with delimiter)
     pad = !isempty(content) && (startswith(content, '`') || endswith(content, '`'))
     literal(w, "`"^backticks)
     pad && literal(w, " ")
     literal(w, content)
     pad && literal(w, " ")
-    return literal(w, "`"^backticks)
+    return literal(w, "`"^backticks, suffix)
 end
 
+write_markdown(::Code, w, node, ent) = backtick_span(w, node.literal)
+
 function write_markdown(t::HtmlInline, w, node, ent)
-    return if t.raw
-        num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
-            max(a, length(b.match))
-        end
-        literal(w, '`'^(num == 1 ? 2 : 1))
-        literal(w, node.literal)
-        literal(w, '`'^(num == 1 ? 2 : 1), "{=html}")
-    else
-        literal(w, node.literal)
-    end
+    return t.raw ? backtick_span(w, node.literal, "{=html}") : literal(w, node.literal)
 end
 
 function write_markdown(link::Link, w, node, ent)

@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `TableRule` rendering padding cells of a short row with `align="left"` instead of the column's declared alignment [#156]
 - Fix `GridTableRule` ignoring colspan in body rows and dropping the character sitting on a column boundary; a body row that omits an internal `|`, or sits above a separator that merges columns, now spans those columns with its content intact [#157]
 - Surface front matter parse errors through `frontmatter(ast)` under the `_error` key instead of silently discarding them [#158]
+- Fix Markdown writer producing an unparseable fence for raw inline HTML (`` `…`{=html} ``) whose content starts or ends with a backtick or contains a run of two or more backticks [#161]
+- Fix terminal writer emitting a leading blank line when wrapping a word longer than the line, and looping on a character wider than the available width [#161]
 
 ## [v1.0.2] - 2026-05-29
 
@@ -503,3 +505,4 @@ Initial release.
 [#156]: https://github.com/MichaelHatherly/CommonMark.jl/issues/156
 [#157]: https://github.com/MichaelHatherly/CommonMark.jl/issues/157
 [#158]: https://github.com/MichaelHatherly/CommonMark.jl/issues/158
+[#161]: https://github.com/MichaelHatherly/CommonMark.jl/issues/161

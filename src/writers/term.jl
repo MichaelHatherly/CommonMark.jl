@@ -323,16 +323,19 @@ function _index_at_column(s::AbstractString, col::Integer)
     return lastindex(s)
 end
 
-function print_literal_part(r::Writer{Term}, lit::AbstractString, rec = 0)
+function print_literal_part(r::Writer{Term}, lit::AbstractString)
     width = Base.Unicode.textwidth(lit)
     space = (available_columns(r) - r.format.wrap) + ispunct(get(lit, 1, '\0'))
-    return if width <= space
+    return if isempty(lit) || width <= space
         print(r.format.buffer, lit)
         r.format.wrap += width
     else
         break_idx = _index_at_column(lit, space)
         index = findprev(c -> c in " -–—", lit, break_idx)
-        index = index === nothing ? (rec > 0 ? break_idx : 0) : index
+        # No break point in range: push the whole word to a fresh line. When
+        # already at the line start a fresh line cannot help, so hard-break,
+        # keeping at least the first character so the tail always shrinks.
+        index = something(index, r.format.wrap == 0 ? max(break_idx, firstindex(lit)) : 0)
         head = SubString(lit, 1, index)
         tail = SubString(lit, nextind(lit, index))
 
@@ -341,7 +344,7 @@ function print_literal_part(r::Writer{Term}, lit::AbstractString, rec = 0)
         print_margin(r)
         r.format.wrap = 0
 
-        print_literal_part(r, lstrip(tail), rec + 1)
+        print_literal_part(r, lstrip(tail))
     end
 end
 print_literal_part(r::Writer{Term}, c::Crayon) = print(r.format.buffer, c)
