@@ -48,35 +48,37 @@ end
 
 is_bracket(n::Node, c) = n.literal == c && n.t isa Text
 
+function mark_citation_brackets!(cite::Node, openers::Set{Node}, closers::Set{Node})
+    opener = closer = cite
+    while !isnull(opener.prv)
+        opener = opener.prv
+        opener in openers && return
+        opener.t isa Citation && break
+        if is_bracket(opener, "[")
+            opener.t = CitationBracket()
+            push!(openers, opener)
+            break
+        end
+    end
+    while !isnull(closer.nxt)
+        closer = closer.nxt
+        closer in closers && return
+        closer.t isa Citation && break
+        if is_bracket(closer, "]")
+            closer.t = CitationBracket()
+            push!(closers, closer)
+            break
+        end
+    end
+    return
+end
+
 inline_modifier(rule::CitationRule) = Rule(1) do parser, block
     openers = Set{Node}()
     closers = Set{Node}()
     while !isempty(rule.cites)
         cite = pop!(rule.cites)
-        if cite.t.brackets
-            opener = closer = cite
-            while !isnull(opener.prv)
-                opener = opener.prv
-                opener in openers && @goto SKIP
-                opener.t isa Citation && break
-                if is_bracket(opener, "[")
-                    opener.t = CitationBracket()
-                    push!(openers, opener)
-                    break
-                end
-            end
-            while !isnull(closer.nxt)
-                closer = closer.nxt
-                closer in closers && @goto SKIP
-                closer.t isa Citation && break
-                if is_bracket(closer, "]")
-                    closer.t = CitationBracket()
-                    push!(closers, closer)
-                    break
-                end
-            end
-            @label SKIP
-        end
+        cite.t.brackets && mark_citation_brackets!(cite, openers, closers)
     end
 end
 
