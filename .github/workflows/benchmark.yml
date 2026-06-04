@@ -18,7 +18,7 @@ permissions:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -47,20 +47,20 @@ jobs:
           mkdir -p benchmark-output
           julia --project=benchmark benchmark/run.jl benchmark-output/results.json
 
-      - name: Fetch baseline (for PRs)
+      - name: Benchmark baseline on same runner (PRs)
         if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          # Try to get the latest baseline from gh-pages branch
-          git fetch origin gh-pages 2>/dev/null || true
-          if git show origin/gh-pages:benchmarks/results/latest.json > benchmark-output/baseline.json 2>/dev/null; then
-            echo "BASELINE_EXISTS=true" >> "$GITHUB_ENV"
-          else
-            echo "BASELINE_EXISTS=false" >> "$GITHUB_ENV"
-            echo "No baseline found"
-          fi
+          HEAD_SHA=$(git rev-parse HEAD)
+          git checkout -f --detach "$BASE_SHA"
+          julia --project=benchmark -e 'using Pkg; Pkg.instantiate(); Pkg.develop(path=".")'
+          julia --project=benchmark benchmark/run.jl benchmark-output/baseline.json
+          git checkout -f --detach "$HEAD_SHA"
+          julia --project=benchmark -e 'using Pkg; Pkg.instantiate(); Pkg.develop(path=".")'
 
-      - name: Compare results (for PRs)
-        if: github.event_name == 'pull_request' && env.BASELINE_EXISTS == 'true'
+      - name: Compare results (PRs)
+        if: github.event_name == 'pull_request'
         id: compare
         run: |
           julia --project=benchmark -e '
@@ -69,8 +69,7 @@ jobs:
               "benchmark-output/baseline.json",
               "benchmark-output/results.json",
               "benchmark-output/comparison.md"
-            )
-          '
+            )'
 
       - name: Write job summary
         run: |
