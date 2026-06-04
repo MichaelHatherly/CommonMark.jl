@@ -240,7 +240,7 @@ inline_modifier(rule::TableRule) = Rule(100) do parser, block
         end
     end
     if length(cells) < max_cols
-        # Add addtional cells in this row is below number in spec.
+        # Add additional cells if this row is below number in spec.
         extra = (length(cells) + 1):max_cols
         append!(cells, (Node(TableCell(spec[n], isheader, n, 1, 1)) for n in extra))
     end

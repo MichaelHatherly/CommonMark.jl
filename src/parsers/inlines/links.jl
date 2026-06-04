@@ -115,7 +115,7 @@ function parse_bang(parser::InlineParser, block::Node)
         @assert read(parser, Char) === '['
         node = text("![")
         append_child(block, node)
-        # Add entry to stack for this openeer.
+        # Add entry to stack for this opener.
         add_bracket!(parser, node, startpos + 1, true)
     else
         append_child(block, text("!"))
