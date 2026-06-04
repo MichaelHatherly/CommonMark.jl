@@ -286,37 +286,6 @@ function pop_inline!(r::Writer)
 end
 
 """
-Print out all the current segments present in the margin buffer.
-
-Each time a segment gets printed it's count is reduced. When a segment has a
-count of zero it won't be printed and instead spaces equal to it's width are
-printed. For persistent printing a count of -1 should be used.
-"""
-function print_margin(r::Writer)
-    r.enabled || return
-    for seg in r.format.margin
-        if seg.count == 0
-            # Blank space case.
-            print(r.format.buffer, ' '^seg.width)
-        else
-            # The normal case, where .count is reduced after each print.
-            print(r.format.buffer, seg.text)
-            seg.count > 0 && (seg.count -= 1)
-        end
-    end
-    return
-end
-
-function maybe_print_margin(r, node::Node)
-    if isnull(node.first_child)
-        push_margin!(r, "\n")
-        print_margin(r)
-        pop_margin!(r)
-    end
-    return nothing
-end
-
-"""
 Literal printing of a of `parts`. Behaviour depends on when `.wrap` is active
 at the moment, which is set in `Paragraph` rendering.
 """
