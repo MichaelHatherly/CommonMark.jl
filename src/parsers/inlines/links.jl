@@ -37,7 +37,7 @@ function Node(
     return node
 end
 
-chomp_ws(parser::InlineParser) = (consume(parser, match(reSpnl, parser)); true)
+chomp_ws(parser::InlineParser) = (consume(parser, match(reSpnl, parser)); nothing)
 
 function parse_link_title(parser::InlineParser)
     title = consume(parser, match(reLinkTitle, parser))
@@ -154,12 +154,14 @@ function parse_close_bracket(parser::InlineParser, block::Node)
         read(parser, Char)
         chomp_ws(parser)
         dest = parse_link_destination(parser)
-        if dest !== nothing && chomp_ws(parser)
+        if dest !== nothing
+            chomp_ws(parser)
             # Make sure there's a space before the title.
             if prev(parser, Char) in WHITESPACECHAR
                 title = parse_link_title(parser)
             end
-            if chomp_ws(parser) && trypeek(parser, Char, '\0') === ')'
+            chomp_ws(parser)
+            if trypeek(parser, Char, '\0') === ')'
                 read(parser, Char)
                 matched = true
             end
