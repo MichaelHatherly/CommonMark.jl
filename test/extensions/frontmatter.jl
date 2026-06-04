@@ -72,4 +72,17 @@
     ast = p(text)
     @test markdown(ast) == "---\nfield: data\n---\n"
     @test markdown(p(markdown(ast))) == markdown(ast)
+
+    # A parse failure must be observable in the frontmatter data, not silently dropped.
+    bad = """
+    ;;;
+    {not valid json
+    ;;;
+    ;;;
+    """
+    ast = p(bad)
+    data = frontmatter(ast)
+    @test haskey(data, "_error")
+    @test data["_error"] isa AbstractString
+    @test !isempty(data["_error"])
 end

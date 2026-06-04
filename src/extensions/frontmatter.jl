@@ -87,7 +87,7 @@ block_modifier(f::FrontMatterRule) = Rule(0.5) do parser, node
         try
             merge!(node.t.data, λ(node.literal))
         catch err
-            node.literal = string(err)
+            node.t.data["_error"] = string(err)
         end
     end
     return nothing
