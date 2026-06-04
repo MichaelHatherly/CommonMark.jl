@@ -91,7 +91,7 @@ block_modifier(::CitationRule) = Rule(10) do parser, b
     return nothing
 end
 
-# Writers. TODO: implement real CSL for citation styling.
+# Writers. Styling is fixed to author-year; .csl style files are not parsed.
 
 # Citations inside a `Link` would emit nested `<a>` (HTML) or nested
 # `\href`/`\hyperlink` (LaTeX). HTML5 §4.5.1 forbids the former and browsers
