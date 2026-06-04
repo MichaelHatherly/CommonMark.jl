@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Inline parsers for link, image, reference link, table, and attribute syntax now raise a descriptive error when their trigger character is missing, instead of advancing the parser inside an `@assert` that could be disabled and silently corrupt output [#158]
+
 ### Fixed
 
 - Fix `ReferenceLinkRule` crashing with `StringIndexError` on reference definitions whose label contains multibyte characters [#154]
@@ -23,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Typst writer producing inline code whose backticks merged with the delimiters or were misread as a language tag (e.g. `` `code` ``) [#154]
 - Fix `TableRule` rendering padding cells of a short row with `align="left"` instead of the column's declared alignment [#156]
 - Fix `GridTableRule` ignoring colspan in body rows and dropping the character sitting on a column boundary; a body row that omits an internal `|`, or sits above a separator that merges columns, now spans those columns with its content intact [#157]
+- Surface front matter parse errors through `frontmatter(ast)` under the `_error` key instead of silently discarding them [#158]
 
 ## [v1.0.2] - 2026-05-29
 
@@ -497,3 +502,4 @@ Initial release.
 [#154]: https://github.com/MichaelHatherly/CommonMark.jl/issues/154
 [#156]: https://github.com/MichaelHatherly/CommonMark.jl/issues/156
 [#157]: https://github.com/MichaelHatherly/CommonMark.jl/issues/157
+[#158]: https://github.com/MichaelHatherly/CommonMark.jl/issues/158
