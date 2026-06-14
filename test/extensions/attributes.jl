@@ -132,12 +132,8 @@
     test("![word](url){#id}", CommonMark.Image, dict)
     test("**word**{#id}", CommonMark.Strong, dict)
     test("`word`{#id}", CommonMark.Code, dict)
-    test(
-        "<http://www.website.com>{#id}",
-        CommonMark.Link,
-        dict,
-        "[http://www.website.com](http://www.website.com){#id}",
-    )
+    # Autolinks are preserved in autolink form by the markdown writer.
+    test("<http://www.website.com>{#id}", CommonMark.Link, dict)
 
     # Writer output tests
     test_single = test_single_format(pwd(), p)

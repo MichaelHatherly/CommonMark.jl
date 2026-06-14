@@ -23,7 +23,9 @@
     ast = p("# *not a header*")
     @test ast.first_child.t isa CommonMark.Paragraph
     @test ast.first_child.first_child.nxt.t isa CommonMark.Emph
-    @test markdown(ast) == "# *not a header*\n"
+    # The `#` is escaped so the output re-parses as a paragraph even with the
+    # heading rule enabled.
+    @test markdown(ast) == "\\# *not a header*\n"
 
     # Make sure that enable! or disable! do not create duplicate rules
     # https://github.com/MichaelHatherly/CommonMark.jl/issues/45

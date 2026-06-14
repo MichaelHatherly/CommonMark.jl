@@ -347,7 +347,8 @@ end
 # Markdown - output reference style
 
 function write_markdown(ref::ReferenceLink, w, node, ent)
-    return if ent
+    if ent
+        w.format.link_image_depth += 1
         literal(w, "[")
     else
         if ref.style === :full
@@ -357,11 +358,14 @@ function write_markdown(ref::ReferenceLink, w, node, ent)
         else  # :shortcut
             literal(w, "]")
         end
+        w.format.link_image_depth -= 1
     end
+    return nothing
 end
 
 function write_markdown(ref::ReferenceImage, w, node, ent)
-    return if ent
+    if ent
+        w.format.link_image_depth += 1
         literal(w, "![")
     else
         if ref.style === :full
@@ -371,7 +375,9 @@ function write_markdown(ref::ReferenceImage, w, node, ent)
         else
             literal(w, "]")
         end
+        w.format.link_image_depth -= 1
     end
+    return nothing
 end
 
 # HTML - same as regular Link/Image
@@ -499,13 +505,16 @@ write_typst(::ReferenceDefinition, w, n, ent) = nothing
 # For shortcut style, we output [text] or ![text] directly
 
 function write_markdown(ref::UnresolvedReference, w, node, ent)
-    return if ent
+    if ent
+        w.format.link_image_depth += 1
         # Only use image flag for shortcut style - for full/collapsed, ![ is in preceding Text
         use_image = ref.image && ref.style === :shortcut
         literal(w, use_image ? "![" : "[")
     else
         literal(w, "]")
+        w.format.link_image_depth -= 1
     end
+    return nothing
 end
 
 # HTML - output as text (no link)
