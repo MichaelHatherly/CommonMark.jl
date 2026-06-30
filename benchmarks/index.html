@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CommonMark.jl Benchmarks</title>
+    <title>Benchmarks</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
@@ -105,7 +105,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 CommonMark.jl Benchmarks</h1>
+        <h1 id="page-title">📊 Benchmarks</h1>
 
         <div class="controls">
             <label>
@@ -162,8 +162,23 @@
     <script>
         let allData = [];
         let chart = null;
-        const repoUrl = 'https://github.com/MichaelHatherly/CommonMark.jl';
+        let repoUrl = 'https://github.com';
         const dataBaseUrl = './results';
+
+        async function loadConfig() {
+            try {
+                const resp = await fetch('./config.json');
+                if (!resp.ok) return;
+                const config = await resp.json();
+                if (config.repo) repoUrl = `https://github.com/${config.repo}`;
+                if (config.title) {
+                    document.title = config.title;
+                    document.getElementById('page-title').textContent = `📊 ${config.title}`;
+                }
+            } catch (e) {
+                console.error('Error loading config:', e);
+            }
+        }
 
         async function loadIndex() {
             try {
@@ -380,7 +395,7 @@
         document.getElementById('metric-select').addEventListener('change', updateView);
         document.getElementById('range-select').addEventListener('change', updateView);
 
-        refreshData();
+        loadConfig().then(refreshData);
     </script>
 </body>
 </html>
