@@ -128,6 +128,10 @@
                     <option value="all">All</option>
                 </select>
             </label>
+            <label id="normalize-label" title="Scale each run's time by a fixed calibration kernel, cancelling differences in how fast the CI runner was that day.">
+                <input type="checkbox" id="normalize-time" checked>
+                Normalize time to runner
+            </label>
             <button onclick="refreshData()">Refresh</button>
         </div>
 
@@ -163,6 +167,7 @@
         let allData = [];
         let chart = null;
         let repoUrl = 'https://github.com';
+        let refCalib = null;
         const dataBaseUrl = './results';
 
         async function loadConfig() {
@@ -221,12 +226,32 @@
             const benchmarks = new Set();
             data.forEach(d => {
                 if (d.benchmarks) {
-                    Object.keys(d.benchmarks).forEach(k => benchmarks.add(k));
+                    // `calibration` is the runner-speed reference, not a real benchmark.
+                    Object.keys(d.benchmarks).forEach(k => k !== 'calibration' && benchmarks.add(k));
                 }
             });
             select.innerHTML = Array.from(benchmarks).sort().map(b =>
                 `<option value="${b}">${b}</option>`
             ).join('');
+        }
+
+        // Median wall-clock of the fixed calibration kernel for one run, or null if
+        // the run predates it.
+        function runCalibration(d) {
+            return d?.benchmarks?.calibration?.time_ns?.median ?? null;
+        }
+
+        // Reference calibration used to normalize the whole series: the median across
+        // every run that carries one. Null when no run does.
+        function referenceCalibration(data) {
+            const vals = data.map(runCalibration).filter(v => v !== null).sort((a, b) => a - b);
+            if (vals.length === 0) return null;
+            const mid = Math.floor(vals.length / 2);
+            return vals.length % 2 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2;
+        }
+
+        function normalizeEnabled() {
+            return document.getElementById('normalize-time').checked;
         }
 
         function getMetricValue(benchmark, metric) {
@@ -236,6 +261,17 @@
                 case 'memory': return benchmark.memory_bytes;
                 case 'allocations': return benchmark.allocations;
             }
+        }
+
+        // Metric value for a run, scaling the time metric onto the reference runner
+        // when normalization is on and both calibrations exist. Memory and allocations
+        // are deterministic, so they are never scaled.
+        function getRunMetricValue(d, benchmarkName, metric) {
+            const value = getMetricValue(d?.benchmarks?.[benchmarkName], metric);
+            if (value === null || value === undefined) return value;
+            if (metric !== 'time' || !normalizeEnabled() || refCalib === null) return value;
+            const rc = runCalibration(d);
+            return rc ? value * (refCalib / rc) : value;
         }
 
         function formatMetricValue(value, metric) {
@@ -258,9 +294,9 @@
             const previous = data[1];
             const oldest = data[data.length - 1];
 
-            const latestValue = getMetricValue(latest?.benchmarks?.[benchmarkName], metric);
-            const previousValue = getMetricValue(previous?.benchmarks?.[benchmarkName], metric);
-            const oldestValue = getMetricValue(oldest?.benchmarks?.[benchmarkName], metric);
+            const latestValue = getRunMetricValue(latest, benchmarkName, metric);
+            const previousValue = getRunMetricValue(previous, benchmarkName, metric);
+            const oldestValue = getRunMetricValue(oldest, benchmarkName, metric);
 
             function changeHtml(current, baseline) {
                 if (!current || !baseline) return '';
@@ -294,7 +330,7 @@
 
             const chartData = data.map(d => ({
                 x: new Date(d.timestamp),
-                y: getMetricValue(d.benchmarks?.[benchmarkName], metric),
+                y: getRunMetricValue(d, benchmarkName, metric),
                 commit: d.git?.commit?.slice(0, 7) || 'unknown'
             })).filter(d => d.y !== null).reverse();
 
@@ -355,7 +391,7 @@
                     <tr>
                         <td>${new Date(d.timestamp).toLocaleDateString()}</td>
                         <td><a class="commit-link" href="${repoUrl}/commit/${commit}" target="_blank">${shortCommit}</a></td>
-                        <td>${formatMetricValue(getMetricValue(b, 'time'), 'time')}</td>
+                        <td>${formatMetricValue(getRunMetricValue(d, benchmarkName, 'time'), 'time')}</td>
                         <td>${formatMetricValue(getMetricValue(b, 'memory'), 'memory')}</td>
                         <td>${b?.allocations?.toLocaleString() || 'N/A'}</td>
                     </tr>
@@ -367,6 +403,14 @@
             const benchmarkName = document.getElementById('benchmark-select').value;
             const metric = document.getElementById('metric-select').value;
             const range = document.getElementById('range-select').value;
+
+            // Normalization only applies to the time metric, and only when a reference
+            // calibration exists in the data.
+            const label = document.getElementById('normalize-label');
+            const box = document.getElementById('normalize-time');
+            const applicable = metric === 'time' && refCalib !== null;
+            box.disabled = !applicable;
+            label.style.opacity = applicable ? '1' : '0.5';
 
             let data = allData;
             if (range !== 'all') {
@@ -387,6 +431,7 @@
             );
 
             allData = results.filter(r => r !== null);
+            refCalib = referenceCalibration(allData);
             populateBenchmarkSelect(allData);
             updateView();
         }
@@ -394,6 +439,7 @@
         document.getElementById('benchmark-select').addEventListener('change', updateView);
         document.getElementById('metric-select').addEventListener('change', updateView);
         document.getElementById('range-select').addEventListener('change', updateView);
+        document.getElementById('normalize-time').addEventListener('change', updateView);
 
         loadConfig().then(refreshData);
     </script>
