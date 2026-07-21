@@ -178,7 +178,7 @@ end
 function write_typst(code::CodeBlock, w, node, ent)
     fence = code.is_fenced ? code.fence_char^code.fence_length : "```"
     print_margin(w)
-    literal(w, fence, code.info)
+    literal(w, fence, unescape_string(code.info))
     cr(w)
     for line in eachline(IOBuffer(node.literal); keep = true)
         print_margin(w)

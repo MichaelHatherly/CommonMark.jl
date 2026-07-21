@@ -194,7 +194,7 @@ end
 
 function write_json(::CodeBlock, ctx, node, enter)
     enter || return
-    info = node.t.info
+    info = unescape_string(node.t.info)
     classes = isempty(info) ? String[] : String[info]
     attr = Any["", classes, Any[]]
     # Strip trailing newline.
