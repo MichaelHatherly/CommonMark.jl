@@ -49,6 +49,14 @@
         """,
     )
     test_json(
+        "references/json/code_block_info_escape.json",
+        """
+        ``` foo\\+bar
+        foo
+        ```
+        """,
+    )
+    test_json(
         "references/json/list_bullet.json",
         """
         - item 1

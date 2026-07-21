@@ -76,6 +76,15 @@
         """,
         typst,
     )
+    test(
+        "references/typst/code_block_info_escape.typ",
+        """
+        ``` foo\\+bar
+        foo
+        ```
+        """,
+        typst,
+    )
     # Escapes.
     test("references/typst/escapes.typ", "^~\\&%\$#_{}", typst)
 end
