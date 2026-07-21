@@ -289,8 +289,8 @@ more text.
 
 ## Autolinks
 
-Visit [https://example.com](https://example.com) for more info.
-Email: [user@example.org](mailto:user@example.org) works too.
+Visit <https://example.com> for more info.
+Email: <user@example.org> works too.
 
 ## Attributes
 

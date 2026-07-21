@@ -141,7 +141,9 @@ function parse_inline(parser::InlineParser, block::Node, fallback::Vector{Functi
 end
 
 function parse_inlines(parser::InlineParser, block::Node)
-    parser.buf = strip(block.literal)
+    # Trim only ASCII whitespace: Unicode whitespace such as a non-breaking
+    # space is content, not formatting, per the CommonMark spec.
+    parser.buf = strip(block.literal, (' ', '\t', '\n', '\v', '\f', '\r'))
     block.literal = ""
     parser.pos = 1
     parser.len = ncodeunits(parser.buf)

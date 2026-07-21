@@ -54,7 +54,10 @@
     @test unresolved[1].style == :full
     @test unresolved[1].image == false
     @test html(ast) == "<p>[text][missing]</p>\n"
-    @test markdown(ast) == "[text][missing]\n"
+    # The leading `[text]` is a plain text node; only its `[` needs escaping
+    # (the following `[missing]` would otherwise make it a full reference). The
+    # `]` is harmless once the `[` is escaped, so it is left bare.
+    @test markdown(ast) == "\\[text][missing]\n"
 
     # UnresolvedReference - collapsed style
     ast = p("[collapsed][]")
@@ -63,7 +66,7 @@
     @test unresolved[1].label == "collapsed"
     @test unresolved[1].style == :collapsed
     @test html(ast) == "<p>[collapsed][]</p>\n"
-    @test markdown(ast) == "[collapsed][]\n"
+    @test markdown(ast) == "\\[collapsed][]\n"
 
     # UnresolvedReference - shortcut style
     ast = p("[undefined shortcut]")

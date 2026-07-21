@@ -36,7 +36,8 @@ function parse_newline(parser::InlineParser, block::Node)
     lastc = block.last_child
     if !isnull(lastc) && lastc.t isa Text && endswith(lastc.literal, ' ')
         child = Node(endswith(lastc.literal, "  ") ? LineBreak() : SoftBreak())
-        lastc.literal = rstrip(lastc.literal)
+        # ASCII-only trim: a trailing non-breaking space is content.
+        lastc.literal = rstrip(lastc.literal, (' ', '\t'))
         append_child(block, child)
     else
         append_child(block, Node(SoftBreak()))

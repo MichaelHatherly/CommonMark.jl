@@ -10,9 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Inline parsers for link, image, reference link, table, and attribute syntax now raise a descriptive error when their trigger character is missing, instead of advancing the parser inside an `@assert` that could be disabled and silently corrupt output [#158]
+- Markdown writer now escapes text that would re-parse as structure, but only where a character would actually be read as syntax in its output context rather than escaping every occurrence: `*`/`_` are escaped only when flanking (so `snake_case` and `a * b` stay bare), `<` only before an autolink/HTML-tag start (so `a < b` stays bare), `]` only inside link/image text, and `[` only when a following `]` could form a link or reference (so `[1]`/`[note]` keep only the `[` escaped when needed). Backslashes, backticks, entity-like `&...;` sequences, literal newlines/leading tabs (as `&#10;`/`&#9;`), and (at line starts) heading/list/blockquote markers, setext underlines, and thematic breaks are escaped as before [#163]
+- Markdown writer preserves the parsed list bullet character and ordered-list delimiter instead of restyling by nesting depth, so adjacent sibling lists no longer merge on re-parse [#163]
+- Markdown writer preserves autolinks (`<https://example.com>`) instead of rewriting them as inline links [#163]
+- Markdown writer renders level 1–2 headings containing soft line breaks in setext form, which is the only form that can represent them [#163]
 
 ### Fixed
 
+- Fix inline parsing stripping Unicode whitespace (e.g. a non-breaking space) at paragraph boundaries and line ends; only ASCII whitespace is formatting per the CommonMark spec [#163]
+- Fix markdown writer dropping the padding spaces of a code span whose content starts and ends with a space (`` `  ``  ` ``) [#163]
+- Fix markdown writer emitting link and image destinations verbatim; destinations with whitespace, unbalanced parentheses, `<`, `>`, or `\` are now wrapped in pointy brackets, and backslashes in titles are escaped [#163]
+- Fix markdown writer turning a soft line break inside emphasis inside a heading into a literal newline, splitting the heading on re-parse [#163]
+- Fix markdown writer writing an indented code block directly after a list, where it would re-parse as part of the final list item; it is now fenced [#163]
+- Fix markdown writer stripping the indentation of whitespace-only lines inside indented code blocks, losing their content on re-parse [#163]
 - Fix `ReferenceLinkRule` crashing with `StringIndexError` on reference definitions whose label contains multibyte characters [#154]
 - Fix `TableRule` crashing with `BoundsError` on a separator row containing no dashes (e.g. `|::|`); such a row is no longer treated as a table [#154]
 - Fix link reference definition keeping an invalid title (text after the title on the same line) instead of discarding it [#154]
@@ -506,3 +516,4 @@ Initial release.
 [#157]: https://github.com/MichaelHatherly/CommonMark.jl/issues/157
 [#158]: https://github.com/MichaelHatherly/CommonMark.jl/issues/158
 [#161]: https://github.com/MichaelHatherly/CommonMark.jl/issues/161
+[#163]: https://github.com/MichaelHatherly/CommonMark.jl/issues/163
