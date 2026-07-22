@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.0.3] - 2026-07-22
+
 ### Changed
 
 - Inline parsers for link, image, reference link, table, and attribute syntax now raise a descriptive error when their trigger character is missing, instead of advancing the parser inside an `@assert` that could be disabled and silently corrupt output [#158]
@@ -444,6 +446,7 @@ Initial release.
 [v1.0.0]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.0
 [v1.0.1]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.1
 [v1.0.2]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.2
+[v1.0.3]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.3
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
@@ -507,3 +510,4 @@ Initial release.
 [#157]: https://github.com/MichaelHatherly/CommonMark.jl/issues/157
 [#158]: https://github.com/MichaelHatherly/CommonMark.jl/issues/158
 [#161]: https://github.com/MichaelHatherly/CommonMark.jl/issues/161
+[#176]: https://github.com/MichaelHatherly/CommonMark.jl/issues/176
