@@ -56,7 +56,7 @@ function finalize(::CodeBlock, parser::Parser, block::Node)
     if cb.is_fenced
         # first line becomes info string
         first_line, rest = split(block.literal, '\n'; limit = 2)
-        info = unescape_string(strip(first_line))
+        info = strip(first_line)
         cb.info = info
         block.literal = rest
     else

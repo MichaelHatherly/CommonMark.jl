@@ -187,7 +187,7 @@ function write_html(::Code, r, n, ent)
 end
 
 function write_html(::CodeBlock, r, n, ent)
-    info_words = split(n.t.info === nothing ? "" : n.t.info)
+    info_words = split(n.t.info === nothing ? "" : unescape_string(n.t.info))
     attrs = attributes(r, n)
     if !isempty(info_words) && !isempty(first(info_words))
         push!(attrs, "class" => "language-$(escape_xml(first(info_words)))")

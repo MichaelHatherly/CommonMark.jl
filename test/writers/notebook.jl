@@ -58,4 +58,12 @@
             code
         """,
     )
+    test(
+        "references/notebook/code_block_info_escape.md",
+        """
+        ``` foo\\+bar
+        foo
+        ```
+        """,
+    )
 end

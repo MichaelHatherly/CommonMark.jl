@@ -98,6 +98,20 @@
         """,
     )
     test_with_roundtrip(
+        "references/markdown/code_block_jldoctest_escapes.md",
+        """
+        ```jldoctest; filter="a\\\\.b"
+        julia> a = 1
+        1
+        ```
+
+        ```jldoctest
+        julia> name = :hello; @varname(x.\\\$name)
+        x.hello
+        ```
+        """,
+    )
+    test_with_roundtrip(
         "references/markdown/code_block_indented_julia.md",
         """
             julia> a = 1
