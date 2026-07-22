@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Surface front matter parse errors through `frontmatter(ast)` under the `_error` key instead of silently discarding them [#158]
 - Fix Markdown writer producing an unparseable fence for raw inline HTML (`` `…`{=html} ``) whose content starts or ends with a backtick or contains a run of two or more backticks [#161]
 - Fix terminal writer emitting a leading blank line when wrapping a word longer than the line, and looping on a character wider than the available width [#161]
+- Fix escape sequences in fenced code block info strings being dropped in Markdown and notebook output [#176]
 
 ## [v1.0.2] - 2026-05-29
 
