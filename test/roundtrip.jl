@@ -5,28 +5,7 @@
 
     roundtrip_dir = joinpath(@__DIR__, "roundtrip")
 
-    # Test with all extensions enabled
-    extensions = [
-        AdmonitionRule(),
-        AttributeRule(),
-        AutoIdentifierRule(),
-        CitationRule(),
-        DollarMathRule(),
-        FencedDivRule(),
-        FootnoteRule(),
-        FrontMatterRule(),
-        GitHubAlertRule(),
-        MathRule(),
-        RawContentRule(),
-        ReferenceLinkRule(),
-        StrikethroughRule(),
-        SubscriptRule(),
-        SuperscriptRule(),
-        TableRule(),
-        TaskListRule(),
-        TypographyRule(),
-    ]
-    p = create_parser(extensions)
+    p = create_parser(EXTENSIONS)
 
     input_file = joinpath(roundtrip_dir, "input.md")
     output_file = joinpath(roundtrip_dir, "output.md")
@@ -46,6 +25,9 @@
 
     # Output is stable (already canonical)
     @test markdown(p(actual_output)) == actual_output
+
+    # Output is faithful (reparses as the document it came from)
+    @test Utilities.faithful(p, input)
 
     # No trailing whitespace except hard breaks (exactly two spaces)
     for (i, line) in enumerate(split(actual_output, '\n'))

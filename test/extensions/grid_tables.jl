@@ -277,6 +277,18 @@
         @test md1 == md2
     end
 
+    # A cell writer that suspends output for its own children must hand the
+    # table writer back the suspension it borrowed.
+    text = """
+    +-----------------------+
+    | <https://example.com> |
+    +-----------------------+
+    """
+    ast = p(text)
+    md1 = markdown(ast)
+    @test md1 == text
+    @test markdown(p(md1)) == md1
+
     # Width-80 explicit IOContext matches term() output (which uses IOBuffer → 80 cols)
     text = """
     +----------+----------------------+

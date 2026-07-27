@@ -87,3 +87,37 @@
     ast = p(raw"$ $")
     @test markdown(ast) == "\$ \$\n"
 end
+
+@testitem "math backtick delimiters" tags = [:extensions, :math] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(MathRule())
+
+    # The delimiter has to outrun the backticks in the content and stay even,
+    # since an odd run is a code span.
+    @test Utilities.faithful(p, "`` \\[\\` ``\n")
+    @test Utilities.faithful(p, "```` `` ````\n")
+    @test Utilities.faithful(p, "```` ``` ````\n")
+    @test Utilities.faithful(p, "`` `x ``\n")
+    @test Utilities.faithful(p, "`` x` ``\n")
+
+    ast = p("`` \\[\\` ``")
+    @test ast.first_child.first_child.t isa CommonMark.Math
+    @test ast.first_child.first_child.literal == "\\[\\`"
+end
+
+@testitem "math dollar delimiters" tags = [:extensions, :math] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(DollarMathRule())
+
+    # A dollar sign that survived the parse as literal text has to survive the
+    # next one too, so the writer keeps it out of the rule's reach.
+    @test Utilities.faithful(p, "costs &#36;5 and &#36;10\n")
+    @test markdown(p("costs &#36;5 and &#36;10\n")) == "costs \\\$5 and \\\$10\n"
+
+    # Math the rule parsed keeps its delimiters.
+    @test markdown(p("\$x^2\$\n")) == "\$x^2\$\n"
+end

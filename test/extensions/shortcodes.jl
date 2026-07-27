@@ -375,3 +375,18 @@ end
     @test length(shortcodes) == 1
     @test shortcodes[1].kwargs == ["kéy" => "val"]
 end
+
+@testitem "shortcodes roundtrip" tags = [:extensions, :shortcodes] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(ShortcodeRule())
+
+    # An opening delimiter the parse left as text keeps its meaning on a reparse.
+    @test Utilities.faithful(p, "text &#123;&#123;&lt; ref &gt;&#125;&#125; here\n")
+    @test markdown(p("text &#123;&#123;&lt; ref &gt;&#125;&#125; here\n")) ==
+        "text \\{{< ref >}} here\n"
+
+    # A shortcode the rule parsed keeps its delimiters.
+    @test markdown(p("text {{< ref \"page\" >}} here\n")) == "text {{< ref \"page\" >}} here\n"
+end

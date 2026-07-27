@@ -70,3 +70,17 @@
     """
     test(bib, p(text), "reference_list")
 end
+
+@testitem "citations roundtrip" tags = [:extensions, :citations] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(CitationRule())
+
+    # An at sign the parse left as text keeps its meaning on a reparse.
+    @test Utilities.faithful(p, "&#64;key here\n")
+    @test markdown(p("&#64;key here\n")) == "\\@key here\n"
+
+    # A citation the rule parsed keeps its sigil.
+    @test markdown(p("see @smith2020 here\n")) == "see @smith2020 here\n"
+end

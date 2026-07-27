@@ -102,6 +102,58 @@
         :typst => typst,
     )
 
+    """
+    Rendered Markdown is faithful when reparsing it yields the same document.
+    Compare HTML because it is the spec-defined rendering of the AST.
+
+    A mismatch prints the input, the rendered Markdown, and both HTML strings to
+    `stderr`, since the caller only sees the failing expression.
+    """
+    function faithful(parser, text)
+        rendered = markdown(parser(text))
+        expected = html(parser(text))
+        actual = html(parser(rendered))
+        actual == expected && return true
+        print(
+            stderr,
+            """
+            faithful roundtrip failed
+              input:    $(repr(text))
+              markdown: $(repr(rendered))
+              expected: $(repr(expected))
+              actual:   $(repr(actual))
+            """
+        )
+        return false
+    end
+
+    "Every bundled extension rule, for tests that check they hold together."
+    const EXTENSIONS = [
+        AdmonitionRule(),
+        AttributeRule(),
+        AutoIdentifierRule(),
+        CitationRule(),
+        DefinitionListRule(),
+        DollarMathRule(),
+        FencedDivRule(),
+        FootnoteRule(),
+        FrontMatterRule(),
+        GitHubAlertRule(),
+        GridTableRule(),
+        CommonMark.JuliaInterpolationRule(),
+        MarkRule(),
+        MathRule(),
+        RawContentRule(),
+        ReferenceLinkRule(),
+        ShortcodeRule(),
+        StrikethroughRule(),
+        SubscriptRule(),
+        SuperscriptRule(),
+        TableRule(),
+        TaskListRule(),
+        TypographyRule(),
+    ]
+
     # Export all functions and macros
     export test_all_formats,
         test_single_format,
@@ -111,6 +163,7 @@
         @test_format_with_processor,
         create_parser,
         normalize_line_endings,
+        EXTENSIONS,
         FORMAT_EXTENSIONS,
         FORMAT_FUNCTIONS
 end

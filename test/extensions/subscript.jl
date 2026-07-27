@@ -52,3 +52,17 @@
     # Letters without Unicode equivalents fall back to original
     @test term(p("~abc~")) == " ₐbc\n"
 end
+
+@testitem "subscript roundtrip" tags = [:extensions, :subscript] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(SubscriptRule())
+
+    # A tilde the parse left as text keeps its meaning on a reparse.
+    @test Utilities.faithful(p, "a &#126;b&#126; c\n")
+    @test markdown(p("a &#126;b&#126; c\n")) == "a \\~b\\~ c\n"
+
+    # Subscript the rule parsed keeps its delimiters.
+    @test markdown(p("H~2~O\n")) == "H~2~O\n"
+end
