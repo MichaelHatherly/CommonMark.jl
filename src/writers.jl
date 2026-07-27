@@ -123,6 +123,12 @@ function literal(r::Writer, args...)
     return nothing
 end
 
+"""
+Report to the format that the margin of a line has been printed, so whatever
+comes next starts the line's content. Formats that don't care ignore it.
+"""
+margin_written!(format) = nothing
+
 function cr(r::Writer)
     if r.enabled && r.last != '\n'
         r.last = '\n'
@@ -150,6 +156,7 @@ function print_margin(r::Writer)
             seg.count > 0 && (seg.count -= 1)
         end
     end
+    margin_written!(r.format)
     return
 end
 
