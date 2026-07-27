@@ -47,6 +47,9 @@ inline_rule(ji::JuliaInterpolationRule) = Rule(1, "\$") do p, node
     end
 end
 
+# A dollar opens an expression whatever follows it, parentheses or not.
+claimed_syntax(::JuliaInterpolationRule) = ["\$"]
+
 export @cm_str
 
 """
@@ -242,7 +245,7 @@ end
 # Markdown output should be roundtrip-able, so printout the interpolated
 # expression rather than it's value.
 write_markdown(jv::Union{JuliaExpression, JuliaValue}, rend, node, ent) =
-    print(rend.buffer, '$', "($(jv.ex))")
+    literal(rend, "\$($(jv.ex))")
 
 # Render evaluated values as text.
 function write_json(jv::JuliaValue, ctx, node, enter)

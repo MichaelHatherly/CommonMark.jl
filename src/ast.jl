@@ -268,6 +268,19 @@ function insert_before(node::Node, sibling::Node)
     end
 end
 
+"""
+    document(node::Node)
+
+Follow parent links to the root of `node`'s tree. Inline rules and modifiers are
+handed a single node rather than the document, so this is how they reach it.
+"""
+function document(node::Node)
+    while !isnull(node.parent)
+        node = node.parent
+    end
+    return node
+end
+
 # Builder helpers for Node(Type, children...) constructors.
 _to_node(s::AbstractString) = text(s)
 _to_node(n::Node) = n

@@ -1089,7 +1089,7 @@ function _render_grid_cell(cell_node::Node)
     buf = IOBuffer()
     child = cell_node.first_child
     while !isnull(child)
-        write(buf, markdown(child))
+        write(buf, markdown_fragment(child))
         child = child.nxt
     end
     text = rstrip(String(take!(buf)))

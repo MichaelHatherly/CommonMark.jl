@@ -185,6 +185,8 @@ end
 
 block_rule(::TableRule) = Rule(gfm_table, 0.5, "|")
 
+claimed_syntax(::TableRule) = ["|"]
+
 struct TablePipe <: AbstractInline end
 
 inline_rule(rule::TableRule) = Rule(0, "|") do parser, block
@@ -441,8 +443,9 @@ end
 
 function write_markdown(table::Table, w::Writer, node, enter)
     if enter
-        cells, widths =
-            calculate_columns_widths(node -> length(markdown(node)), table, node)
+        cells, widths = calculate_columns_widths(table, node) do cell
+            length(markdown_fragment(cell))
+        end
         w.context[:cells] = cells
         w.context[:widths] = widths
     else

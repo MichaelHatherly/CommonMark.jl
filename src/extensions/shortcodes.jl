@@ -38,10 +38,7 @@ function _shortcode_context(parser::Parser, sourcepos::SourcePos)
 end
 
 function _shortcode_context(block::Node)
-    doc = block
-    while !isnull(doc.parent)
-        doc = doc.parent
-    end
+    doc = document(block)
     return ShortcodeContext(
         getmeta(doc, "source", ""),
         block.sourcepos,
@@ -225,6 +222,8 @@ inline_rule(rule::ShortcodeRule) = Rule(1, string(first(rule.open))) do p, block
     end
     return true
 end
+
+claimed_syntax(rule::ShortcodeRule) = [rule.open]
 
 #
 # Block modifier

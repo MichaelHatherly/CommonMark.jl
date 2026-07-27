@@ -8,6 +8,25 @@ delim_nodes(::Any) = nothing
 flanking_rule(::Any) = nothing
 uses_odd_match(::Any) = nothing
 
+"""
+The spellings a rule gives meaning to in text that the core spec reads as plain
+text, such as the `--` that [`TypographyRule`](@ref) turns into an en dash.
+
+Text is written back out with the first character of each spelling escaped, so
+that a document parsed with the rule enabled reparses the same way. Rules whose
+syntax the core spec already treats as markup need no method here: the writer
+escapes that syntax regardless.
+"""
+claimed_syntax(::Any) = String[]
+
+function claimed_syntax(rules::Union{Tuple, Vector})
+    claims = String[]
+    for rule in rules
+        append!(claims, claimed_syntax(rule))
+    end
+    return unique!(claims)
+end
+
 struct Rule
     fn::Function
     priority::Float64
@@ -93,8 +112,13 @@ function enable!(p::AbstractParser, rule)
     odd = uses_odd_match(rule)
     odd !== nothing && push!(p.inline_parser.odd_match_chars, odd)
     push!(p.rules, rule)
+    rebuild_claimed_syntax!(p)
     return p
 end
+
+# A fresh vector rather than one cleared in place, so a document already parsed
+# keeps the claims it was parsed with.
+rebuild_claimed_syntax!(p::AbstractParser) = (p.claimed = claimed_syntax(p.rules); p)
 
 enable!(p::AbstractParser, rules::Union{Tuple, Vector}) =
     (foreach(r -> enable!(p, r), rules); p)
@@ -142,9 +166,16 @@ function disable!(p::AbstractParser, rules::Union{Tuple, Vector})
     empty!(p.inline_parser.delim_max)
     fill!(p.inline_parser.trigger_table, false)
     empty!(p.rules)
+    rebuild_claimed_syntax!(p)
     return enable!(p, rules_kept)
 end
 disable!(p::AbstractParser, rule) = disable!(p, [rule])
 
 reset_rules!(p::AbstractParser) = (foreach(reset_rule!, p.rules); p)
+
+"""
+Clear the state a rule gathered while parsing a document, so that the next
+document does not resolve against it. A rule holding no such state needs no
+method here.
+"""
 reset_rule!(rule) = nothing
