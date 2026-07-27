@@ -73,7 +73,7 @@ function parse_link_destination(parser::InlineParser)
                     read(parser, Char)
                     openparens -= 1
                 end
-            elseif c in WHITESPACECHAR
+            elseif c in WHITESPACE
                 break
             else
                 read(parser, Char)
@@ -157,7 +157,7 @@ function parse_close_bracket(parser::InlineParser, block::Node)
         if dest !== nothing
             chomp_ws(parser)
             # Make sure there's a space before the title.
-            if prev(parser, Char) in WHITESPACECHAR
+            if prev(parser, Char) in WHITESPACE
                 title = parse_link_title(parser)
             end
             chomp_ws(parser)
@@ -242,6 +242,12 @@ end
 
 remove_bracket!(p::InlineParser) = p.brackets = p.brackets.previous
 
+"""
+Parse a link reference definition from the start of `s`, adding it to `refmap`.
+
+Returns the label, destination, title, and the number of bytes the definition
+occupies, or `nothing` when `s` does not start with one.
+"""
 function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
     parser.buf = s
     seek(parser, 1)
@@ -249,17 +255,17 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
 
     # Label.
     match_chars = parse_link_label(parser)
-    match_chars in (0, 2) && return 0
+    match_chars in (0, 2) && return nothing
     rawlabel = String(bytes(parser, 1, match_chars))
 
     # Colon.
-    trypeek(parser, Char) === ':' || (seek(parser, startpos); return 0)
+    trypeek(parser, Char) === ':' || (seek(parser, startpos); return nothing)
     read(parser, Char)
 
     # Link URL.
     chomp_ws(parser)
     dest = parse_link_destination(parser)
-    dest === nothing && (seek(parser, startpos); return 0)
+    dest === nothing && (seek(parser, startpos); return nothing)
 
     beforetitle = position(parser)
     chomp_ws(parser)
@@ -289,15 +295,66 @@ function parse_reference(parser::InlineParser, s::AbstractString, refmap::Dict)
         end
     end
 
-    at_line_end || (seek(parser, startpos); return 0)
+    at_line_end || (seek(parser, startpos); return nothing)
 
     normlabel = normalize_reference(rawlabel)
-    normlabel == "[]" && (seek(parser, startpos); return 0)
+    normlabel == "[]" && (seek(parser, startpos); return nothing)
 
     haskey(refmap, normlabel) || (refmap[normlabel] = (dest, title))
     parser.refmap = refmap
-    return position(parser) - startpos
+    # The destination and title are spelled several ways by the parsers above,
+    # and the caller records the definition's source position onto this. Naming
+    # one type for each here keeps that from being worked out afresh, at run
+    # time, for every definition.
+    return (
+        label = chop(rawlabel; head = 1, tail = 1),
+        destination = String(dest),
+        title = String(title),
+        consumed = position(parser) - startpos,
+    )
 end
+
+"""
+Take the link reference definitions written at the start of `block`'s text,
+adding each to the parser's reference map and reporting it to the rules.
+Returns whether any were found.
+"""
+function strip_reference_definitions!(parser, block::Node)
+    found = false
+    # Each definition is taken from the front of what is left of the block's
+    # text, so it starts where the previous one ended.
+    start = block.sourcepos[1]
+    # A block reaches here with whatever held it, a list marker or a block quote
+    # marker, stripped from every line, so the columns of its text are measured
+    # against that width. A start column counts from one past the first
+    # character of the block, which leaves the width two short of it.
+    prefix = start[2] - 2
+    while get(block.literal, 1, nothing) === '['
+        reference = parse_reference(parser.inline_parser, block.literal, parser.refmap)
+        reference === nothing && break
+        text = SubString(block.literal, 1, reference.consumed)
+        lines = split(chomp(text), '\n')
+        stop = (start[1] + length(lines) - 1, prefix + length(lines[end]))
+        reference = merge(reference, (sourcepos = (start, stop),))
+        for rule in parser.rules
+            reference_definition!(rule, parser, block, reference)
+        end
+        block.literal = block.literal[(reference.consumed + 1):end]
+        start = (start[1] + count(==('\n'), text), start[2])
+        found = true
+    end
+    return found
+end
+
+"""
+Report a link reference definition taken out of a paragraph. Definitions are not
+content, so they leave no node behind; a rule that keeps them in the tree adds a
+method for its own type.
+
+`reference` names the definition's `label`, `destination` and `title`, the
+number of bytes it `consumed`, and the `sourcepos` it occupied.
+"""
+reference_definition!(rule, parser, block::Node, reference) = nothing
 
 """
     LinkRule()

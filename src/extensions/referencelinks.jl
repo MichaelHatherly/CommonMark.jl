@@ -283,61 +283,16 @@ end
 
 inline_rule(::ReferenceLinkRule) = Rule(parse_reference_close_bracket, 0.5, "]")
 
-# Block rule - captures reference definitions in place
-
-block_rule(::ReferenceLinkRule) = Rule(0.5, "[") do parser, container
-    parser.indented && return 0
-
-    ln = rest_from_nonspace(parser)
-
-    # Match [label]: pattern - label can contain anything except unescaped [ or ]
-    m = match(r"^\[([^\[\]\\]|\\.){1,999}\]:", ln)
-    m === nothing && return 0
-
-    # Extract label (strip brackets and colon)
-    label_with_brackets = m.match[1:(end - 1)]  # remove trailing :
-    label = chop(label_with_brackets; head = 1, tail = 1)  # remove [ and ]
-
-    # Parse rest of line for destination and title
-    rest = SubString(ln, ncodeunits(m.match) + 1)
-
-    # Skip leading whitespace
-    rest_stripped = lstrip(rest)
-    isempty(rest_stripped) && return 0  # no destination
-
-    # Use InlineParser to parse destination and title
-    inline_parser = parser.inline_parser
-    inline_parser.buf = String(rest_stripped)
-    seek(inline_parser, 1)
-
-    dest = parse_link_destination(inline_parser)
-    dest === nothing && return 0
-
-    # Try to parse title
-    title = ""
-    chomp_ws(inline_parser)
-    if position(inline_parser) > 1
-        t = parse_link_title(inline_parser)
-        t !== nothing && (title = t)
-    end
-
-    # Verify we consumed the meaningful content (allow trailing whitespace)
-    remaining = SubString(inline_parser.buf, position(inline_parser))
-    if !all(isspace, remaining)
-        return 0  # extra content after definition
-    end
-
-    # Create the definition node
-    close_unmatched_blocks(parser)
-    add_child(parser, ReferenceDefinition(label, dest, title), parser.next_nonspace)
-
-    # Add to refmap for inline link resolution (first definition wins)
-    normlabel = normalize_reference(label)
-    haskey(parser.refmap, normlabel) || (parser.refmap[normlabel] = (dest, title))
-
-    # Consume the entire line
-    advance_offset(parser, length(parser.buf) - parser.next_nonspace + 1, false)
-    return 2  # leaf block
+# Definitions stay in the tree so that they can be written back out. The
+# paragraph they were taken from is unlinked once nothing but definitions is
+# left of it.
+function reference_definition!(::ReferenceLinkRule, parser, block::Node, reference)
+    definition = Node(
+        ReferenceDefinition(reference.label, reference.destination, reference.title),
+        reference.sourcepos,
+    )
+    insert_before(block, definition)
+    return nothing
 end
 
 #
@@ -346,33 +301,52 @@ end
 
 # Markdown - output reference style
 
-function write_markdown(ref::ReferenceLink, w, node, ent)
-    return if ent
-        literal(w, "[")
-    else
-        if ref.style === :full
-            literal(w, "][", ref.label, "]")
-        elseif ref.style === :collapsed
-            literal(w, "][]")
-        else  # :shortcut
-            literal(w, "]")
-        end
+function write_reference_close(style, label, w)
+    return if style === :full
+        literal(w, "][", label, "]")
+    elseif style === :collapsed
+        literal(w, "][]")
+    else  # :shortcut
+        literal(w, "]")
     end
 end
 
-function write_markdown(ref::ReferenceImage, w, node, ent)
-    return if ent
-        literal(w, "![")
-    else
-        if ref.style === :full
-            literal(w, "][", ref.label, "]")
-        elseif ref.style === :collapsed
-            literal(w, "][]")
-        else
-            literal(w, "]")
-        end
+# The label a shortcut or collapsed reference spells with its link text, read
+# back the way the parser would read it.
+function link_text_label(node::Node)
+    io = IOBuffer()
+    for (child, entering) in node
+        entering || continue
+        child.t isa Backslash && print(io, '\\')
+        child.t isa Text && print(io, child.literal)
     end
+    return String(take!(io))
 end
+
+# Shortcut and collapsed references spell their label with their link text, so
+# that text has to reparse as the same label and is written verbatim. Where the
+# text spells something else, because the source held an entity or a rule such
+# as `TypographyRule` rewrote it, the full form names the label instead.
+function reference_style(ref, node::Node)
+    ref.style === :full && return :full
+    spelled = normalize_reference("[" * link_text_label(node) * "]")
+    return spelled == normalize_reference("[" * ref.label * "]") ? ref.style : :full
+end
+
+function write_reference(ref, w, node, ent, opener)
+    style = reference_style(ref, node)
+    if ent
+        literal(w, opener)
+    else
+        write_reference_close(style, ref.label, w)
+    end
+    style === :full || verbatim!(w, ent)
+    return nothing
+end
+
+write_markdown(ref::ReferenceLink, w, node, ent) = write_reference(ref, w, node, ent, "[")
+
+write_markdown(ref::ReferenceImage, w, node, ent) = write_reference(ref, w, node, ent, "![")
 
 # HTML - same as regular Link/Image
 
@@ -481,10 +455,27 @@ end
 
 # Writers for ReferenceDefinition
 
+# A label or a title can hold newlines, and every line of the definition needs
+# the margin of the block that holds it.
+function write_lines(w, text::AbstractString)
+    for (n, line) in enumerate(split(text, '\n'))
+        n == 1 || (literal(w, "\n"); print_margin(w))
+        literal(w, line)
+    end
+    return nothing
+end
+
 function write_markdown(def::ReferenceDefinition, w, node, ent)
     print_margin(w)
-    literal(w, "[", def.label, "]: ", def.destination)
-    isempty(def.title) || literal(w, " \"", escape_markdown_title(def.title), "\"")
+    literal(w, "[")
+    write_lines(w, def.label)
+    literal(w, "]: ")
+    write_destination(w, def.destination)
+    if !isempty(def.title)
+        literal(w, " \"")
+        write_lines(w, escape_markdown_title(def.title))
+        literal(w, "\"")
+    end
     cr(w)
     return linebreak(w, node)
 end
@@ -494,46 +485,29 @@ write_latex(::ReferenceDefinition, w, n, ent) = nothing
 write_term(::ReferenceDefinition, r, n, ent) = nothing
 write_typst(::ReferenceDefinition, w, n, ent) = nothing
 
-# Writers for UnresolvedReference - preserve original syntax
-# For full/collapsed style, Text nodes before contain [text] or ![text], we just output [label] or []
-# For shortcut style, we output [text] or ![text] directly
+# An unresolved reference writes back the brackets it was read from, with its
+# link text in between. A full or collapsed reference left the text it opened
+# with, `!` included, in the nodes before it, so only a shortcut reference
+# spells the image marker itself.
+reference_opener(ref::UnresolvedReference) =
+    (ref.image && ref.style === :shortcut) ? "![" : "["
 
-function write_markdown(ref::UnresolvedReference, w, node, ent)
-    return if ent
-        # Only use image flag for shortcut style - for full/collapsed, ![ is in preceding Text
-        use_image = ref.image && ref.style === :shortcut
-        literal(w, use_image ? "![" : "[")
-    else
-        literal(w, "]")
-    end
-end
+write_markdown(ref::UnresolvedReference, w, node, ent) =
+    literal(w, ent ? reference_opener(ref) : "]")
 
 # HTML - output as text (no link)
-function write_html(ref::UnresolvedReference, r, n, ent)
-    return if ent
-        use_image = ref.image && ref.style === :shortcut
-        literal(r, use_image ? "![" : "[")
-    else
-        literal(r, "]")
-    end
-end
+write_html(ref::UnresolvedReference, r, n, ent) =
+    literal(r, ent ? reference_opener(ref) : "]")
 
 # LaTeX - output as text
-function write_latex(ref::UnresolvedReference, w, node, ent)
-    return if ent
-        use_image = ref.image && ref.style === :shortcut
-        literal(w, use_image ? "![" : "[")
-    else
-        literal(w, "]")
-    end
-end
+write_latex(ref::UnresolvedReference, w, node, ent) =
+    literal(w, ent ? reference_opener(ref) : "]")
 
 # Term - output as warning style
 function write_term(ref::UnresolvedReference, render, node, enter)
     style = crayon"red"
     return if enter
-        use_image = ref.image && ref.style === :shortcut
-        print_literal(render, style, use_image ? "![" : "[")
+        print_literal(render, style, reference_opener(ref))
         push_inline!(render, style)
     else
         pop_inline!(render)
@@ -542,14 +516,8 @@ function write_term(ref::UnresolvedReference, render, node, enter)
 end
 
 # Typst - output as text
-function write_typst(ref::UnresolvedReference, w, node, ent)
-    return if ent
-        use_image = ref.image && ref.style === :shortcut
-        literal(w, use_image ? "![" : "[")
-    else
-        literal(w, "]")
-    end
-end
+write_typst(ref::UnresolvedReference, w, node, ent) =
+    literal(w, ent ? reference_opener(ref) : "]")
 
 # JSON - same as regular Link/Image
 
