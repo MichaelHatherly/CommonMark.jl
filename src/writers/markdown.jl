@@ -134,8 +134,10 @@ function claim!(format::Markdown, claimed::Vector{String}, claimed_line::Vector{
     sink.firsts_line = ClaimFirsts(claimed_line)
     # A spelling is recognised from the character that opens it, so seeing the
     # rest of it means seeing one fewer than its length past that character.
-    longest = maximum(length, claimed; init = 0)
-    longest = maximum(length, claimed_line; init = longest)
+    longest = 0
+    for spellings in (claimed, claimed_line), spelling in spellings
+        longest = max(longest, length(spelling))
+    end
     sink.lookahead = max(1, longest - 1)
     return nothing
 end
