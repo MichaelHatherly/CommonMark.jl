@@ -80,6 +80,11 @@ struct FrontMatterRule
 end
 
 block_rule(::FrontMatterRule) = Rule(parse_front_matter, 0.5, ";+-")
+
+# A dash or plus fence also opens a thematic break or a list, which the writer
+# escapes at the start of a line whatever the rules are. Only the JSON fence
+# spells nothing without this rule.
+claimed_syntax(::FrontMatterRule) = [";;;"]
 block_modifier(f::FrontMatterRule) = Rule(0.5) do parser, node
     if node.t isa FrontMatter
         fence = node.t.fence

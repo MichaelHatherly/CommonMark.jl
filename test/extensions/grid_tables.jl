@@ -407,3 +407,17 @@
         @test vis <= 35
     end
 end
+
+@testitem "grid_tables roundtrip" tags = [:extensions, :grid_tables] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(GridTableRule())
+
+    # Text spelling a grid border is escaped, so it stays text.
+    @test Utilities.faithful(p, "&#43;---+\n")
+    @test markdown(p("&#43;---+\n")) == "\\+---+\n"
+
+    # A plus that opens no border is left alone.
+    @test markdown(p("1 + 1\n")) == "1 + 1\n"
+end

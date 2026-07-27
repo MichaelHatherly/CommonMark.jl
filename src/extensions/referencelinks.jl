@@ -340,7 +340,7 @@ function write_reference(ref, w, node, ent, opener)
     else
         write_reference_close(style, ref.label, w)
     end
-    style === :full || verbatim!(w, ent)
+    style === :full || (ent ? push_verbatim!(w) : pop_verbatim!(w))
     return nothing
 end
 

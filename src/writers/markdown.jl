@@ -90,6 +90,9 @@ mutable struct EscapeSink{I <: IO} <: IO
     out::I
     claimed::Vector{String}
     firsts::ClaimFirsts
+    # Claimed where a line's content starts, and read only there.
+    claimed_line::Vector{String}
+    firsts_line::ClaimFirsts
     lookahead::Int
     held::Vector{Char}
     held_escapable::Vector{Bool}
@@ -102,8 +105,8 @@ mutable struct EscapeSink{I <: IO} <: IO
 end
 
 EscapeSink(out::I) where {I <: IO} = EscapeSink{I}(
-    out, String[], ClaimFirsts(String[]), 1, Char[], Bool[], Bool[],
-    false, '\0', false, false,
+    out, String[], ClaimFirsts(String[]), String[], ClaimFirsts(String[]), 1,
+    Char[], Bool[], Bool[], false, '\0', false, false,
 )
 
 mutable struct Markdown{I <: IO}
@@ -114,24 +117,26 @@ mutable struct Markdown{I <: IO}
     list_depth::Int
     list_item_number::Vector{Int}
     list_marker_offset::Vector{Int}
-    claimed::Vector{String}
     verbatim::Int
     Markdown(io::I) where {I} =
-        new{I}(io, EscapeSink(IOBuffer()), 0, [], 0, [], [], [], 0)
+        new{I}(io, EscapeSink(IOBuffer()), 0, [], 0, [], [], 0)
 end
 
 """
 Name the syntax the document's rules claim, which decides both what the writer
 escapes and how far it has to see past a character to know.
 """
-function claim!(format::Markdown, claimed::Vector{String})
-    format.claimed = claimed
+function claim!(format::Markdown, claimed::Vector{String}, claimed_line::Vector{String})
     sink = format.buffer
     sink.claimed = claimed
     sink.firsts = ClaimFirsts(claimed)
+    sink.claimed_line = claimed_line
+    sink.firsts_line = ClaimFirsts(claimed_line)
     # A spelling is recognised from the character that opens it, so seeing the
     # rest of it means seeing one fewer than its length past that character.
-    sink.lookahead = isempty(claimed) ? 1 : max(1, maximum(length, claimed) - 1)
+    longest = maximum(length, claimed; init = 0)
+    longest = maximum(length, claimed_line; init = longest)
+    sink.lookahead = max(1, longest - 1)
     return nothing
 end
 
@@ -143,7 +148,8 @@ it. A fragment built by hand, with no document over it, claims nothing.
 """
 function markdown_fragment(node::Node, env = Dict{String, Any}())
     format = Markdown(devnull)
-    claim!(format, claimed_syntax(document(node)))
+    root = document(node)
+    claim!(format, claimed_syntax(root), claimed_line_syntax(root))
     w = Writer(format, format.buffer, env)
     write_markdown(w, node)
     return escape_markdown(format)
@@ -159,18 +165,21 @@ line_end(c::AbstractChar) = c === '\0' || c === '\n'
 # Constructs that would be re-read as block markup when they start a line. An
 # indented code block is covered by escaping leading whitespace, and a backtick
 # fence by escaping every backtick, so the tilde fence is the only fence here.
+#
+# `follows_digit` marks the characters after a line's leading digits, which an
+# ordered list marker follows. Nothing else opens a block there, since every
+# other spelling has to be the first thing on the line.
 function starts_block(c::AbstractChar, nextc::AbstractChar, follows_digit::Bool)
-    (c === ' ' || c === '\t') && return true
-    c === '>' && return true
     # A marker needs its trailing space to open a list or heading, and a run of
     # its own character to underline, break, or fence.
     marker = nextc === ' ' || nextc === '\t' || line_end(nextc)
+    follows_digit && return (c === '.' || c === ')') && marker
+    (c === ' ' || c === '\t') && return true
+    c === '>' && return true
     c === '#' && return marker || nextc === '#'
-    (c === '-' || c === '*' || c === '+' || c === '_') &&
-        return (marker || nextc === c) && !follows_digit
-    c === '=' && return (nextc === '=' || line_end(nextc)) && !follows_digit
+    (c === '-' || c === '*' || c === '+' || c === '_') && return marker || nextc === c
+    c === '=' && return nextc === '=' || line_end(nextc)
     c === '~' && return nextc === '~'
-    (c === '.' || c === ')') && return follows_digit && marker
     return false
 end
 
@@ -226,15 +235,16 @@ function escape_char(io::IO, c::AbstractChar)
 end
 
 """
-Write inline text. Escaping waits until the whole document is written, when
-every character's neighbours are known, so the range holding this text is
-recorded rather than escaped here.
+Write a node's text content, as against the markup [`literal`](@ref) writes.
+Escaping waits until the whole document is written, when every character's
+neighbours are known, so the range holding this text is recorded rather than
+escaped here.
 
 `escaped_first` marks text whose leading character is already escaped by a
 preceding `Backslash` node, which the parser keeps in the AST. A
 verbatim range, such as the label of a reference link, is never escaped.
 """
-function write_text(w, str::AbstractString, escaped_first::Bool = false)
+function content(w, str::AbstractString, escaped_first::Bool = false)
     isempty(str) && return nothing
     w.enabled || return nothing
     if w.format.verbatim != 0
@@ -258,10 +268,16 @@ function write_text(w, str::AbstractString, escaped_first::Bool = false)
 end
 
 """
-Open, and close, a verbatim range: text that has to reparse exactly as written,
-such as the label of a reference link, and so carries no escapes. Nests.
+Open a verbatim range: text that has to reparse exactly as written, such as the
+label of a reference link, and so carries no escapes. Ranges nest, and
+[`pop_verbatim!`](@ref) closes the innermost.
 """
-verbatim!(w, on::Bool) = (w.format.verbatim += on ? 1 : -1; nothing)
+push_verbatim!(w) = (w.format.verbatim += 1; nothing)
+
+"""
+Close the verbatim range [`push_verbatim!`](@ref) opened.
+"""
+pop_verbatim!(w) = (w.format.verbatim -= 1; nothing)
 
 # The character `k` past the front of what is held, reading on into `rest` once
 # the held characters run out. `\0` means nothing follows.
@@ -280,9 +296,12 @@ end
 
 # Whether a claimed spelling starts at the front of what is held. The spelling
 # may run past the held characters into what follows them.
-function held_starts_claim(sink::EscapeSink, rest::AbstractString, ri::Int)
-    opens_claim(sink.firsts, @inbounds sink.held[1]) || return false
-    for claim in sink.claimed
+function held_starts_claim(
+        sink::EscapeSink, claimed::Vector{String}, firsts::ClaimFirsts,
+        rest::AbstractString, ri::Int,
+    )
+    opens_claim(firsts, @inbounds sink.held[1]) || return false
+    for claim in claimed
         k = 1
         matched = true
         for wanted in claim
@@ -295,6 +314,17 @@ function held_starts_claim(sink::EscapeSink, rest::AbstractString, ri::Int)
         matched && return true
     end
     return false
+end
+
+# A spelling claimed where this character stands: anywhere for the claims of an
+# inline rule, and only where a line's content starts for those of a block rule.
+function held_claimed(sink::EscapeSink, rest::AbstractString, ri::Int)
+    if !isempty(sink.claimed) &&
+            held_starts_claim(sink, sink.claimed, sink.firsts, rest, ri)
+        return true
+    end
+    sink.begin_content && !isempty(sink.claimed_line) || return false
+    return held_starts_claim(sink, sink.claimed_line, sink.firsts_line, rest, ri)
 end
 
 # What a character written leaves behind it for the next one.
@@ -318,7 +348,6 @@ function resolve_held!(
         sink::EscapeSink, rest::AbstractString, ri::Int, n_rest::Int,
         force::Bool = false,
     )
-    has_claims = !isempty(sink.claimed)
     while !isempty(sink.held)
         escapable = @inbounds sink.held_escapable[1]
         !force && escapable && length(sink.held) - 1 + n_rest < sink.lookahead && break
@@ -328,7 +357,7 @@ function resolve_held!(
                 needs_escape(
                     c, sink.prev, ahead(sink, 2, rest, ri),
                     sink.begin_content, sink.follows_digit,
-                ) || (has_claims && held_starts_claim(sink, rest, ri))
+                ) || held_claimed(sink, rest, ri)
             )
             escape_char(sink.out, c)
         else
@@ -434,7 +463,6 @@ end
 # Escape `s` up to `stop`, in the runs between the characters that have to be
 # hidden, which most text has none of.
 function escape_run!(sink::EscapeSink, s::AbstractString, stop::Int)
-    has_claims = !isempty(sink.claimed)
     ncu = ncodeunits(s)
     i = firstindex(s)
     i >= stop && return nothing
@@ -443,7 +471,7 @@ function escape_run!(sink::EscapeSink, s::AbstractString, stop::Int)
     while i < stop
         nextc, after_next = char_forward(s, j, ncu)
         if needs_escape(c, sink.prev, nextc, sink.begin_content, sink.follows_digit) ||
-                (has_claims && opens_claim(sink.firsts, c) && starts_claim(sink.claimed, s, i))
+                claimed_at(sink, c, s, i)
             i > run && write(sink.out, SubString(s, run, prevind(s, i)))
             escape_char(sink.out, c)
             run = j
@@ -453,6 +481,17 @@ function escape_run!(sink::EscapeSink, s::AbstractString, stop::Int)
     end
     run < stop && write(sink.out, SubString(s, run, prevind(s, stop)))
     return nothing
+end
+
+# A spelling claimed where `c` stands in `s`. The claims of a block rule are
+# read only where a line's content starts, since that is the only place the rule
+# would read them back.
+function claimed_at(sink::EscapeSink, c::AbstractChar, s::AbstractString, i::Int)
+    if opens_claim(sink.firsts, c) && starts_claim(sink.claimed, s, i)
+        return true
+    end
+    sink.begin_content || return false
+    return opens_claim(sink.firsts_line, c) && starts_claim(sink.claimed_line, s, i)
 end
 
 # A claimed spelling written out in full at `i`.
@@ -564,12 +603,12 @@ end
 
 # Extension syntax the document was parsed with has to be escaped in text too.
 function write_markdown(::Document, w, node, ent)
-    ent && claim!(w.format, node.t.claimed_syntax)
+    ent && claim!(w.format, node.t.claimed_syntax, node.t.claimed_line_syntax)
     return nothing
 end
 
 write_markdown(::Text, w, node, ent) =
-    write_text(w, node.literal, !isnull(node.prv) && node.prv.t isa Backslash)
+    content(w, node.literal, !isnull(node.prv) && node.prv.t isa Backslash)
 
 write_markdown(::Backslash, w, node, ent) = literal(w, "\\")
 

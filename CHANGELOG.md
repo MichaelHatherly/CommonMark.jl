@@ -9,9 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add `claimed_syntax` hook for declaring the spellings a rule gives meaning to in text the core spec reads as plain text, so the Markdown writer knows to escape them. The parser collects the claims of the enabled rules into the `claimed_syntax` field of the `Document` node [#181]
-- Add `reference_definition!` hook, called for each link reference definition as it is taken out of the paragraph or setext heading that held it, so a rule can keep the definition in the tree [#181]
-- Add `write_text` and `verbatim!` for extension writers. `write_text` emits text content the Markdown writer is free to escape, `verbatim!` suspends escaping over a range that has to reparse exactly as written [#181]
+- Add `claimed_syntax` hook for narrowing the spellings a rule gives meaning to in text the core spec reads as plain text, so the Markdown writer escapes them. A rule that declares nothing claims the characters its own parsers trigger on, which escapes more of the text than the rule needs but never less. A rule that reads only blocks has its claims escaped where a line's content starts and left alone elsewhere. The parser collects them into the `claimed_syntax` and `claimed_line_syntax` fields of the `Document` node [#181]
+- Add `content` and the `push_verbatim!`/`pop_verbatim!` pair for extension writers. `content` emits text the Markdown writer is free to escape, as against the markup `literal` emits, and a verbatim range holds text that has to reparse exactly as written [#181]
 
 ### Changed
 

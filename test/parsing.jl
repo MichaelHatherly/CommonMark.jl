@@ -181,6 +181,58 @@ end
     @test @inferred(CommonMark.claimed_syntax(FootnoteRule())) == String[]
 end
 
+@testitem "claimed syntax falls back to a rule's triggers" tags = [:core] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    # A rule written without a thought for the Markdown writer, in the shape any
+    # rule outside this package takes: a delimiter, no declared claims.
+    struct PercentRule end
+    struct Percent <: CommonMark.AbstractInline end
+    CommonMark.is_container(::Percent) = true
+    CommonMark.inline_rule(::PercentRule) =
+        CommonMark.Rule((p, b) -> CommonMark.handle_delim(p, '%', b), 1, "%")
+    CommonMark.inline_modifier(::PercentRule) =
+        CommonMark.Rule(CommonMark.process_emphasis, 1)
+    CommonMark.delim_nodes(::PercentRule) = Dict(('%', 1) => Percent)
+    CommonMark.flanking_rule(::PercentRule) = ('%', :permissive)
+    CommonMark.write_html(::Percent, r, n, ent) = CommonMark.tag(r, ent ? "u" : "/u")
+    CommonMark.write_markdown(::Percent, w, n, ent) = CommonMark.literal(w, "%")
+
+    # It claims the character it parses on, so its syntax survives a reparse
+    # without its author having declared anything.
+    @test CommonMark.claimed_syntax(PercentRule()) == ["%"]
+
+    p = Parser()
+    enable!(p, PercentRule())
+    @test Utilities.faithful(p, "a &#37;b&#37; c\n")
+    @test markdown(p("a &#37;b&#37; c\n")) == "a \\%b\\% c\n"
+
+    # A declaration replaces the fallback with the narrower spelling, so a
+    # tilde is escaped before another tilde rather than everywhere.
+    @test CommonMark.claimed_syntax(StrikethroughRule()) == ["~~"]
+
+    # The core rules parse the syntax the writer already escapes on its own
+    # terms, so they add nothing for it to escape twice.
+    @test Parser().claimed == String[]
+end
+
+@testitem "claimed syntax separates block rules from inline rules" tags = [:core] begin
+    using CommonMark
+    using Test
+
+    # A rule that reads only blocks gives its spellings meaning where a block
+    # opens, so they are claimed at the start of a line and nowhere else.
+    @test CommonMark.claimed_syntax([DefinitionListRule()]) == String[]
+    @test CommonMark.claimed_line_syntax([DefinitionListRule()]) == [": ", ":\t"]
+
+    # A rule that reads inlines claims its spellings wherever they appear, even
+    # where it also reads blocks, as the table rule does for its pipe.
+    @test CommonMark.claimed_syntax([TableRule()]) == ["|"]
+    @test CommonMark.claimed_line_syntax([TableRule()]) == String[]
+end
+
 @testitem "reference definition discards invalid title" tags = [:core] begin
     using CommonMark
     using Test

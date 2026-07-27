@@ -201,6 +201,15 @@ end
     @test faithful("foo\n    1. bar\n")
     @test faithful("foo\n    > bar\n")
 
+    # A digit opens an ordered list only where its marker follows, so the digits
+    # keep the line-start rules alive for `.` and `)` alone. Every other
+    # character after them is mid-line and spells nothing.
+    @test faithful("1. item\n")
+    @test faithful("1&#46; not a list\n")
+    @test markdown(p("1 + 1\n")) == "1 + 1\n"
+    @test markdown(p("1 > 2\n")) == "1 > 2\n"
+    @test markdown(p("1 # 2\n")) == "1 # 2\n"
+
     # A marker at the end of a line opens a block just as one at the end of the
     # document does.
     @test faithful("foo\n&#61;")

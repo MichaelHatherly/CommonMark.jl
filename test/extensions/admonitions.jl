@@ -55,3 +55,20 @@
         formats = [:html, :latex],
     )
 end
+
+@testitem "admonitions roundtrip" tags = [:extensions, :admonitions] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(AdmonitionRule())
+
+    # Text spelling the admonition marker is escaped, so it stays text.
+    @test Utilities.faithful(p, "&#33;!! note\n\n    body\n")
+    @test markdown(p("&#33;!! note\n")) == "\\!!! note\n"
+
+    # A lone exclamation mark spells nothing, so it is left alone.
+    @test markdown(p("hello!\n")) == "hello!\n"
+
+    # An admonition the rule parsed keeps its marker.
+    @test Utilities.faithful(p, "!!! note\n\n    body\n")
+end
