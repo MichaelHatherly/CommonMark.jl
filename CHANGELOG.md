@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `claimed_syntax` hook for declaring the spellings a rule gives meaning to in text the core spec reads as plain text, so the Markdown writer knows to escape them. The parser collects the claims of the enabled rules into the `claimed_syntax` field of the `Document` node [#181]
+- Add `reference_definition!` hook, called for each link reference definition as it is taken out of the paragraph or setext heading that held it, so a rule can keep the definition in the tree [#181]
+- Add `write_text` and `verbatim!` for extension writers. `write_text` emits text content the Markdown writer is free to escape, `verbatim!` suspends escaping over a range that has to reparse exactly as written [#181]
+
+### Changed
+
+- `markdown` now writes a document that parses back to the tree it came from, so output stored from an earlier version will differ. Text that would otherwise read as markup carries a backslash or a numeric character reference. A link whose text repeats its destination is written as an autolink only when that text spells a valid one, and keeps its `[text](destination)` form otherwise. Adjacent lists alternate their markers instead of merging. An indented code block that a neighbouring list or code block would swallow is written fenced. Syntax claimed by an enabled extension is escaped in text [#181]
+- `markdown(io, ast)` holds the whole document in memory before writing it, since a character is escaped according to the characters either side of it and the last of those is only known once the document is written. It no longer writes to `io` as it goes [#181]
+
+### Fixed
+
+- Fix Markdown writer emitting inline text unescaped, so text that only looked like markup was re-read as markup on the next parse. A line continuing a paragraph no longer turns into a list, heading, or setext underline, and link destinations and titles carry their own escaping [#181]
+- Fix Markdown writer losing structure that a reparse could not recover: autolinks are written in angle bracket form, a multi-line heading is written setext, adjacent lists alternate their markers instead of merging, an indented code block that would be swallowed by a preceding list is written fenced, and a code span keeps the spaces its delimiters would strip [#181]
+- Fix paragraph content losing leading and trailing Unicode whitespace such as U+00A0, which the spec counts as content rather than as the space, tab, and line ending characters it strips [#181]
+- Fix `ReferenceLinkRule` dropping a link reference definition whose label, destination, or title spans more than one line, and letting a definition interrupt a paragraph, which the spec does not allow [#181]
+- Fix `ReferenceLinkRule` writing a definition with an empty destination as `[foo]: `, which reparses as a paragraph [#181]
+- Fix `AutoIdentifierRule` building a heading's identifier from the source line rather than the text the heading renders. `# foo   ` gave `id="foo-"`, a tab between two words was dropped instead of separating them, and an entity was slugged as it was spelled, so `# A &amp; B` gave `id="a-amp-b"`. The identifiers are now `foo`, `a-b`, and `a--b`. Anchors that a document published from an earlier version links to will move [#181]
+- Fix `MathRule` writing backtick math whose delimiters merge with backticks in the content [#181]
+- Fix `TypographyRule` turning a written `"`, `'`, `--`, or `...` into its typographic form on the next parse. Rules now declare the syntax they claim through `claimed_syntax`, which the document records so the Markdown writer can escape it [#181]
+
 ## [v1.0.3] - 2026-07-22
 
 ### Changed
@@ -511,3 +533,4 @@ Initial release.
 [#158]: https://github.com/MichaelHatherly/CommonMark.jl/issues/158
 [#161]: https://github.com/MichaelHatherly/CommonMark.jl/issues/161
 [#176]: https://github.com/MichaelHatherly/CommonMark.jl/issues/176
+[#181]: https://github.com/MichaelHatherly/CommonMark.jl/issues/181

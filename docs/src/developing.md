@@ -165,6 +165,60 @@ end
 inline_modifier(::MyRule) = Rule(process_emphasis, 1)
 ```
 
+### Claimed Syntax
+
+A rule that gives meaning to a spelling the core spec reads as plain text
+declares that spelling with `claimed_syntax`:
+
+```julia
+claimed_syntax(::MyRule) = ["=="]
+```
+
+The parser collects the claims of every enabled rule into the `Document` node's
+`claimed_syntax` field. The Markdown writer escapes the first character of each
+claimed spelling wherever it appears in text, so a document written out and
+parsed again with the same rules gives back the same tree.
+
+A rule whose claims depend on how it was constructed builds the list at call
+time. `TypographyRule` returns only the spellings its options turned on:
+
+```julia
+function claimed_syntax(tr::TypographyRule)
+    claims = String[]
+    tr.double_quotes && push!(claims, "\"")
+    tr.single_quotes && push!(claims, "'")
+    tr.ellipses && push!(claims, "...")
+    tr.dashes && push!(claims, "--")
+    return claims
+end
+```
+
+The default is `String[]`. A rule that reuses syntax the core spec already reads as
+markup, such as `FootnoteRule`'s `[`, needs no method: the writer escapes that
+syntax regardless.
+
+### Reference Definitions
+
+A link reference definition is taken out of the paragraph or setext heading that
+held it, so by default it leaves no node behind. `reference_definition!` reports
+each one as it is removed. A rule that keeps definitions in the tree adds a
+method that inserts its own node type:
+
+```julia
+function reference_definition!(::MyRule, parser, block::Node, reference)
+    definition = Node(
+        MyDefinition(reference.label, reference.destination, reference.title),
+        block.sourcepos,
+    )
+    insert_before(block, definition)
+    return nothing
+end
+```
+
+`reference` carries `label`, `destination`, `title`, and `consumed`, the number
+of bytes the definition took from the front of `block.literal`. See
+`ReferenceLinkRule` for the built-in implementation.
+
 ## Writer Functions
 
 ### Signature
@@ -211,8 +265,50 @@ This allows generating opening/closing tags for containers.
 - `pop_margin!(w)` - remove indentation prefix
 - `print_margin(w)` - emit current margin
 
+**Markdown:**
+- `write_text(w, str)` - emit text content, escaped so it reparses as text
+- `verbatim!(w, on)` - suspend and restore escaping around a range
+
 **Terminal:**
 - `print_literal(w, crayon, text, inv(crayon))` - styled output
+
+### Escaping in the Markdown Writer
+
+The Markdown writer has to produce a document that parses back to the tree it
+came from, so text content and markup are written through different calls.
+
+Use `write_text` for a node's text content, the characters the parser read as
+text rather than as markup. The core writer calls it for `Text`; a rule with its
+own text-bearing inline node calls it too. `literal` is for markup the writer
+itself constructs: fences, list markers, emphasis delimiters, the `??? ` of the
+spoiler block above. Text passed to `literal` is never escaped, so a `*` in it
+opens emphasis on the next parse.
+
+Escaping runs once over the whole document after every node has been written,
+because whether a character needs an escape depends on the characters either
+side of it. `write_text` records the span it wrote rather than escaping in
+place, so nothing in the writer sees the escaped form.
+
+A node that has more than one spelling picks one by reading the node: whether a
+link's text repeats its destination, whether a heading holds a break, whether a
+code block would be swallowed by the block before it. Each is a function of the
+node alone, so the entering and exiting halves of a writer each work it out
+rather than one stashing the answer for the other.
+
+Wrap a range in `verbatim!` when it has to reparse exactly as written and an
+escape would change its meaning. `ReferenceLinkRule` does this for a shortcut or
+collapsed link's text, which doubles as the label matched against the
+definition:
+
+```julia
+function write_markdown(ref::MyReference, w, node, ent)
+    ent ? literal(w, "[") : literal(w, "]")
+    verbatim!(w, ent)
+    return nothing
+end
+```
+
+`verbatim!` nests, so a rule can wrap a range that already sits inside one.
 
 ## Parser State
 
@@ -279,6 +375,9 @@ end
 CommonMark.inline_modifier(::HighlightRule) = CommonMark.Rule(CommonMark.process_emphasis, 1)
 CommonMark.delim_nodes(::HighlightRule) = Dict(('=', 2) => Highlight)
 CommonMark.flanking_rule(::HighlightRule) = ('=', :standard)
+
+# `==` means nothing to the core spec, so tell the Markdown writer to escape it
+CommonMark.claimed_syntax(::HighlightRule) = ["=="]
 
 # Writers
 CommonMark.write_html(::Highlight, r, n, ent) =
