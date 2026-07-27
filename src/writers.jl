@@ -113,6 +113,12 @@ Writer(
 Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
 Base.get!(f::Function, w::Writer, k::Symbol) = get!(f, w.context, k)
 
+"""
+Write markup the writer constructs itself, such as a fence, a list marker, or an
+emphasis delimiter. The characters are written as they stand, so a format that
+escapes what it writes reaches text content through its own call instead, such
+as the Markdown writer's [`content`](@ref).
+"""
 function literal(r::Writer, args...)
     if r.enabled
         for arg in args
