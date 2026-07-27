@@ -81,6 +81,9 @@ mutable struct Parser <: AbstractParser
     rules::Vector{Any}
     modifiers::Vector{Function}
     priorities::IdDict{Function, Float64}
+    # Derived from `rules`, rebuilt when they change. Every parse hands it to
+    # the document it builds, and the rules change far less often than that.
+    claimed::Vector{String}
 
     function Parser(; enable::Vector = [], disable::Vector = [])
         parser = new()
@@ -107,6 +110,7 @@ mutable struct Parser <: AbstractParser
         parser.rules = []
         parser.modifiers = Function[]
         parser.priorities = IdDict{Function, Float64}()
+        parser.claimed = String[]
 
         # Enable the standard CommonMark rule set.
         enable!(parser, COMMONMARK_BLOCK_RULES)
@@ -122,7 +126,9 @@ end
 
 Base.show(io::IO, parser::Parser) = print(io, "Parser($(parser.doc))")
 
-is_blank(s::AbstractString) = !occursin(reNonSpace, s)
+# Every paragraph is tested as it is finalized, so this reads characters rather
+# than running `reNonSpace` over the whole literal.
+is_blank(s::AbstractString) = all(in(WHITESPACE), s)
 
 is_space_or_tab(s::AbstractString) = s in (" ", "\t")
 is_space_or_tab(c::AbstractChar) = c in (' ', '\t')
@@ -149,8 +155,35 @@ function ends_with_blank_line(block::Node)
     return false
 end
 
-"""Root container for a CommonMark AST. All documents start with this node."""
-struct Document <: AbstractBlock end
+"""
+Root container for a CommonMark AST. All documents start with this node.
+
+`claimed_syntax` holds the spellings that enabled rules give meaning to beyond
+the core spec, such as the `"` that [`TypographyRule`](@ref) turns into a curly
+quote. The Markdown writer escapes them so that text written as text is read
+back as text. It is empty for a document built by hand. Because it records how
+the document was parsed rather than what it says, `ast_equal` ignores
+it.
+"""
+struct Document <: AbstractBlock
+    claimed_syntax::Vector{String}
+    Document(claimed_syntax::Vector{String} = String[]) = new(claimed_syntax)
+end
+
+# `claimed_syntax` is the only field a `Document` carries, and it records the
+# rules the parser ran rather than anything the document says, so the generic
+# field-by-field `container_equal` would make `ast_equal` sensitive to them.
+container_equal(::Document, ::Document) = true
+
+"""
+The syntax claimed by the rules that parsed the tree holding `node`. Any node
+answers for its whole tree, so part of a document rendered on its own escapes
+what the document escapes. A tree built by hand claims nothing.
+"""
+function claimed_syntax(node::Node)
+    root = document(node)
+    return root.t isa Document ? root.t.claimed_syntax : String[]
+end
 
 is_container(::Document) = true
 accepts_lines(::Document) = false
@@ -528,7 +561,11 @@ contains_inlines(::Paragraph) = true
 contains_inlines(::Heading) = true
 
 function parse(parser::Parser, my_input::IO; kws...)
-    parser.doc = Node(Document(), ((1, 1), (0, 0)))
+    # State a rule gathered from the last document is cleared here rather than
+    # at the end of a parse, since writers read it from the document they were
+    # given.
+    reset_rules!(parser)
+    parser.doc = Node(Document(parser.claimed), ((1, 1), (0, 0)))
     isempty(kws) || mergemeta!(parser.doc, Dict(string(k) => v for (k, v) in kws))
     parser.tip = parser.doc
     parser.refmap = Dict{String, Tuple{String, String}}()

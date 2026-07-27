@@ -18,6 +18,12 @@ const HTMLTAG = "(?:$(OPENTAG)|$(CLOSETAG)|$(HTMLCOMMENT)|$(PROCESSINGINSTRUCTIO
 const ESCAPABLE = "[!\"#\$%&\'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
 const XMLSPECIAL = "[&<>\"]"
 
+"""
+The characters the spec calls whitespace. Unicode has a wider notion of it,
+which `strip` uses, so anything beyond this set is content and stays put.
+"""
+const WHITESPACE = (' ', '\t', '\n', '\v', '\f', '\r')
+
 const reHtmlTag = Regex("^$(HTMLTAG)", "i")
 const reBackslashOrAmp = r"[\\&]"
 const reEntityOrEscapedChar = Regex("\\\\$(ESCAPABLE)|$(ENTITY)", "i")

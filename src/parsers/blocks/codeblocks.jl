@@ -72,6 +72,10 @@ function Node(::Type{CodeBlock}, code::AbstractString; info::AbstractString = ""
     cb = CodeBlock()
     cb.info = info
     cb.is_fenced = true
+    # A fence the parser did not read has no spelling of its own, so it takes
+    # the shortest one that opens a block.
+    cb.fence_char = '`'
+    cb.fence_length = 3
     node = Node(cb)
     node.literal = code
     return node

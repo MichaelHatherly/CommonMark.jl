@@ -9,17 +9,11 @@ continue_(::Paragraph, parser::Parser, ::Node) = parser.blank ? 1 : 0
 
 function finalize(::Paragraph, p::Parser, block::Node)
     finalize_literal!(block)
-    has_reference_defs = false
-    # Try parsing the beginning as link reference definitions.
-    while get(block.literal, 1, nothing) === '['
-        pos = parse_reference(p.inline_parser, block.literal, p.refmap)
-        pos == 0 && break
-        block.literal = block.literal[(pos + 1):end]
-        has_reference_defs = true
-    end
-    if has_reference_defs && is_blank(block.literal)
-        unlink(block)
-    end
+    strip_reference_definitions!(p, block)
+    # Definitions are not content, so a paragraph left with nothing else is not
+    # a paragraph at all. A setext underline strips them the same way, leaving
+    # the emptied paragraph here to be dropped.
+    is_blank(block.literal) && unlink(block)
     return nothing
 end
 
