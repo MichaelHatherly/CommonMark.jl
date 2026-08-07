@@ -1,5 +1,3 @@
-using PrecompileTools
-
 @setup_workload begin
     # All non-default rules
     extension_rules = [
