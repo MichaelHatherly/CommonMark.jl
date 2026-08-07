@@ -87,6 +87,8 @@ inline_rule(rule::RawContentRule) = Rule(1, "{") do parser, block
     return false
 end
 
+claimed_syntax(::RawContentRule) = ["{="]
+
 block_modifier(rule::RawContentRule) = Rule(2) do parser, node
     if node.t isa CodeBlock
         m = match(reRawContent, node.t.info)

@@ -54,7 +54,9 @@
     @test unresolved[1].style == :full
     @test unresolved[1].image == false
     @test html(ast) == "<p>[text][missing]</p>\n"
-    @test markdown(ast) == "[text][missing]\n"
+    # The link text of an unresolved reference is plain text, so its brackets
+    # are escaped to keep them out of the reparsed markup.
+    @test markdown(ast) == "\\[text\\][missing]\n"
 
     # UnresolvedReference - collapsed style
     ast = p("[collapsed][]")
@@ -63,7 +65,7 @@
     @test unresolved[1].label == "collapsed"
     @test unresolved[1].style == :collapsed
     @test html(ast) == "<p>[collapsed][]</p>\n"
-    @test markdown(ast) == "[collapsed][]\n"
+    @test markdown(ast) == "\\[collapsed\\][]\n"
 
     # UnresolvedReference - shortcut style
     ast = p("[undefined shortcut]")
@@ -204,4 +206,127 @@ end
 
     ast = p("[日本語]: http://x.com\n\n[日本語]")
     @test html(ast) == "<p><a href=\"http://x.com\">日本語</a></p>\n"
+end
+
+@testitem "referencelinks label survives escaping" tags = [:extensions, :referencelinks] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(ReferenceLinkRule())
+
+    # A shortcut or collapsed reference spells its own label, so escaping the
+    # link text can leave it pointing at a definition that no longer matches.
+    @test Utilities.faithful(p, "[foo*]: /url\n\n*[foo*]\n")
+    @test Utilities.faithful(p, "[Foo*bar\\]]:my_(url) 'title (with parens)'\n\n[Foo*bar\\]]\n")
+    @test Utilities.faithful(p, "[foo*]: /url\n\n[foo*][]\n")
+
+    # A label needing no escaping keeps its original style.
+    @test markdown(p("[foo]: /url\n\n[foo]\n")) == "[foo]: /url\n\n[foo]\n"
+    @test markdown(p("[foo]: /url\n\n[foo][]\n")) == "[foo]: /url\n\n[foo][]\n"
+end
+
+@testitem "referencelinks label the text cannot spell" tags = [:extensions, :referencelinks] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(ReferenceLinkRule())
+
+    # An entity in the label spells a character the text writes back plainly, so
+    # the shortcut and collapsed forms give up their label and name it in full.
+    @test Utilities.faithful(p, "[a&amp;b]: /url\n\n[a&amp;b]\n")
+    @test Utilities.faithful(p, "[a&amp;b]: /url\n\n[a&amp;b][]\n")
+    @test markdown(p("[a&amp;b]: /url\n\n[a&amp;b]\n")) ==
+        "[a&amp;b]: /url\n\n[a\\&b][a&amp;b]\n"
+
+    # Typographic replacement rewrites the text the same way.
+    smart = create_parser([ReferenceLinkRule(), TypographyRule()])
+    @test Utilities.faithful(smart, "[a\"b]: /url\n\n[a\"b]\n")
+    @test Utilities.faithful(smart, "[a--b]: /url\n\n[a--b]\n")
+    @test Utilities.faithful(smart, "[a...b]: /url\n\n[a...b]\n")
+end
+
+@testitem "referencelinks definitions" tags = [:extensions, :referencelinks] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(ReferenceLinkRule())
+    plain = Parser()
+
+    # A definition cannot interrupt a paragraph, with or without the rule.
+    text = "foo\n[bar]: /url\nbaz\n"
+    @test html(p(text)) == html(plain(text))
+
+    # A definition reaches the output whatever shape it was written in.
+    @test Utilities.faithful(p, "[foo]: /url\n\n[foo]\n")
+    @test Utilities.faithful(p, "[foo]:\n/url\n\n[foo]\n")
+    @test Utilities.faithful(p, "   [foo]: \n      /url  \n           'the title'  \n\n[foo]\n")
+    @test Utilities.faithful(p, "[Foo bar]:\n<my url>\n'title'\n\n[Foo bar]\n")
+    @test Utilities.faithful(p, "[foo]: <>\n\n[foo]\n")
+    @test Utilities.faithful(p, "[Foo\n  bar]: /url\n\n[Baz][Foo bar]\n")
+    @test Utilities.faithful(p, "[foo]: /url '\ntitle\nline1\nline2\n'\n\n[foo]\n")
+
+    # Each definition keeps its own destination, first one wins for resolution.
+    ast = p("[foo]: /first\n[foo]: /second\n\n[foo]\n")
+    definitions = [n.t for (n, e) in ast if e && n.t isa CommonMark.ReferenceDefinition]
+    @test [d.destination for d in definitions] == ["/first", "/second"]
+    @test html(ast) == "<p><a href=\"/first\">foo</a></p>\n"
+
+    # A setext underline takes the definitions out of the paragraph above it,
+    # and the emptied paragraph leaves nothing behind.
+    ast = p("[foo]: /url\n---\n")
+    @test html(ast) == "<hr />\n"
+    @test markdown(ast) == "[foo]: /url\n\n* * *\n"
+    @test Utilities.faithful(p, "[foo]: /url\n---\n")
+end
+
+@testitem "referencelinks definition positions" tags = [:extensions, :referencelinks] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(ReferenceLinkRule())
+
+    # Definitions taken from one paragraph each report the span they occupied,
+    # not the span of the paragraph that held them.
+    ast = p("[a]: /1\n[b]: /2\n\ntext\n")
+    positions = [n.sourcepos for (n, e) in ast if e && n.t isa CommonMark.ReferenceDefinition]
+    @test positions == [((1, 2), (1, 7)), ((2, 2), (2, 7))]
+
+    # A definition written over two lines spans both of them.
+    ast = p("[a]:\n/1\n\ntext\n")
+    positions = [n.sourcepos for (n, e) in ast if e && n.t isa CommonMark.ReferenceDefinition]
+    @test positions == [((1, 2), (2, 2))]
+
+    # A container holds its content away from the start of the line, so a
+    # definition inside one is measured against the same columns as the block
+    # that held it.
+    ast = p("> [a]: /1\n")
+    positions = [n.sourcepos for (n, e) in ast if e && n.t isa CommonMark.ReferenceDefinition]
+    @test positions == [((1, 4), (1, 9))]
+
+    ast = p("- [a]: /1\n")
+    positions = [n.sourcepos for (n, e) in ast if e && n.t isa CommonMark.ReferenceDefinition]
+    @test positions == [((1, 4), (1, 9))]
+
+    ast = p("> [a]:\n> /1\n")
+    positions = [n.sourcepos for (n, e) in ast if e && n.t isa CommonMark.ReferenceDefinition]
+    @test positions == [((1, 4), (2, 4))]
+end
+
+@testitem "referencelinks definitions inside a block quote" tags =
+    [:extensions, :referencelinks] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(ReferenceLinkRule())
+
+    # A label and a title can hold newlines, and every line a definition writes
+    # starts with the margin of the block that holds it.
+    @test markdown(p("> [a\n> b]: /url \"ti\n> tle\"\n")) ==
+        "> [a\n> b]: /url \"ti\n> tle\"\n"
+    @test Utilities.faithful(p, "> [a\n> b]: /url \"ti\n> tle\"\n")
+    @test Utilities.faithful(p, "> [a\n> b]: /url\n>\n> [a b]\n")
 end

@@ -63,3 +63,21 @@
     # Definition with blank line and tab
     test_footnote("definition_blank_tab", p("[^1]:\n\n\ttext"), "footnotes")
 end
+
+@testitem "footnote definitions do not outlive their document" tags =
+    [:extensions, :footnotes] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(FootnoteRule())
+
+    # The definition reaches the link that references it, and the rendering
+    # happens before the next document is parsed.
+    first = p("x[^1]\n\n[^1]: note\n")
+    @test occursin("note", latex(first))
+
+    # A reused parser starts each document with the definitions it was given,
+    # so a reference the second document never defines stays unresolved.
+    second = p("y[^1]\n")
+    @test !occursin("note", latex(second))
+end

@@ -30,17 +30,28 @@ end
 struct TextRule end
 inline_rule(::TextRule) = Rule(parse_string, 1, "")
 
+# Whitespace is ASCII, so reading one byte is enough to tell it apart from
+# anything else, including a byte from the middle of a wider character.
+function source_char(buf::String, i::Int)
+    return (1 <= i <= ncodeunits(buf)) ? Char(codeunit(buf, i)) : '\0'
+end
+
 function parse_newline(parser::InlineParser, block::Node)
+    nlpos = position(parser)
     c = read(parser, Char)
     c === '\n' || error("expected newline, got $(repr(c))")
-    lastc = block.last_child
-    if !isnull(lastc) && lastc.t isa Text && endswith(lastc.literal, ' ')
-        child = Node(endswith(lastc.literal, "  ") ? LineBreak() : SoftBreak())
-        lastc.literal = rstrip(lastc.literal)
-        append_child(block, child)
-    else
-        append_child(block, Node(SoftBreak()))
+    # Whitespace the source strands before a line end is dropped, and two spaces
+    # there make a hard break instead. Both read the source rather than the text
+    # collected so far, because whitespace an entity decodes to is content.
+    before = source_char(parser.buf, nlpos - 1)
+    if before in WHITESPACE
+        lastc = block.last_child
+        if !isnull(lastc) && lastc.t isa Text
+            lastc.literal = rstrip(in(WHITESPACE), lastc.literal)
+        end
     end
+    hard_break = before === ' ' && source_char(parser.buf, nlpos - 2) === ' '
+    append_child(block, Node(hard_break ? LineBreak() : SoftBreak()))
     # Gobble leading spaces in next line.
     consume(parser, match(reInitialSpace, parser))
     return true
@@ -76,6 +87,15 @@ struct TypographyRule
             get(kwargs, :dashes, true),
         )
     end
+end
+
+function claimed_syntax(tr::TypographyRule)
+    claims = String[]
+    tr.double_quotes && push!(claims, "\"")
+    tr.single_quotes && push!(claims, "'")
+    tr.ellipses && push!(claims, "...")
+    tr.dashes && push!(claims, "--")
+    return claims
 end
 
 function inline_rule(tr::TypographyRule)

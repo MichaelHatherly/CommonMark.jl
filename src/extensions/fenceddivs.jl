@@ -117,6 +117,9 @@ Nested divs.
 struct FencedDivRule end
 block_rule(::FencedDivRule) = Rule(parse_fenced_div, 0.5, ":")
 
+# A single colon punctuates a sentence. Three of them open a div.
+claimed_syntax(::FencedDivRule) = [":::"]
+
 #
 # Writers
 #

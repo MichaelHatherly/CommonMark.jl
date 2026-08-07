@@ -58,3 +58,17 @@
     @test term(p("10^-3^")) == " 10⁻³\n"
     @test term(p("L^-1^")) == " L⁻¹\n"
 end
+
+@testitem "superscript roundtrip" tags = [:extensions, :superscript] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(SuperscriptRule())
+
+    # A caret the parse left as text keeps its meaning on a reparse.
+    @test Utilities.faithful(p, "a &#94;b&#94; c\n")
+    @test markdown(p("a &#94;b&#94; c\n")) == "a \\^b\\^ c\n"
+
+    # Superscript the rule parsed keeps its delimiters.
+    @test markdown(p("x^2^\n")) == "x^2^\n"
+end

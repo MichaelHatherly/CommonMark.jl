@@ -113,6 +113,12 @@ Writer(
 Base.get(w::Writer, k::Symbol, default) = get(w.context, k, default)
 Base.get!(f::Function, w::Writer, k::Symbol) = get!(f, w.context, k)
 
+"""
+Write markup the writer constructs itself, such as a fence, a list marker, or an
+emphasis delimiter. The characters are written as they stand, so a format that
+escapes what it writes reaches text content through its own call instead, such
+as the Markdown writer's [`content`](@ref).
+"""
 function literal(r::Writer, args...)
     if r.enabled
         for arg in args
@@ -122,6 +128,12 @@ function literal(r::Writer, args...)
     end
     return nothing
 end
+
+"""
+Report to the format that the margin of a line has been printed, so whatever
+comes next starts the line's content. Formats that don't care ignore it.
+"""
+margin_written!(format) = nothing
 
 function cr(r::Writer)
     if r.enabled && r.last != '\n'
@@ -150,6 +162,7 @@ function print_margin(r::Writer)
             seg.count > 0 && (seg.count -= 1)
         end
     end
+    margin_written!(r.format)
     return
 end
 

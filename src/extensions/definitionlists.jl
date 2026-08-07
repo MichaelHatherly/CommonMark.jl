@@ -216,6 +216,10 @@ end
 
 block_rule(::DefinitionListRule) = Rule(parse_definition, 0.5, ":")
 
+# `reDefinitionMarker` reads a colon followed by a space or a tab. A colon
+# followed by anything else, the one that ends a clause, is left alone.
+claimed_syntax(::DefinitionListRule) = [": ", ":\t"]
+
 #
 # Writers
 #

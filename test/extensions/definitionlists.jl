@@ -133,3 +133,22 @@ end
     @test defs[1][1]["t"] == "Para"     # each definition is a list of blocks
     @test defs[2][1]["t"] == "Para"
 end
+
+@testitem "definitionlists roundtrip" tags = [:extensions, :definitionlists] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(DefinitionListRule())
+
+    # A definition marker the parse left as text is escaped, so the line stays
+    # part of the paragraph rather than becoming a definition.
+    @test Utilities.faithful(p, "term\n&#58; not a definition\n")
+
+    # A definition list the rule parsed keeps its markers.
+    @test Utilities.faithful(p, "term\n: definition\n")
+
+    # A definition only opens a block at the start of a line, so a colon
+    # punctuating a sentence is left as it was written.
+    @test markdown(p("Mix them: bold text\n")) == "Mix them: bold text\n"
+    @test occursin("\\: not a definition", markdown(p("term\n&#58; not a definition\n")))
+end

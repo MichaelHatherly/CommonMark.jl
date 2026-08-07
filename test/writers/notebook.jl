@@ -67,3 +67,17 @@
         """,
     )
 end
+
+@testitem "notebook_claimed_syntax" tags = [:writers, :notebook] setup = [Utilities] begin
+    using CommonMark
+    using Test
+    using JSON
+
+    # A markdown cell holds part of a document whose rules claim `"`, so the
+    # character stays escaped even though the cell is rendered on its own. The
+    # two paragraphs share a cell, covering both the block that opens it and
+    # the block appended to it.
+    p = create_parser(TypographyRule())
+    json = JSON.parse(notebook(p("first &#34;a&#34;\n\nsecond &#34;b&#34;\n")))
+    @test join(json["cells"][1]["source"]) == "first \\\"a\\\"\n\nsecond \\\"b\\\"\n"
+end

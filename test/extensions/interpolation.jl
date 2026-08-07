@@ -116,3 +116,16 @@
     ast = p("foo: \$(foo), \$(x ^ 2), \$1234")
     test_interpolation("julia_expressions", ast, "interpolation")
 end
+
+@testitem "interpolation roundtrip" tags = [:extensions, :interpolation] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(CommonMark.JuliaInterpolationRule())
+
+    # A dollar sign left as text by the parse has to stay text on the next one,
+    # whatever Julia would make of what follows it.
+    @test Utilities.faithful(p, "literal &#36;(1 + 1)\n")
+    @test Utilities.faithful(p, "costs &#36;5 today\n")
+    @test markdown(p("literal &#36;(1 + 1)\n")) == "literal \\\$(1 + 1)\n"
+end

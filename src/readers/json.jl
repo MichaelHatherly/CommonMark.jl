@@ -169,16 +169,10 @@ end
 
 function codeblock_from_json(content::AbstractVector)
     attrs, code = content
-    node = Node(CodeBlock())
     id, classes, kvs = attrs
-    if !isempty(classes)
-        node.t.info = first(classes)
-    end
-    node.t.is_fenced = true
-    node.t.fence_char = '`'
-    node.t.fence_length = 3
     # json() chomps trailing newline, restore it.
-    node.literal = endswith(code, '\n') ? code : code * "\n"
+    literal = endswith(code, '\n') ? code : code * "\n"
+    node = Node(CodeBlock, literal; info = isempty(classes) ? "" : first(classes))
     apply_attrs!(node, attrs)
     return node
 end

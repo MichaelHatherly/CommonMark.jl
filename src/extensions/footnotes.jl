@@ -15,6 +15,8 @@ struct FootnoteRule
     cache::Dict{String, Node}
     FootnoteRule() = new(Dict())
 end
+reset_rule!(rule::FootnoteRule) = (empty!(rule.cache); nothing)
+
 block_rule(fr::FootnoteRule) = Rule(0.5, "[") do parser, container
     if !parser.indented
         ln = rest_from_nonspace(parser)

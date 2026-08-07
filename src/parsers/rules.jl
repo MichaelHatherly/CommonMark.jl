@@ -8,6 +8,75 @@ delim_nodes(::Any) = nothing
 flanking_rule(::Any) = nothing
 uses_odd_match(::Any) = nothing
 
+"""
+The spellings a rule gives meaning to in text that the core spec reads as plain
+text, such as the `--` that [`TypographyRule`](@ref) turns into an en dash.
+
+Text is written back out with the first character of each spelling escaped, so
+that a document parsed with the rule enabled reparses the same way.
+
+A rule that declares nothing claims the characters its own parsers trigger on,
+which escapes more of the text than the rule needs but never less. Naming the
+spellings narrows that: `["~~"]` escapes a tilde before another tilde, where the
+trigger character alone escapes every tilde. A rule whose syntax cannot be
+mistaken for text, such as one that reads only the first line of a document,
+declares `String[]` to claim nothing.
+"""
+claimed_syntax(rule) = trigger_syntax(rule)
+
+# The characters the Markdown writer escapes in text however the parser was
+# built, so a rule triggering on one of them has nothing to add.
+const ALWAYS_ESCAPED = ('`', '\\', '[', ']')
+
+# The characters a rule's own parsers are dispatched on. A rule that reads text
+# the core spec passes over reaches it through one of these, so they bound what
+# the rule can claim.
+function trigger_syntax(rule)
+    claims = String[]
+    for hook in (block_rule, inline_rule)
+        hooked = hook(rule)
+        hooked === nothing && continue
+        for r in (hooked isa Rule ? (hooked,) : hooked)
+            r === nothing && continue
+            for c in r.triggers
+                c in ALWAYS_ESCAPED || push!(claims, string(c))
+            end
+        end
+    end
+    return unique!(claims)
+end
+
+"""
+The spellings claimed by `rules` wherever they appear in text.
+"""
+claimed_syntax(rules::Union{Tuple, Vector}) = gather_claims(rules, !opens_blocks_only)
+
+"""
+The spellings claimed by `rules` at the start of a line, where a block opens and
+nowhere else. A rule that reads only blocks claims its spellings here, so a
+definition list's `: ` is escaped where it would open a definition and left
+alone where it punctuates a sentence.
+"""
+claimed_line_syntax(rules::Union{Tuple, Vector}) = gather_claims(rules, opens_blocks_only)
+
+function gather_claims(rules::Union{Tuple, Vector}, wanted)
+    claims = String[]
+    for rule in rules
+        # The core spec's own syntax is escaped by the rules of the spec, which
+        # read the text around a character rather than the character alone.
+        is_core_rule(rule) && continue
+        wanted(rule) || continue
+        append!(claims, claimed_syntax(rule))
+    end
+    return unique!(claims)
+end
+
+is_core_rule(rule) =
+    ruleoccursin(rule, COMMONMARK_BLOCK_RULES) || ruleoccursin(rule, COMMONMARK_INLINE_RULES)
+
+# A rule with no inline parser reads its syntax only where a block can open.
+opens_blocks_only(rule) = block_rule(rule) !== nothing && inline_rule(rule) === nothing
+
 struct Rule
     fn::Function
     priority::Float64
@@ -93,6 +162,15 @@ function enable!(p::AbstractParser, rule)
     odd = uses_odd_match(rule)
     odd !== nothing && push!(p.inline_parser.odd_match_chars, odd)
     push!(p.rules, rule)
+    rebuild_claimed_syntax!(p)
+    return p
+end
+
+# A fresh vector rather than one cleared in place, so a document already parsed
+# keeps the claims it was parsed with.
+function rebuild_claimed_syntax!(p::AbstractParser)
+    p.claimed = claimed_syntax(p.rules)
+    p.claimed_line = claimed_line_syntax(p.rules)
     return p
 end
 
@@ -142,9 +220,16 @@ function disable!(p::AbstractParser, rules::Union{Tuple, Vector})
     empty!(p.inline_parser.delim_max)
     fill!(p.inline_parser.trigger_table, false)
     empty!(p.rules)
+    rebuild_claimed_syntax!(p)
     return enable!(p, rules_kept)
 end
 disable!(p::AbstractParser, rule) = disable!(p, [rule])
 
 reset_rules!(p::AbstractParser) = (foreach(reset_rule!, p.rules); p)
+
+"""
+Clear the state a rule gathered while parsing a document, so that the next
+document does not resolve against it. A rule holding no such state needs no
+method here.
+"""
 reset_rule!(rule) = nothing

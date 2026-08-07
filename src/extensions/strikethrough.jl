@@ -28,6 +28,7 @@ inline_rule(::StrikethroughRule) = Rule(parse_tilde, 1, "~")
 inline_modifier(::StrikethroughRule) = Rule(process_emphasis, 1)
 delim_nodes(::StrikethroughRule) = Dict(('~', 2) => Strikethrough)
 flanking_rule(::StrikethroughRule) = ('~', :standard)
+claimed_syntax(::StrikethroughRule) = ["~~"]
 
 #
 # Writers

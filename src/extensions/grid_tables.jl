@@ -21,6 +21,10 @@ struct GridTableRule end
 
 block_rule(::GridTableRule) = Rule(parse_grid_table, 7.5, "+")
 
+# `re_grid_border` reads a plus followed by dashes or equals signs. A plus
+# between two numbers opens nothing.
+claimed_syntax(::GridTableRule) = ["+-", "+="]
+
 """Grid table container. Same children as Table (TableHeader, TableBody, TableFoot, TableRow, TableCell)."""
 struct GridTable <: TableComponent
     spec::Vector{Symbol}
@@ -1089,7 +1093,7 @@ function _render_grid_cell(cell_node::Node)
     buf = IOBuffer()
     child = cell_node.first_child
     while !isnull(child)
-        write(buf, markdown(child))
+        write(buf, markdown_fragment(child))
         child = child.nxt
     end
     text = rstrip(String(take!(buf)))

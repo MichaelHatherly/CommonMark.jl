@@ -66,6 +66,9 @@ Not enabled by default. Uses `!!!` syntax with a category and optional title.
 struct AdmonitionRule end
 block_rule(::AdmonitionRule) = Rule(parse_admonition, 0.5, "!")
 
+# Three of them open an admonition. One is an exclamation mark like any other.
+claimed_syntax(::AdmonitionRule) = ["!!!"]
+
 #
 # Writers
 #

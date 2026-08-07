@@ -29,6 +29,7 @@ inline_rule(::MarkRule) = Rule(parse_equals, 1, "=")
 inline_modifier(::MarkRule) = Rule(process_emphasis, 1)
 delim_nodes(::MarkRule) = Dict(('=', 2) => Mark)
 flanking_rule(::MarkRule) = ('=', :standard)
+claimed_syntax(::MarkRule) = ["=="]
 
 #
 # Writers

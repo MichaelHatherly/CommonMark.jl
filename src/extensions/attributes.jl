@@ -63,6 +63,8 @@ inline_rule(rule::AttributeRule) = Rule(1, "{") do parser, block
     return true
 end
 
+claimed_syntax(::AttributeRule) = ["{"]
+
 function try_parse_attributes(parser::AbstractParser)
     start_mark = pos = position(parser)
     while peek(parser, Char) === ' '

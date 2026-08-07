@@ -73,15 +73,16 @@ function write_notebook(json, node, enter, env)
     elseif !isnull(node.parent) && node.parent.t isa Document && enter
         # All other toplevel turns into markdown cells.
         cells = json["cells"]
+        source = markdown_fragment(node, env)
         if !isempty(cells) && cells[end]["cell_type"] == "markdown"
             # When we already have a current markdown cell then append content.
-            append!(cells[end]["source"], split_lines(markdown(node, env)))
+            append!(cells[end]["source"], split_lines(source))
         else
             # ... otherwise open a new cell.
             cell = Dict(
                 "cell_type" => "markdown",
                 "metadata" => Dict(),
-                "source" => split_lines(markdown(node)),
+                "source" => split_lines(source),
             )
             push!(cells, cell)
         end
