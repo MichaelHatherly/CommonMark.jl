@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.0.4] - 2026-08-11
+
+### Changed
+
+- Move the module body into `src/packagedef.jl`, leaving `src/CommonMark.jl` as a `module` block that includes it. This lets external tooling load the package source into a module of its own choosing; the Julia VS Code extension does this for the dependencies it bundles, and reaches CommonMark through JuliaFormatter [#188]
+
 ## [v1.0.3] - 2026-07-22
 
 ### Changed
@@ -447,6 +453,7 @@ Initial release.
 [v1.0.1]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.1
 [v1.0.2]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.2
 [v1.0.3]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.3
+[v1.0.4]: https://github.com/MichaelHatherly/CommonMark.jl/releases/tag/v1.0.4
 [#46]: https://github.com/MichaelHatherly/CommonMark.jl/issues/46
 [#50]: https://github.com/MichaelHatherly/CommonMark.jl/issues/50
 [#51]: https://github.com/MichaelHatherly/CommonMark.jl/issues/51
@@ -511,3 +518,4 @@ Initial release.
 [#158]: https://github.com/MichaelHatherly/CommonMark.jl/issues/158
 [#161]: https://github.com/MichaelHatherly/CommonMark.jl/issues/161
 [#176]: https://github.com/MichaelHatherly/CommonMark.jl/issues/176
+[#188]: https://github.com/MichaelHatherly/CommonMark.jl/issues/188
