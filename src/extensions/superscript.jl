@@ -28,6 +28,7 @@ inline_rule(::SuperscriptRule) = Rule(parse_caret, 1, "^")
 inline_modifier(::SuperscriptRule) = Rule(process_emphasis, 1)
 delim_nodes(::SuperscriptRule) = Dict(('^', 1) => Superscript)
 flanking_rule(::SuperscriptRule) = ('^', :permissive)
+claimed_syntax(::SuperscriptRule) = ["^"]
 
 #
 # Writers

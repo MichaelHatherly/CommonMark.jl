@@ -156,6 +156,7 @@ function parse_inline_dollar_math(p::InlineParser, node::Node)
 end
 
 inline_rule(::DollarMathRule) = Rule(parse_inline_dollar_math, 0, "\$")
+claimed_syntax(::DollarMathRule) = ["\$"]
 
 #
 # Writers
@@ -198,12 +199,7 @@ function write_markdown(m::Math, w, node, ent)
         end
         literal(w, delim, content, delim)
     else
-        num = foldl(eachmatch(r"`+", node.literal); init = 0) do a, b
-            max(a, length(b.match))
-        end
-        literal(w, "`"^(num == 2 ? 4 : 2))
-        literal(w, node.literal)
-        literal(w, "`"^(num == 2 ? 4 : 2))
+        backtick_span(w, node.literal; even = true)
     end
 end
 

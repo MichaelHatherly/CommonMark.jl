@@ -46,6 +46,8 @@ inline_rule(rule::CitationRule) = Rule(1, "@") do parser, block
     return true
 end
 
+claimed_syntax(::CitationRule) = ["@"]
+
 is_bracket(n::Node, c) = n.literal == c && n.t isa Text
 
 function mark_citation_brackets!(cite::Node, openers::Set{Node}, closers::Set{Node})

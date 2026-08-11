@@ -86,3 +86,20 @@
     @test data["_error"] isa AbstractString
     @test !isempty(data["_error"])
 end
+
+@testitem "frontmatter roundtrip" tags = [:extensions, :frontmatter] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(FrontMatterRule())
+
+    # Only the JSON fence spells nothing to the core spec. A dash or plus fence
+    # opens a thematic break or a list, which the writer escapes regardless.
+    @test Utilities.faithful(p, "&#59;;;\n")
+    @test markdown(p("&#59;;;\n")) == "\\;;;\n"
+    @test Utilities.faithful(p, "&#45;--\n")
+    @test Utilities.faithful(p, "&#43;++\n")
+
+    # A semicolon that opens no fence is left alone.
+    @test markdown(p("a; b\n")) == "a; b\n"
+end

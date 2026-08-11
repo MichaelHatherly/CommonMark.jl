@@ -27,6 +27,18 @@
     @test root.last_child.literal == "prepend_child"
 end
 
+@testitem "ast_equal ignores parser state" tags = [:core] begin
+    using CommonMark
+    using Test
+
+    # The rules a document was parsed with are writer configuration, not
+    # content, so two parsers that agree on the text agree on the AST.
+    plain = Parser()
+    smart = enable!(Parser(), CommonMark.TypographyRule())
+    @test CommonMark.ast_equal(plain("hi\n"), smart("hi\n"))
+    @test !CommonMark.ast_equal(plain("hi\n"), plain("bye\n"))
+end
+
 @testitem "insert preserves NULL_NODE sentinel" tags = [:core] begin
     using CommonMark
     using Test

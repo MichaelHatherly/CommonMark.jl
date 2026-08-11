@@ -132,12 +132,7 @@
     test("![word](url){#id}", CommonMark.Image, dict)
     test("**word**{#id}", CommonMark.Strong, dict)
     test("`word`{#id}", CommonMark.Code, dict)
-    test(
-        "<http://www.website.com>{#id}",
-        CommonMark.Link,
-        dict,
-        "[http://www.website.com](http://www.website.com){#id}",
-    )
+    test("<http://www.website.com>{#id}", CommonMark.Link, dict)
 
     # Writer output tests
     test_single = test_single_format(pwd(), p)
@@ -159,4 +154,18 @@
     )
     test_single("references/attributes/emphasis_with_id.tex", "*word*{#id}", latex)
     test_single("references/attributes/emphasis_with_id.typ", "*word*{#id}", typst)
+end
+
+@testitem "attributes roundtrip" tags = [:extensions, :attributes] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(AttributeRule())
+
+    # A brace the parse left as text keeps its meaning on a reparse.
+    @test Utilities.faithful(p, "text &#123;.cls&#125;\n")
+    @test markdown(p("text &#123;.cls&#125;\n")) == "text \\{.cls}\n"
+
+    # Attributes the rule parsed keep their braces.
+    @test markdown(p("*word*{.cls}\n")) == "*word*{.cls}\n"
 end

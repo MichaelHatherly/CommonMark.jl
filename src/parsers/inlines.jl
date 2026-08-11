@@ -1,5 +1,4 @@
 const ESCAPED_CHAR = "\\\\$(ESCAPABLE)"
-const WHITESPACECHAR = collect(" \t\n\x0b\x0c\x0d")
 
 const reLinkTitle = Regex(
     "^(?:\"($(ESCAPED_CHAR)|[^\"\\x00])*\"|'($(ESCAPED_CHAR)|[^'\\x00])*'|\\(($(ESCAPED_CHAR)|[^()\\x00])*\\))",
@@ -141,7 +140,7 @@ function parse_inline(parser::InlineParser, block::Node, fallback::Vector{Functi
 end
 
 function parse_inlines(parser::InlineParser, block::Node)
-    parser.buf = strip(block.literal)
+    parser.buf = strip(in(WHITESPACE), block.literal)
     block.literal = ""
     parser.pos = 1
     parser.len = ncodeunits(parser.buf)

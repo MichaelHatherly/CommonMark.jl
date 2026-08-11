@@ -37,3 +37,15 @@
     ast = p(text)
     test_raw("text_inline_raw", ast, "raw")
 end
+
+@testitem "raw_content roundtrip" tags = [:extensions, :raw] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(RawContentRule())
+
+    # A format tag the parse left as text after a code span keeps its meaning on
+    # a reparse.
+    @test Utilities.faithful(p, "`x`&#123;=html&#125;\n")
+    @test markdown(p("`x`&#123;=html&#125;\n")) == "`x`\\{=html}\n"
+end

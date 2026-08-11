@@ -26,6 +26,7 @@ inline_rule(::SubscriptRule) = Rule(parse_tilde, 1, "~")
 inline_modifier(::SubscriptRule) = Rule(process_emphasis, 1)
 delim_nodes(::SubscriptRule) = Dict(('~', 1) => Subscript)
 flanking_rule(::SubscriptRule) = ('~', :permissive)
+claimed_syntax(::SubscriptRule) = ["~"]
 
 #
 # Writers

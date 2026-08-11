@@ -23,7 +23,8 @@
     ast = p("# *not a header*")
     @test ast.first_child.t isa CommonMark.Paragraph
     @test ast.first_child.first_child.nxt.t isa CommonMark.Emph
-    @test markdown(ast) == "# *not a header*\n"
+    # Written for a parser with the rule enabled, which is the safe assumption.
+    @test markdown(ast) == "\\# *not a header*\n"
 
     # Make sure that enable! or disable! do not create duplicate rules
     # https://github.com/MichaelHatherly/CommonMark.jl/issues/45
@@ -135,6 +136,103 @@
     end
 end
 
+@testitem "a paragraph of definitions leaves no empty block" tags = [:core] begin
+    using CommonMark
+    using Test
+    p = Parser()
+
+    # A setext underline has no heading text to underline when the paragraph
+    # above it held nothing but definitions, so the line is read on its own and
+    # the emptied paragraph goes away.
+    @test html(p("[foo]: /url\n---\n")) == "<hr />\n"
+    @test markdown(p("[foo]: /url\n---\n")) == "* * *\n"
+
+    # `===` spells no other block, so it stays as the paragraph's text.
+    @test html(p("[foo]: /url\n===\n")) == "<p>===</p>\n"
+
+    # Control: a definition followed by a blank line already left nothing.
+    @test html(p("[foo]: /url\n\ntext\n")) == "<p>text</p>\n"
+end
+
+@testitem "claimed syntax reads rules from any collection" tags = [:core] begin
+    using CommonMark
+    using Test
+
+    # `enable!` takes a tuple as readily as a vector, so both spell the same
+    # set of claims.
+    rules = (TypographyRule(), SubscriptRule(), TableRule())
+    @test CommonMark.claimed_syntax(rules) == CommonMark.claimed_syntax(collect(rules))
+    @test "~" in CommonMark.claimed_syntax(rules)
+    @test "|" in CommonMark.claimed_syntax(rules)
+end
+
+@testitem "claimed syntax is a vector of strings" tags = [:core] begin
+    using CommonMark
+    using Test
+
+    # Every rule spells its claims the same way, so gathering them over a
+    # parser's rules infers a concrete type.
+    @test @inferred(CommonMark.claimed_syntax(DollarMathRule())) == ["\$"]
+    @test @inferred(CommonMark.claimed_syntax(TypographyRule(dashes = false))) ==
+        ["\"", "'", "..."]
+
+    # A rule that claims nothing beyond the core spec still answers with a
+    # vector.
+    @test @inferred(CommonMark.claimed_syntax(FootnoteRule())) == String[]
+end
+
+@testitem "claimed syntax falls back to a rule's triggers" tags = [:core] setup =
+    [Utilities] begin
+    using CommonMark
+    using Test
+
+    # A rule written without a thought for the Markdown writer, in the shape any
+    # rule outside this package takes: a delimiter, no declared claims.
+    struct PercentRule end
+    struct Percent <: CommonMark.AbstractInline end
+    CommonMark.is_container(::Percent) = true
+    CommonMark.inline_rule(::PercentRule) =
+        CommonMark.Rule((p, b) -> CommonMark.handle_delim(p, '%', b), 1, "%")
+    CommonMark.inline_modifier(::PercentRule) =
+        CommonMark.Rule(CommonMark.process_emphasis, 1)
+    CommonMark.delim_nodes(::PercentRule) = Dict(('%', 1) => Percent)
+    CommonMark.flanking_rule(::PercentRule) = ('%', :permissive)
+    CommonMark.write_html(::Percent, r, n, ent) = CommonMark.tag(r, ent ? "u" : "/u")
+    CommonMark.write_markdown(::Percent, w, n, ent) = CommonMark.literal(w, "%")
+
+    # It claims the character it parses on, so its syntax survives a reparse
+    # without its author having declared anything.
+    @test CommonMark.claimed_syntax(PercentRule()) == ["%"]
+
+    p = Parser()
+    enable!(p, PercentRule())
+    @test Utilities.faithful(p, "a &#37;b&#37; c\n")
+    @test markdown(p("a &#37;b&#37; c\n")) == "a \\%b\\% c\n"
+
+    # A declaration replaces the fallback with the narrower spelling, so a
+    # tilde is escaped before another tilde rather than everywhere.
+    @test CommonMark.claimed_syntax(StrikethroughRule()) == ["~~"]
+
+    # The core rules parse the syntax the writer already escapes on its own
+    # terms, so they add nothing for it to escape twice.
+    @test Parser().claimed == String[]
+end
+
+@testitem "claimed syntax separates block rules from inline rules" tags = [:core] begin
+    using CommonMark
+    using Test
+
+    # A rule that reads only blocks gives its spellings meaning where a block
+    # opens, so they are claimed at the start of a line and nowhere else.
+    @test CommonMark.claimed_syntax([DefinitionListRule()]) == String[]
+    @test CommonMark.claimed_line_syntax([DefinitionListRule()]) == [": ", ":\t"]
+
+    # A rule that reads inlines claims its spellings wherever they appear, even
+    # where it also reads blocks, as the table rule does for its pipe.
+    @test CommonMark.claimed_syntax([TableRule()]) == ["|"]
+    @test CommonMark.claimed_line_syntax([TableRule()]) == String[]
+end
+
 @testitem "reference definition discards invalid title" tags = [:core] begin
     using CommonMark
     using Test
@@ -216,4 +314,25 @@ end
     @test_throws ErrorException CommonMark.parse_backslash(inline_at("x"), block)
     @test_throws ErrorException CommonMark.parse_newline(inline_at("x"), block)
     @test_throws ErrorException CommonMark.parse_open_bracket(inline_at("x"), block)
+end
+
+@testitem "line end whitespace is read from the source" tags = [:core] begin
+    using CommonMark
+    using Test
+
+    p = Parser()
+
+    # Whitespace written before a line end is dropped, and a pair of spaces
+    # there is a hard break instead. Both are decided from the source text.
+    @test html(p("foo \nbar")) == "<p>foo\nbar</p>\n"
+    @test html(p("foo \t\nbar")) == "<p>foo\nbar</p>\n"
+    @test html(p("foo\t \nbar")) == "<p>foo\nbar</p>\n"
+    @test html(p("foo  \nbar")) == "<p>foo<br />\nbar</p>\n"
+
+    # An entity decodes to content, so its whitespace is neither dropped nor
+    # read as a hard break.
+    @test html(p("foo&#32;\nbar")) == "<p>foo \nbar</p>\n"
+    @test html(p("foo&#32;&#32;\nbar")) == "<p>foo  \nbar</p>\n"
+    @test html(p("foo &#32;\nbar")) == "<p>foo  \nbar</p>\n"
+    @test html(p("foo&#32; \nbar")) == "<p>foo \nbar</p>\n"
 end

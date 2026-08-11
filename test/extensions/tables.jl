@@ -155,3 +155,28 @@ end
     @test occursin("<td align=\"center\"></td>", out)
     @test occursin("<td align=\"right\"></td>", out)
 end
+
+@testitem "tables roundtrip" tags = [:extensions, :tables] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(TableRule())
+
+    # A pipe inside a cell is content, not the next cell's separator.
+    @test Utilities.faithful(p, "| a | b |\n|---|---|\n| c&#124;d | e |\n")
+end
+
+@testitem "tables cell width" tags = [:extensions, :tables] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    # Every row of a table is padded to the same width, so the escapes a cell
+    # picks up have to be counted when its column is measured.
+    aligned(md) = length(unique(length(line) for line in split(rstrip(md), '\n'))) == 1
+
+    p = create_parser(TableRule())
+    @test aligned(markdown(p("| a | b |\n|---|---|\n| c&#124;d | e |\n")))
+
+    q = create_parser([TableRule(), TypographyRule()])
+    @test aligned(markdown(q("| a | b |\n|---|---|\n| &#34;c&#34; | e |\n")))
+end

@@ -45,3 +45,40 @@ end
     @test html(p("[Foo]\n\n[foo]: /url\n")) == "<p><a href=\"/url\">Foo</a></p>\n"
     @test html(p("[FOO]\n\n[foo]: /url\n")) == "<p><a href=\"/url\">FOO</a></p>\n"
 end
+
+@testitem "unicode_markdown_roundtrip" tags = [:unicode, :roundtrip] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = Parser()
+
+    # The Markdown writer tracks escape positions in bitvectors sized by
+    # codeunits and walks them one character at a time, so multi-byte text must
+    # not shift an escape onto a continuation byte.
+    @test Utilities.faithful(p, "é*x*\n")
+    @test Utilities.faithful(p, "café [link](u)\n")
+    @test Utilities.faithful(p, "你好 **bold**\n")
+    @test Utilities.faithful(p, "« quoted »\n")
+end
+
+@testitem "unicode_whitespace_is_content" tags = [:unicode] begin
+    using CommonMark
+    using Test
+
+    p = Parser()
+
+    # The spec strips space, tab, and the line ending characters from paragraph
+    # content. Everything else Unicode calls whitespace is content, and an
+    # entity already decodes to content.
+    @test html(p("\u00a0x")) == "<p>\u00a0x</p>\n"
+    @test html(p("&nbsp;x")) == html(p("\u00a0x"))
+    @test html(p("x\u00a0")) == "<p>x\u00a0</p>\n"
+    @test html(p("x\u00a0\ny")) == "<p>x\u00a0\ny</p>\n"
+    # Dropping the space before the line end stops at the non-breaking one.
+    @test html(p("x\u00a0 \ny")) == "<p>x\u00a0\ny</p>\n"
+    @test html(p("\u2003x")) == "<p>\u2003x</p>\n"
+
+    # Spaces and tabs are still stripped.
+    @test html(p(" x ")) == "<p>x</p>\n"
+    @test html(p("x \ny")) == "<p>x\ny</p>\n"
+end

@@ -63,3 +63,17 @@
     # Markdown roundtrip
     @test markdown(p("==highlighted==")) == "==highlighted==\n"
 end
+
+@testitem "mark roundtrip" tags = [:extensions, :mark] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(MarkRule())
+
+    # Equals signs the parse left as text keep their meaning on a reparse.
+    @test Utilities.faithful(p, "a &#61;&#61;b&#61;&#61; c\n")
+    @test markdown(p("a &#61;&#61;b&#61;&#61; c\n")) == "a \\==b\\== c\n"
+
+    # A mark the rule parsed keeps its delimiters.
+    @test markdown(p("==word==\n")) == "==word==\n"
+end

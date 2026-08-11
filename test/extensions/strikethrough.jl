@@ -48,3 +48,17 @@
     # Test inline three tildes with surrounding text instead
     @test html(p("a~~~b~~~c")) == "<p>a~<del>b</del>~c</p>\n"
 end
+
+@testitem "strikethrough roundtrip" tags = [:extensions, :strikethrough] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(StrikethroughRule())
+
+    # Tildes the parse left as text keep their meaning on a reparse.
+    @test Utilities.faithful(p, "a &#126;&#126;b&#126;&#126; c\n")
+    @test markdown(p("a &#126;&#126;b&#126;&#126; c\n")) == "a \\~~b\\~~ c\n"
+
+    # Strikethrough the rule parsed keeps its delimiters.
+    @test markdown(p("~~word~~\n")) == "~~word~~\n"
+end

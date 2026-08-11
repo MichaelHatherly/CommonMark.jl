@@ -66,15 +66,7 @@ function setext_heading(parser::Parser, container::Node)
         if m !== nothing
             close_unmatched_blocks(parser)
             finalize_literal!(container)
-            # resolve reference link definitiosn
-            while get(container.literal, 1, nothing) == '['
-                pos =
-                    parse_reference(parser.inline_parser, container.literal, parser.refmap)
-                if pos == 0
-                    break
-                end
-                container.literal = container.literal[(pos + 1):end]
-            end
+            strip_reference_definitions!(parser, container)
             if !isempty(container.literal)
                 heading = Node(Heading(), container.sourcepos)
                 heading.t.level = m.match[1] == '=' ? 1 : 2

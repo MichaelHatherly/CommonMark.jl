@@ -116,3 +116,20 @@
         "fenceddivs",
     )
 end
+
+@testitem "fenceddivs roundtrip" tags = [:extensions, :fenceddivs] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(FencedDivRule())
+
+    # Text spelling a div fence is escaped, so it stays text.
+    @test Utilities.faithful(p, "&#58;:: warning\n")
+    @test markdown(p("&#58;:: warning\n")) == "\\::: warning\n"
+
+    # A colon that opens nothing is left alone.
+    @test markdown(p("note: text\n")) == "note: text\n"
+
+    # A div the rule parsed keeps its fence.
+    @test Utilities.faithful(p, "::: warning\ntext\n:::\n")
+end

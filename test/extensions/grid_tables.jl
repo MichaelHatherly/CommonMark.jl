@@ -277,6 +277,18 @@
         @test md1 == md2
     end
 
+    # A cell writer that suspends output for its own children must hand the
+    # table writer back the suspension it borrowed.
+    text = """
+    +-----------------------+
+    | <https://example.com> |
+    +-----------------------+
+    """
+    ast = p(text)
+    md1 = markdown(ast)
+    @test md1 == text
+    @test markdown(p(md1)) == md1
+
     # Width-80 explicit IOContext matches term() output (which uses IOBuffer → 80 cols)
     text = """
     +----------+----------------------+
@@ -394,4 +406,18 @@
         vis = CommonMark._term_visible_length(line)
         @test vis <= 35
     end
+end
+
+@testitem "grid_tables roundtrip" tags = [:extensions, :grid_tables] setup = [Utilities] begin
+    using CommonMark
+    using Test
+
+    p = create_parser(GridTableRule())
+
+    # Text spelling a grid border is escaped, so it stays text.
+    @test Utilities.faithful(p, "&#43;---+\n")
+    @test markdown(p("&#43;---+\n")) == "\\+---+\n"
+
+    # A plus that opens no border is left alone.
+    @test markdown(p("1 + 1\n")) == "1 + 1\n"
 end
