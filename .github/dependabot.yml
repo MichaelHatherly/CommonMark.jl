@@ -13,3 +13,12 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+  - package-ecosystem: "julia"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "julia"
+    cooldown:
+      default-days: 7
